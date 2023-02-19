@@ -1,0 +1,322 @@
+#EXTENSION(GlobalCooperativeThreading, 'Global Cooperative Threading Extension'),APPLICATION(PreemptiveProcedure(ABC)),HLP('~TPLExtensionGlobalCoop_Options.htm')
+#PREPARE
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'ThreadLocker', 'Locker', %ThreadLockerClass)
+  #CALL(%SetClassDefaults, 'CooperationClass', 'CoopClass', %CooperationClass)
+#ENDPREPARE
+  #BOXED,HIDE
+    #INSERT(%OOPHiddenPrompts)
+  #ENDBOXED
+  #SHEET
+  #TAB('Options'),HLP('~TPLGlobalCoop_Options.htm')
+    #PROMPT('&Enable Global Cooperative Threading', CHECK),%EnableCooperativeThreading,DEFAULT(%True),AT(4)
+  #ENDTAB
+  #TAB('Classes'),HLP('~TPLGlobalCoop.htm')
+    #BOXED('')
+     #PROMPT('&Thread Locker:',FROM(%pClassName)),%ThreadLockerClass,DEFAULT('ThreadLocker'),REQ
+     #PROMPT('&Cooperation Class:',FROM(%pClassName)),%CooperationClass,DEFAULT('CooperationClass'),REQ
+    #ENDBOXED
+    #BUTTON('T&hread Locker Class'),AT(,,170)
+     #WITH(%ClassItem,'ThreadLocker')
+      #INSERT(%GlobalClassPrompts)
+     #END
+    #ENDBUTTON
+    #BUTTON('C&ooperation Class'),AT(,,170)
+     #WITH(%ClassItem,'CooperationClass')
+      #INSERT(%GlobalClassPrompts)
+     #END
+    #ENDBUTTON
+  #ENDTAB
+  #ENDSHEET
+#!
+#!
+#ATSTART
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'ThreadLocker', 'ThreadLocker', %ThreadLockerClass)
+  #EQUATE(%ThreadLockerName, %ThisObjectName)
+  #CALL(%SetClassDefaults, 'CooperationClass', 'CooperationClass', %CooperationClass)
+  #EQUATE(%CooperationClassName, %ThisObjectName)
+#ENDAT
+#!
+#!
+#AT(%BeforeInitializingGlobalObjects),WHERE(%EnableCooperativeThreading)
+  #IF(~%GlobalExternal)
+SYSTEM{PROP:UnlockThreadHook} = ADDRESS(_UnlockProc)            #<! Setup system hooks for cooperative threading
+SYSTEM{PROP:LockThreadHook} = ADDRESS(_LockProc)
+SYSTEM{PROP:ThreadLockedHook} = ADDRESS(_LockedProc)
+  #ENDIF
+#ENDAT
+#!
+#!
+#AT(%ProcedureDeclarationsInsideGlobalMap),WHERE(%EnableCooperativeThreading)
+  #IF(~%GlobalExternal)
+_LockProc   PROCEDURE
+_UnlockProc PROCEDURE
+_LockedProc PROCEDURE,BYTE
+  #ENDIF
+#ENDAT
+#!
+#!
+#AT(%GlobalData),WHERE(%EnableCooperativeThreading)
+  #IF(%GlobalExternal)
+    #ADD(%GlobalIncludeList, 'ABCPTHD.INC')
+    #DECLARE(%TLDecl)
+    #EQUATE(%ExtDecl, ',EXTERNAL')
+    #IF(%ExternalSource = 'Dynamic Link Library (DLL)')
+      #SET(%ExtDecl, %ExtDecl & ',DLL')
+    #ENDIF
+    #FIX(%ClassItem, 'ThreadLocker')
+    #CALL(%MakeDeclr, 22, %TLDecl, %ThreadLockerName, %BaseClassToUse() & %ExtDecl, 'Global thread locker for preemptive threading support')
+%TLDecl
+    #FIX(%ClassItem, 'CooperationClass')
+    #CALL(%MakeDeclr, 22, %TLDecl, %CooperationClassName, %BaseClassToUse() & ',THREAD' & %ExtDecl, 'Global cooperation class for preemptive threading support')
+%TLDecl
+  #ELSE
+#INSERT(%GenerateClass, 'ThreadLocker', 'Global thread locker for preemptive threading support')
+#INSERT(%GenerateClass, 'CooperationClass', 'Global cooperation class for preemptive threading support', %False, 'THREAD')
+  #ENDIF
+#ENDAT
+#!
+#!
+#AT(%GatherObjects),WHERE(%EnableCooperativeThreading)
+  #IF(~%GlobalExternal)
+    #CALL(%AddObjectList, 'ThreadLocker')
+    #CALL(%AddObjectList, 'CooperationClass')
+  #ENDIF
+#ENDAT
+#!
+#!
+#AT(%AfterGlobalIncludes),WHERE(%EnableCooperativeThreading)
+  #IF(%GlobalExternal)
+    #ADD(%GlobalIncludeList, 'ABCPTHD.INC')
+  #ENDIF
+#ENDAT
+#!
+#!
+#AT(%BeginningExports),WHERE(%EnableCooperativeThreading)
+  #IF(~%GlobalExternal)
+    #FIX(%ClassItem, 'ThreadLocker')
+#INSERT(%AddExpItem, '$' & %ThisObjectName)
+    #FIX(%ClassItem, 'CooperationClass')
+#INSERT(%AddExpItem, '$' & %ThisObjectName)
+  #ENDIF
+#ENDAT
+#!
+#!
+#AT(%ProgramProcedures),WHERE(%EnableCooperativeThreading)
+  #IF(~%GlobalExternal)
+
+_UnlockProc PROCEDURE
+
+  CODE
+  %CooperationClassName.Release()
+
+
+_LockProc PROCEDURE
+
+  CODE
+  %CooperationClassName.Wait()
+
+
+_LockedProc PROCEDURE
+
+  CODE
+  RETURN %CooperationClassName.IsLocked()
+
+
+#CALL(%GenerateVirtuals, 'ThreadLocker', 'Global Objects|Abc Objects|Cooperative Threading|Thread Locker', '%ThreadLockerVirtuals(ABC)', %True)
+#CALL(%GenerateVirtuals, 'CooperationClass', 'Global Objects|Abc Objects|Cooperative Threading|Cooperation Class', '%CooperationClassVirtuals(ABC)', %True)
+  #ENDIF
+#ENDAT
+#!
+#!
+#AT(%ThreadLockerMethodCodeSection),PRIORITY(5000),DESCRIPTION('Parent Call'), WHERE(%EnableCooperativeThreading AND %ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#!
+#AT(%CooperationClassMethodCodeSection, 'PreemptiveThread'),WHERE(%EnableCooperativeThreading),PRIORITY(2000)
+IF newState AND ~SELF.Preemptive
+  %ThreadLockerName.Release()
+ELSIF ~newState AND SELF.Preemptive
+  SELF.Preemptive = newState
+  %ThreadLockerName.Wait()
+END
+#ENDAT
+#!
+#!
+#AT(%CooperationClassMethodCodeSection, 'Wait'),WHERE(%EnableCooperativeThreading),PRIORITY(2000)
+IF ~SELF.Preemptive
+  %ThreadLockerName.Wait()
+  SELF.Locked = True
+END
+#ENDAT
+#!
+#!
+#AT(%CooperationClassMethodCodeSection, 'Release'),WHERE(%EnableCooperativeThreading),PRIORITY(2000)
+IF ~SELF.Preemptive
+  SELF.Locked = False
+  %ThreadLockerName.Release()
+END
+#ENDAT
+#!
+#!
+#AT(%CooperationClassMethodCodeSection),PRIORITY(5000),DESCRIPTION('Parent Call'), WHERE(%EnableCooperativeThreading AND %ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#!
+#GROUP(%ThreadLockerVirtuals, %TreeText, %DataText, %CodeText)
+#IF(~%GlobalExternal)
+#EMBED(%ThreadLockerMethodDataSection,'Global Thread Locker Method Data Section'),%pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(,%FixClassName(%FixBaseClassToUse('ThreadLocker'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%ThreadLockerMethodCodeSection,'Global Thread Locker Method Executable Code Section'),%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('ThreadLocker'))),TREE(%TreeText & %CodeText)
+#ENDIF
+#!
+#!
+#GROUP(%CooperationClassVirtuals, %TreeText, %DataText, %CodeText)
+#IF(~%GlobalExternal)
+#EMBED(%CooperationClassMethodDataSection,'Global Cooperation Class Method Data Section'),%pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(,%FixClassName(%FixBaseClassToUse('CooperationClass'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%CooperationClassMethodCodeSection,'Global Cooperation Class Method Executable Code Section'),%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('CooperationClass'))),TREE(%TreeText & %CodeText)
+#ENDIF
+#!
+#!
+#!
+#!
+#EXTENSION(PreemptiveProcedure, 'Preemptive Procedure Extension'),PROCEDURE,REQ(GlobalCooperativeThreading(ABC)),HLP('~TPLGlobalCoop_Options.htm')
+#!
+#PROMPT('&Enable Preemptive Threading on this Thread', CHECK),%EnablePreemptiveThreading,DEFAULT(%False),AT(4)
+#!
+#!
+#AT(%BeforeWindowManagerRun),PRIORITY(50),WHERE(%EnableCooperativeThreading AND %EnablePreemptiveThreading)
+%CooperationClassName.PreemptiveThread(True)                    #<! Set this thread to preemtive mode
+#ENDAT
+#!
+#!
+#!
+#!
+#EXTENSION(WorkingThread, 'Add a working thread object to the procedure'),PROCEDURE,MULTI,DESCRIPTION('Working thread object ('&%ThisObjectName&')')
+#PREPARE
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'Default', 'WorkingThread'&%ActiveTemplateInstance, 'WorkingThreadManager')
+  #SET(%WorkingThreadManagerObjectName,%ThisObjectName)
+#ENDPREPARE
+  #BOXED('Default WorkingThread prompts'),HIDE
+    #INSERT(%OOPHiddenPrompts)
+    #PROMPT('Local Ob&ject Name:',@S255),%WorkingThreadManagerObjectName
+  #ENDBOXED
+  #SHEET
+    #TAB('Variables')
+       #DISPLAY('Define variables for use in the worker thread.')
+       #DISPLAY('To make access to the variables thread safe,')
+       #DISPLAY('equivalent variables are generated in the CLASS.')
+       #DISPLAY('The CLASS variables use the naming convention:')
+       #DISPLAY('varName')
+       #DISPLAY('i.e. LOC:Name is accessed as SELF.varLOC:Name')
+       #BUTTON('Threaded variables'),MULTI(%ThreadedVariables,%ThreadedVariable),INLINE
+         #PROMPT('Variable:',FIELD),%ThreadedVariable,REQ
+         #PROMPT('Assignment Condition:',@n3),%ThreadedVariableCondition,DEFAULT(0)
+       #ENDBUTTON      
+       #PROMPT('Update variables when UpdateClient is called?', CHECK),%UpdateLocalsOnUpdateClient,DEFAULT(%False),AT(4)
+    #ENDTAB
+    #TAB('Classes')
+      #WITH(%ClassItem,'Default')
+        #INSERT(%ClassPrompts)
+      #ENDWITH
+    #ENDTAB
+  #ENDSHEET
+#!
+#ATSTART
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'Default', 'WorkingThread', 'WorkingThreadManager')
+  #SET(%WorkingThreadManagerObjectName,%ThisObjectName)
+  #FOR(%ThreadedVariables)
+      #CALL(%MakeDeclr,22,%OOPConstruct,'var'&%ThreadedVariable,'LIKE('&%ThreadedVariable&'),PRIVATE')
+      #ADD(%ClassLines, %OOPConstruct)
+      #CALL(%MakeDeclr,22,%OOPConstruct,'tmp'&%ThreadedVariable,'LIKE('&%ThreadedVariable&'),PRIVATE')
+      #ADD(%ClassLines, %OOPConstruct)
+  #ENDFOR
+#ENDAT
+#!
+#AT(%GatherObjects)
+#CALL(%AddObjectList, 'Default')
+#ENDAT
+#!
+#AT(%WindowManagerMethodCodeSection,'TakeEvent','(),BYTE'),PRIORITY(2600),DESCRIPTION(%WorkingThreadManagerObjectName&' TakeEvent')
+%WorkingThreadManagerObjectName.TakeEvent()
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'Kill','(),BYTE'),PRIORITY(7300)
+%WorkingThreadManagerObjectName.CancelProcess()
+#ENDAT
+#!
+#AT(%LocalProcedures)
+  #CALL(%GenerateVirtuals, 'Default', 'Local Objects|Abc Objects|Working Thread Managers|' & %WorkingThreadManagerObjectName, '%WorkingThreadManagerVirtuals(ABC)')
+#ENDAT
+#!
+#AT(%LocalDataClasses)
+#INSERT(%GenerateClass, 'Default')
+#ENDAT
+#!
+#AT(%WorkingThreadManagerMethodCodeSection,%ActiveTemplateInstance),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#AT(%WorkingThreadManagerMethodCodeSection,%ActiveTemplateInstance,'DoAssignFromClassTmp','(BYTE pVal=0)'),PRIORITY(5010)
+#FOR(%ThreadedVariables)
+#IF(%ThreadedVariableCondition<>0)
+IF pVal = %ThreadedVariableCondition
+#ENDIF
+%ThreadedVariable = SELF.tmp%ThreadedVariable
+#IF(%ThreadedVariableCondition<>0)
+END
+#ENDIF
+#ENDFOR
+#ENDAT
+#!
+#AT(%WorkingThreadManagerMethodCodeSection,%ActiveTemplateInstance,'DoAssignToClassTmp','(BYTE pVal=0)'),PRIORITY(5010)
+#FOR(%ThreadedVariables)
+#IF(%ThreadedVariableCondition<>0)
+IF pVal = %ThreadedVariableCondition
+#ENDIF
+SELF.tmp%ThreadedVariable = %ThreadedVariable
+#IF(%ThreadedVariableCondition<>0)
+END
+#ENDIF
+#ENDFOR
+#ENDAT
+#!
+#AT(%WorkingThreadManagerMethodCodeSection,%ActiveTemplateInstance,'DoReadFromClassTmp','(BYTE pVal=0)'),PRIORITY(5010)
+#FOR(%ThreadedVariables)
+#IF(%ThreadedVariableCondition<>0)
+IF pVal = %ThreadedVariableCondition
+#ENDIF
+SELF.var%ThreadedVariable = SELF.tmp%ThreadedVariable
+#IF(%ThreadedVariableCondition<>0)
+END
+#ENDIF
+#ENDFOR
+#ENDAT
+#!
+#AT(%WorkingThreadManagerMethodCodeSection,%ActiveTemplateInstance,'DoWriteToClassTmp','(BYTE pVal=0)'),PRIORITY(5010)
+#FOR(%ThreadedVariables)
+#IF(%ThreadedVariableCondition<>0)
+IF pVal = %ThreadedVariableCondition
+#ENDIF
+SELF.tmp%ThreadedVariable = SELF.var%ThreadedVariable
+#IF(%ThreadedVariableCondition<>0)
+END
+#ENDIF
+#ENDFOR
+#ENDAT
+#!
+#AT(%WorkingThreadManagerMethodCodeSection,%ActiveTemplateInstance,'UpdatingCaller','()'),PRIORITY(100),WHERE(%UpdateLocalsOnUpdateClient AND ITEMS(%ThreadedVariables))
+SELF.DoReadFromClassTmp()
+SELF.DoAssignFromClassTmp()
+#ENDAT
+#!--------------------------------------------------------------------------
+#GROUP(%WorkingThreadManagerVirtuals, %TreeText, %DataText, %CodeText)
+#EMBED(%WorkingThreadManagerMethodDataSection,'Working Thread Manager Method Data Section'),%ActiveTemplateInstance,%pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(%FixClassName(%FixBaseClassToUse('Default'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%WorkingThreadManagerMethodCodeSection,'Working Thread Manager Method Executable Code Section'),%ActiveTemplateInstance,%pClassMethod,%pClassMethodPrototype,PREPARE(%FixClassName(%FixBaseClassToUse('Default'))),TREE(%TreeText & %CodeText)
+#!--------------------------------------------------------------------------

@@ -1,0 +1,64 @@
+#!
+#EXTENSION(MDISYNCLocal,'MDI Synchronization'),PROCEDURE,REQ(MDISYNCGlobal),HLP('~TPLExtensionLocalMDISYNC.htm')
+#RESTRICT
+  #IF(%Window)
+    #ACCEPT
+  #ELSE
+    #REJECT
+  #ENDIF
+#ENDRESTRICT
+#PREPARE
+    #SET(%EnableLocalPrompt,%True)
+    #IF(NOT %GlobalUseABCClasess OR UPPER(%ProcedureTemplate) = 'PROCESS' OR UPPER(%ProcedureTemplate) = 'REPORT' OR EXTRACT(%WindowStatement,'TOOLBOX')<>'')
+        #SET(%LocalDisableMDISynchronization,%True)
+        #SET(%EnableLocalPrompt,%False)
+    #ENDIF
+    #IF(%GlobalDisableMDISynchronization)
+        #SET(%EnableLocalPrompt,%False)
+    #ENDIF
+#ENDPREPARE
+#ENABLE(%EnableLocalPrompt)
+  #PROMPT('Disable MDI Synchronization',CHECK),%LocalDisableMDISynchronization,DEFAULT(%True),AT(10)
+#ENDENABLE
+#ENABLE(NOT %EnableLocalPrompt AND NOT %GlobalDisableMDISynchronization AND %LocalDisableMDISynchronization),CLEAR
+  #PROMPT('Force MDI Synchronization',CHECK),%LocalForceMDISynchronization,DEFAULT(%False),AT(10)
+#ENDENABLE
+#BOXED,HIDE
+  #PROMPT('EnableLocalPrompt',CHECK),%EnableLocalPrompt,DEFAULT(%True),AT(10)
+  #PROMPT('LocalEnableTemplate',CHECK),%LocalEnableTemplate,DEFAULT(%False),AT(10)
+#ENDBOXED
+#!
+#ATSTART
+#SET(%LocalEnableTemplate,%True)
+#IF(%GlobalDisableMDISynchronization)
+    #SET(%LocalEnableTemplate,%False)
+#ELSE
+    #IF(%LocalDisableMDISynchronization AND NOT %LocalForceMDISynchronization)
+        #SET(%LocalEnableTemplate,%False)
+    #ENDIF
+#ENDIF
+#ENDAT
+#AT(%DataSection),WHERE(%LocalEnableTemplate AND %AppTemplateFamily='ABC')
+MDISyncro MDISynchronization
+#ENDAT
+#!
+#!
+#!
+#AT(%WindowManagerMethodCodeSection,'TakeEvent','(),BYTE'),PRIORITY(2501),WHERE(%LocalEnableTemplate AND %AppTemplateFamily='ABC')
+IF MDISyncro.TakeEvent() THEN CYCLE.
+#ENDAT
+#!
+#!
+#!
+#AT(%DataSectionBeforeWindow),PRIORITY(8500),WHERE(%LocalEnableTemplate AND %AppTemplateFamily='CLARION')
+MDISyncro MDISynchronization
+#ENDAT
+#!
+#!
+#!
+#AT(%AcceptLoopBeforeEventHandling),PRIORITY(5000),WHERE(%LocalEnableTemplate AND %AppTemplateFamily='CLARION')
+IF MDISyncro.TakeEvent() THEN CYCLE.
+#ENDAT
+#!
+#!
+#!

@@ -1,0 +1,24 @@
+<html>
+<head>
+<meta name="ts-control" content="button">
+<meta name="ts-capabilities" content="query">
+</head>
+<body>
+<form>
+<TSSCRIPT value="EmbedBeforeControl" type=html></TSSCRIPT>
+<TSSCRIPT tag=input attr=name replace="NAME" value="Name">
+  <TSSCRIPT tag=input attr=value value="Choice">
+    <input type="HIDDEN" value="0" name="NAME$Choice">
+  </TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT tag=input attr=value value="DisplayText" allowblank>
+<TSSCRIPT tag=input attr=name value="Name">
+<TSSCRIPT tag=input attr=onClick replace="NAME" value="Name">
+  <input type="SUBMIT" value="    " name="NAME" onClick="cycleQuery(this, ClarionForm.NAME$Choice)">
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT value="EmbedAfterControl" type=html></TSSCRIPT>
+</form>
+</body>
+</html>

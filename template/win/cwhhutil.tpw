@@ -1,0 +1,86 @@
+#UTILITY(ListHLPids, 'Generate a list of all HLP IDs used in an APP'),WIZARD
+#SHEET
+  #TAB( 'Generate Help IDs Wizard - Output' )
+    #PROMPT( 'Output File: ', SAVEDIALOG( 'Select Output File', 'TXT Files|*.TXT' ) ),%idOutFile
+    #DISPLAY
+    #PROMPT( 'Skip Items with no HLP attribute', CHECK ), %idSkipEmpty
+  #ENDTAB
+#ENDSHEET
+#DECLARE( %idTopic )
+#DECLARE( %idHHFound )
+#DECLARE( %idAppendHTMSet )
+#CREATE( %idOutFile )
+
+********* List of All HLP IDs for %Application *********
+
+Application Help File: %HelpFile
+
+#FOR(%ApplicationTemplate)
+  #SET( %idHHFound, %False )
+  #IF( %ApplicationTemplate = 'cwHHGlobal(ABC)' OR %ApplicationTemplate = 'cwHHGlobal(CW20)' )
+    #SET( %idHHFound, %True )
+  - HTML Help is Enabled for this Application
+    Default Help File Name: %cwHHgFileName
+    #IF( %cwHHAppendHTM )
+      #SET( %idAppendHTMSet, %True )
+    Append .HTM to Help IDs is ON
+    #ELSE
+      #SET( %idAppendHTMSet, %False )
+    Append .HTM to Help IDs is OFF
+    #ENDIF
+  #ENDIF
+#ENDFOR
+
+#FOR( %Procedure )
+  #IF(%cwHHContextURL)
+    #SET( %idTopic, ''''&CLIP(%cwHHContextURL)&'''')
+  #ELSE
+    #SET( %idTopic, EXTRACT(%WindowStatement,'HLP',1) )
+  #ENDIF
+  #IF( CLIP( %idTopic ) <> '' )
+    #IF( %idhhFound )
+      #SET( %idTopic, CALL( %idFixTopic, %idTopic ) )
+    #ENDIF
+    #IF(%cwHHContextURL)
+  %Procedure  -  %idTopic - Overrided
+    #ELSE
+  %Procedure  -  %idTopic
+    #ENDIF
+  #ELSE
+    #IF( NOT %idSkipEmpty )
+      #IF( CLIP( %Procedure ) <> '' )
+  %Procedure
+      #ENDIF
+    #ENDIF
+  #ENDIF
+  #FOR( %Control )
+    #SET( %idTopic, EXTRACT(%ControlStatement,'HLP',1) )
+    #IF( CLIP( %idTopic ) <> '' )
+      #IF( %idhhFound )
+        #SET( %idTopic, CALL( %idFixTopic, %idTopic ) )
+      #ENDIF
+    %Control  -  %idTopic
+    #ELSE
+      #IF( NOT %idSkipEmpty )
+        #IF( CLIP( %Control ) <> '' )
+    %Control
+        #ENDIF
+      #ENDIF
+    #ENDIF
+  #ENDFOR
+
+
+#ENDFOR
+#CLOSE( %idOutFile )
+
+#! --------------------------------------------------------------------------
+#GROUP( %idFixTopic, %idWorkString )
+#! --------------------------------------------------------------------------
+#! --------------------------------------------------------------------------
+  #IF( SUB( %idWorkString, 2, 1 ) = '~' )
+    #SET( %idWorkString, '''' & SLICE( %idWorkString, 3, LEN( CLIP( %idWorkString ) ) ) )
+  #ENDIF
+  #IF( %idAppendHTMSet )
+    #SET( %idWorkString, SLICE( %idWorkString, 1, LEN( CLIP( %idWorkString ) ) - 1 ) & '.htm''' )
+  #END
+  #RETURN( %idWorkString )

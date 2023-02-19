@@ -1,0 +1,110 @@
+<HTML>
+<head>
+<meta name="ts-control" content="tab">
+<meta name="ts-expand" content="off">
+<meta name="ts-hide" content="(phase=='runtime') && !Visible">
+<meta name="ts-style" content="wire">
+</head>
+<BODY>
+<FORM>
+<!-- Tab One.htm -->
+<TSSCRIPT local name=SelectedTab value="phase=='runtime' ? Container.Choice : ChildIndex">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <TSSCRIPT local name=ShownTabs value='0'>
+  <tr align="left"><td colspan=5>
+    <table border="0" cellpadding="0" cellspacing="0"><tr>
+      <TSSCRIPT repeat times="Container.NumTabs" name=curTab>
+        <TSSCRIPT local name=thisTab value="Container.Children[curTab-1]">
+          <TSSCRIPT omit="thisTab.Hidden">
+            <TSSCRIPT set name='ShownTabs' value='ShownTabs+1'></TSSCRIPT>
+  <td>
+  <table border="0" cellpadding="0" cellspacing="0">
+    <tr bgcolor="#FFFFFF">
+      <td rowspan="2" colspan="2"><img src="/greybox_up_lt.gif" width="9" height="7"></td>
+      <td bgcolor="#666666"><img src="/clearpix.gif" width="2" height="2"></td>
+      <td rowspan="2" colspan="2"><img src="/greybox_up_rt.gif" width="9" height="7"></td>
+    </tr>
+    <tr bgcolor="#FFFFFF">
+      <td><img src="/clearpix.gif" width="2" height="5"></td>
+    </tr>
+    <tr bgcolor="#FFFFFF">
+      <td bgcolor="#666666" width="2"><img src="/clearpix.gif" width="2" height="2"></td>
+      <td width="7"><img src="/clearpix.gif" width="7" height="6"></td>
+            <TSSCRIPT include="SelectedTab==curTab">
+      <td nowrap><nobr>
+      <b><TSSCRIPT value="thisTab.DisplayText">SELECTEDTAB</TSSCRIPT></b>
+      </nobr></td>
+            </TSSCRIPT>
+            <TSSCRIPT include="SelectedTab!=curTab">
+              <TSSCRIPT tag=a attr=* replace="PROGRAM" value="ProgramReference">
+                <TSSCRIPT tag=a attr=* replace="NAME" value="Container.Name">
+                  <TSSCRIPT tag=a attr=* replace="CURTAB" value="curTab">
+      <td>
+      <a href="javascript:icSubmit(&quot;NAME$Choice=CURTAB&quot;);">
+      <nobr><TSSCRIPT value="thisTab.DisplayText">UNSELECTEDTAB</TSSCRIPT></nobr>
+      </a>
+      </td>
+                  </TSSCRIPT>
+                </TSSCRIPT>
+              </TSSCRIPT>
+            </TSSCRIPT>
+      <td width="7"><img src="/clearpix.gif" width="7" height="2"></td>
+      <td bgcolor="#666666" width="2"><img src="/clearpix.gif" width="2" height="2"></td>
+    </tr>
+  </table>
+  </td>
+  <td>
+  <table border="0" cellpadding="0" cellspacing="0">
+    <tr bgcolor="#FFFFFF">
+      <td>&nbsp;</td>
+    </tr>
+    <tr bgcolor="#FFFFFF">
+      <td><img src="/clearpix.gif" width="2" height="5"></td>
+    </tr>
+    <tr bgcolor="#666666">
+      <td><img src="/clearpix.gif" width="2" height="2"></td>
+    </tr>
+  </table>
+  </td>
+          </TSSCRIPT>
+        </TSSCRIPT>
+      </TSSCRIPT>
+  <td width=100%>
+  <table border="0" cellpadding="0" cellspacing="0" width=100%>
+    <tr bgcolor="#FFFFFF">
+      <td>&nbsp;</td>
+    </tr>
+    <tr bgcolor="#FFFFFF">
+      <td><img src="/clearpix.gif" width="2" height="5"></td>
+    </tr>
+    <tr bgcolor="#666666">
+      <td><img src="/clearpix.gif" width="2" height="2"></td>
+    </tr>
+  </table>
+  </td>
+  </tr>
+  </table></td></tr>
+    <tr bgcolor="#FFFFFF">
+      <td bgcolor="#666666" width="2"><img src="/clearpix.gif" width="2" height="2"></td>
+      <td width="7"><img src="/clearpix.gif" width="7" height="8"></td>
+      <td>
+      <IMG name="ZONE:Default:Contents[WIDTH='100%']" alt="Wizatrons will place controls in here">
+      </td>
+      <td width="7"><img src="/clearpix.gif" width="7" height="2"></td>
+      <td bgcolor="#666666" width="2"><img src="/clearpix.gif" width="2" height="2"></td>
+    </tr>
+    <tr bgcolor="#FFFFFF">
+      <td rowspan="2" colspan="2"><img src="/greybox_bt_lt.gif" width="9" height="9"></td>
+      <td><img src="/clearpix.gif" width="2" height="7"></td>
+      <td rowspan="2" colspan="2"><img src="/greybox_bt_rt.gif" width="9" height="9"></td>
+    </tr>
+    <tr bgcolor="#FFFFFF">
+      <td bgcolor="#666666"><img src="/clearpix.gif" width="2" height="2"></td>
+    </tr>
+  </TSSCRIPT>
+  </table>
+</TSSCRIPT>
+<!-- /Tab One.htm -->
+</FORM>
+</BODY>
+</HTML>

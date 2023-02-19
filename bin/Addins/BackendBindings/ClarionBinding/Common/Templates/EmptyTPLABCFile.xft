@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<Template author="SoftVelocity" version="1.0">
+	<Config
+		  name        = "Empty Template ABC"
+		  icon        = "CW.Project.EmptyProject"
+		  category    = "Clarion"
+		  subcategory = "Templates"
+		  defaultname = "Template${Number}.tpl"
+		  language    = "Clarion Template"/> 
+	<Description>Empty Clarion Template ABC(TPL)</Description>
+	<Files>
+		<File name="${FullName}" language="Clarion Template">#TEMPLATE(${FileNameWithoutExtension},'Templates Description'),FAMILY('ABC')
+
+		</File>
+	</Files>
+	
+	<AdditionalOptions/>
+</Template>

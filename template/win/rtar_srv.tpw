@@ -1,0 +1,70 @@
+#!-------------------------------------------
+#! services for the report target template
+#!-------------------------------------------
+#GROUP(%TargetClassTab)
+    #TAB('&Classes'),WHERE(%False)
+      #WITH(%ClassItem,%lTargetObjectName)
+        #INSERT(%ClassPrompts)
+      #ENDWITH
+    #ENDTAB
+#!
+#!
+#GROUP(%TargetGlobalPrompts)
+#BOXED,SECTION
+  #BOXED,AT(0,0),WHERE(NOT %GlobalUseABCClasess)
+    #DISPLAY('Enable the use of ABC to enable the template')
+  #ENDBOXED
+  #BOXED,AT(0,0),WHERE(%GlobalUseABCClasess)
+    #PROMPT('Disable this output?',CHECK),%GlobalDisable,DEFAULT(%False),AT(10)
+    #BOXED,HIDE
+      #PROMPT('TargetName',@S100),%lTargetName,DEFAULT('')
+      #PROMPT('TargetObjectName',@S100),%lTargetObjectName,DEFAULT('')
+      #PROMPT('TargetObjectClass',@S100),%lTargetObjectClass,DEFAULT('')
+    #ENDBOXED
+  #ENDBOXED
+#ENDBOXED
+#!
+#!
+#GROUP(%SetTargetGlobalPrompt,%pTargetName,%pTargetObjectName,%pTargetObjectClass)
+#SET(%lTargetName,%pTargetName)
+#SET(%lTargetObjectName,%pTargetObjectName)
+#SET(%lTargetObjectClass,%pTargetObjectClass)
+#!
+#!
+#GROUP(%ReportTargetVirtuals, %TreeText, %DataText, %CodeText)
+#IF(UPPER(%pClassMethod)='SETUP' AND %pClassMethodPrototype='()')
+#EMBED(%ReportTargetMethodDataSection,'Report Target Method Data Section'),%lTargetName,%pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(%FixClassName(%FixBaseClassToUse(%lTargetObjectName))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%ReportTargetMethodCodeSection,'Report Target Method Executable Code Section'),%lTargetName,%pClassMethod,%pClassMethodPrototype,PREPARE(%FixClassName(%FixBaseClassToUse(%lTargetObjectName))),TREE(%TreeText & %CodeText)
+#ENDIF
+#!
+#GROUP(%AddTargetToReport,%pTargetName,%pTargetObjectName,%pTargetClass,%pTargetCondition),AUTO
+#DECLARE(%lFound,LONG)
+   #SET(%lFound,%False)
+   #FOR(%ReportTargetList),WHERE(%ReportTargetListName=%pTargetName)
+       #SET(%lFound,%True)
+   #ENDFOR
+   #IF(NOT %lFound)
+      #ADD(%ReportTargetList,ITEMS(%ReportTargetList)+1)
+      #SET(%ReportTargetListName,%pTargetName)
+      #SET(%ReportTargetListClass,%pTargetClass)
+      #SET(%ReportTargetListObject,%pTargetObjectName)
+      #SET(%ReportTargetListCondition,%pTargetCondition)
+   #END
+#!
+#!
+#GROUP(%AddHidenControlToReport,%pTargetName,%pControl),AUTO
+#DECLARE(%lFound,LONG)
+   #SET(%lFound,%False)
+   #FOR(%ReportTargetHiddenControls),WHERE(CLIP(UPPER(%ReportTargetHiddenControl))=UPPER(%pControl))
+       #SET(%lFound,%True)
+   #ENDFOR
+   #IF(NOT %lFound)
+      #ADD(%ReportTargetHiddenControls,ITEMS(%ReportTargetHiddenControls)+1)
+      #SET(%ReportTargetHiddenControl,%pControl)
+      #SET(%ReportTargetHiddenControlTemplate,%pTargetName)
+   #ENDIF
+#!
+#INCLUDE('ABOOP.TPW')
+#INCLUDE('SVFnGrp.TPW')
+#!

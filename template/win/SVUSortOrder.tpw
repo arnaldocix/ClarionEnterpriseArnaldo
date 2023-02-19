@@ -1,0 +1,148 @@
+#!
+#!*****************************************************************************
+#CONTROL(SortOrderButton,'Button to allow selection of the sort order'),WINDOW,MULTI,HLP('~TPLControlSortOrderButton.htm')
+#!*****************************************************************************
+   #PROMPT ('Sheet Control:',FROM(%Control,%ControlType = 'SHEET')), %SheetControl,REQ
+   #DISPLAY('Select the Sheet control that contain')
+   #DISPLAY('the Tabs sort order.')
+   #PROMPT ('Hide sheet',CHECK),%SheetHiden
+  CONTROLS
+    BUTTON('Sort Order'),AT(,,59,14),MSG('Select the sort Order'),TIP('Select the sort Order'),USE(?SortOrderButton),LEFT
+  END
+#ATSTART
+  #DECLARE(%SortOrderButton)
+  #FOR(%Control),WHERE(%ControlInstance=%ActiveTemplateInstance)
+    #SET(%SortOrderButton,%Control)
+  #ENDFOR
+#ENDAT
+#!-----------------------------------------------------------------------------
+#AT(%ControlEventHandling,%SortOrderButton,'Accepted'),PRIORITY(5000)
+#!-----------------------------------------------------------------------------
+#DECLARE(%Counter)
+#SET(%Counter,1)
+EXECUTE POPUP(|
+#FOR(%Control),WHERE(%ControlType = 'TAB' AND %ControlParent=%SheetControl)
+   #IF(%Counter=1)
+              CHOOSE(%SheetControl{PROP:SELECTED}=%Counter,'+','-')&%Control{PROP:TEXT}&|
+   #ELSE
+              '|'&CHOOSE(%SheetControl{PROP:SELECTED}=%Counter,'+','-')&%Control{PROP:TEXT}&|
+   #ENDIF
+   #SET(%Counter,%Counter+1)
+#ENDFOR
+              '')
+#FOR(%Control),WHERE(%ControlType = 'TAB' AND %ControlParent=%SheetControl)
+ SELECT(%Control)
+#ENDFOR
+END
+#ENDAT
+#!-----------------------------------------------------------------------------
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8002),WHERE(%AppTemplateFamily='ABC')
+#!-----------------------------------------------------------------------------
+%SheetControl{PROP:WIZARD}=True
+#IF(%SheetHiden)
+%SheetControl{PROP:HIDE}=True
+#ENDIF
+#ENDAT
+#AT(%BeforeWindowIniResize),WHERE(%AppTemplateFamily='CLARION')
+%SheetControl{PROP:WIZARD}=True
+#IF(%SheetHiden)
+%SheetControl{PROP:HIDE}=True
+#ENDIF
+#ENDAT
+#!*****************************************************************************
+#CONTROL(SortOrderDrop,'Droplist to allow selection of the sort order'),WINDOW,MULTI,HLP('~TPLControlSortOrderDrop.htm')
+#!*****************************************************************************
+   #PROMPT ('Sheet Control:',FROM(%Control,%ControlType = 'SHEET')), %SheetControl,REQ
+   #DISPLAY('Select the Sheet control that contain')
+   #DISPLAY('the Tabs sort order.')
+   #PROMPT ('Hide sheet',CHECK),%SheetHiden
+  CONTROLS
+    PROMPT('Sort Order:'),AT(,),USE(?SortOrderList:Prompt),#ORIG(?SortOrderList:Prompt)
+    LIST,AT(40,0,75,10),USE(?SortOrderList),MSG('Select the sort Order'),TIP('Select the sort Order'),DROP(20),FROM(''),#ORIG(?SortOrderList)
+  END
+#ATSTART
+  #DECLARE(%SortOrderList)
+  #FOR(%Control),WHERE(%ControlInstance=%ActiveTemplateInstance)
+      #IF(%ControlOriginal='?SortOrderList')
+         #SET(%SortOrderList,%Control)
+      #ENDIF
+  #ENDFOR
+#ENDAT
+#!-----------------------------------------------------------------------------
+#AT(%ControlEventHandling,%SortOrderList,'Accepted'),PRIORITY(5000)
+#!-----------------------------------------------------------------------------
+EXECUTE(CHOICE(%SortOrderList))
+#FOR(%Control),WHERE(%ControlType = 'TAB' AND %ControlParent=%SheetControl)
+ SELECT(%Control)
+#ENDFOR
+END
+#ENDAT
+#DECLARE(%Counter)
+#SET(%Counter,1)
+#!-----------------------------------------------------------------------------
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8001),WHERE(%AppTemplateFamily='ABC')
+#!-----------------------------------------------------------------------------
+%SheetControl{PROP:WIZARD}=True
+#IF(%SheetHiden)
+%SheetControl{PROP:HIDE}=True
+#ENDIF
+%SortOrderList{PROP:FROM}=|
+#DECLARE(%Counter)
+#SET(%Counter,1)
+#FOR(%Control),WHERE(%ControlType = 'TAB' AND %ControlParent=%SheetControl)
+   #IF(%Counter=1)
+              CHOOSE(SUB(%Control{PROP:TEXT},1,1)='&',SUB(%Control{PROP:TEXT},2,LEN(%Control{PROP:TEXT})-1),%Control{PROP:TEXT})&|
+   #ELSE
+              '|'&CHOOSE(SUB(%Control{PROP:TEXT},1,1)='&',SUB(%Control{PROP:TEXT},2,LEN(%Control{PROP:TEXT})-1),%Control{PROP:TEXT})&|
+   #ENDIF
+   #SET(%Counter,%Counter+1)
+#ENDFOR
+              ''
+%SortOrderList{PROP:SELECTED}=1
+#ENDAT
+#!-----------------------------------------------------------------------------
+#AT(%BeforeWindowIniResize),WHERE(%AppTemplateFamily='CLARION')
+#!-----------------------------------------------------------------------------
+%SheetControl{PROP:WIZARD}=True
+#IF(%SheetHiden)
+%SheetControl{PROP:HIDE}=True
+#ENDIF
+%SortOrderList{PROP:FROM}=|
+#DECLARE(%Counter)
+#SET(%Counter,1)
+#FOR(%Control),WHERE(%ControlType = 'TAB' AND %ControlParent=%SheetControl)
+   #IF(%Counter=1)
+              CHOOSE(SUB(%Control{PROP:TEXT},1,1)='&',SUB(%Control{PROP:TEXT},2,LEN(%Control{PROP:TEXT})-1),%Control{PROP:TEXT})&|
+   #ELSE
+              '|'&CHOOSE(SUB(%Control{PROP:TEXT},1,1)='&',SUB(%Control{PROP:TEXT},2,LEN(%Control{PROP:TEXT})-1),%Control{PROP:TEXT})&|
+   #ENDIF
+   #SET(%Counter,%Counter+1)
+#ENDFOR
+              ''
+%SortOrderList{PROP:SELECTED}=1
+#ENDAT
+#!*****************************************************************************
+#!#EXTENSION(SortOrderPopup,'Add sort order to the popup menu'),DESCRIPTION('Add sort order to the popup menu'),REQ(BrowseBox(ABC)),PROCEDURE,WINDOW
+#!   #DISPLAY('Add sort order to the popup menu')
+#!   #PROMPT ('Sheet Control:',FROM(%Control,%ControlType = 'SHEET')), %SheetControl,REQ
+#!   #DISPLAY('Select the Sheet control that contain')
+#!   #DISPLAY('the Tabs sort order.')
+#!#AT(%WindowManagerMethodCodeSection, 'Init','(),byte'),PRIORITY(9550)
+#!#DECLARE(%Counter)
+#!#SET(%Counter,1)
+#!%ManagerName.Popup.AddMenu('Sort Order')
+#!EXECUTE POPUP(|
+#!#FOR(%Control),WHERE(%ControlType = 'TAB' AND %ControlParent=%SheetControl)
+#!   #IF(%Counter=1)
+#!              CHOOSE(%SheetControl{PROP:SELECTED}=%Counter,'+','-')&%Control{PROP:TEXT}&|
+#!   #ELSE
+#!              '|'&CHOOSE(%SheetControl{PROP:SELECTED}=%Counter,'+','-')&%Control{PROP:TEXT}&|
+#!   #ENDIF
+#!   #SET(%Counter,%Counter+1)
+#!#ENDFOR
+#!              '')
+#!#FOR(%Control),WHERE(%ControlType = 'TAB' AND %ControlParent=%SheetControl)
+#!%ManagerName.Popup.AddItemMimic(CHOOSE(%SheetControl{PROP:SELECTED}=%Counter,'+','-')&%Control{PROP:TEXT},%Control)
+#!#ENDFOR
+#!#ENDAT
+#!*****************************************************************************

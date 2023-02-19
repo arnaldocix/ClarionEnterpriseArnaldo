@@ -1,0 +1,33 @@
+#GROUP(%OleDBConnectionBuilder, * %PassedConnectionString)
+#!----------------------------------------------------------------------------
+#! Clarion/ASP Templates 1.00 Version
+#! Copyright (c) 2002 SoftVelocity, Inc. All Rights Reserved Worldwide
+#! Contact SoftVelocity at www.SoftVelocity.com 
+#!----------------------------------------------------------------------------
+#! #BUTTON('Call Connection Builder'),WHENACCEPTED(%OleDBConnectionBuilder(%myConnectionStringSymbol))
+#!----------------------------------------------------------------------------
+#IF(NOT VAREXISTS(%oleDBResponse))
+    #DECLARE(%oleDBResponse)
+#ENDIF  
+#IF(NOT VAREXISTS(%oleDBConnectionString))
+    #DECLARE(%oleDBConnectString)
+#ENDIF
+#IF(%PassedConnectionString <> '')
+    #SET(%oleDBConnectString,%PassedConnectionString)
+#ENDIF
+#IF(%CWVersion >= 7300)
+  #SERVICE('ClaTPLS.DLL','GenOleDBService','GetConnectString')
+#ELSIF(%CWVersion >= 7000 AND %CWVersion < 7299)
+  #SERVICE('C70TPLS.DLL','GenOleDBService','GetConnectString')
+#ELSIF(%CWVersion >= 6000 AND %CWVersion < 6999)
+  #SERVICE('C60TPLS.DLL','GenOleDBService','GetConnectString')
+#ELSE
+  #SERVICE('C55TPLS.DLL','GenOleDBService','GetConnectString')
+#ENDIF
+#IF(%oleDBResponse = 0 AND %oleDBConnectString <> '')
+    #SET(%PassedConnectionString, %oleDBConnectString)
+#ELSIF(%oleDBResponse = 8 AND %oleDBConnectString <> '')
+    #SET(%PassedConnectionString, 'ERROR: Invalid connection string, clear this prompt and retry the Connection Builder')
+#ELSIF(%oleDBResponse = 6 AND %oleDBConnectString = '') 
+    #SET(%PassedConnectionString, 'ERROR: Empty connection string, clear this prompt and retry the Connection Builder')
+#ENDIF

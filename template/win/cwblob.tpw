@@ -1,0 +1,40 @@
+#EXTENSION(BLOBInControl, 'Display / Update BLOB used in a Control (Image or Text)'),HLP('~TPLExtensionBLOBInControl.htm')
+#!
+#PREPARE
+  #CALL(%BLOBInControlLoadBlobFieldNames)
+#ENDPREPARE
+#INSERT(%BLOBInControlPrompts)
+#!
+#ATSTART
+#CALL(%BLOBInControlAtStart)
+#ENDAT
+#!
+#AT(%CustomGlobalDeclarations)
+  #FOR(%BlobLinkedFields),WHERE(%BlobLinkedControlType='IMAGE' AND %BlobLinkedImageResize)
+    #ADD(%CustomGlobalMapIncludes,'CWUtil.INC' )
+    #!PROJECT('CWUtil.CLW')
+  #ENDFOR
+#ENDAT
+#!
+#!
+#AT(%AfterWindowOpening),PRIORITY(8500),DESCRIPTION('Linking Blob to Controls')
+#!HELLO FORM
+#INSERT(%BLOBInControlGetDataFromBlobForm)
+#ENDAT
+#!
+#!
+#AT(%BeforeFileAction),PRIORITY(5000),DESCRIPTION('Refresh Blob Content')
+#!HELLO FORM
+#INSERT(%BLOBInControlPutDataInBlob)
+#ENDAT
+#!
+#!
+#AT(%TakeNewSelection),PRIORITY(5000),DESCRIPTION('Linking Blob to Controls')
+#!HELLO BROWSE
+   #INSERT(%BLOBInControlGetDataFromBlobBrowse)
+#ENDAT
+#AT(%ReportAfterLookups),PRIORITY(5000),WHERE(UPPER(%ProcedureTemplate)='REPORT'),DESCRIPTION('Linking Blob to Controls')
+#!HELLO REPORT
+#INSERT(%BLOBInControlGetDataFromBlobReport)
+#ENDAT
+#!

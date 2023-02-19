@@ -1,0 +1,264 @@
+<CodeTemplates version="2.0">
+  <CodeTemplateGroup extensions=".clw;.CLW;.APPCLW">
+  <CodeTemplate template="acceptl" description="accept loop">ACCEPT 
+  END</CodeTemplate> 
+  <CodeTemplate template="caseof" description="Case Of">CASE ${Selection}
+ OF expression
+ END</CodeTemplate> 
+  <CodeTemplate template="casea" description="case accepted()">CASE ACCEPTED() 
+  OF ?
+  OF ? 
+  OF ? 
+  OF ? 
+  END</CodeTemplate> 
+  <CodeTemplate template="caseev" description="case event() (window event)">CASE EVENT() 
+  OF EVENT:OpenWindow 
+  OF EVENT:CloseWindow 
+  OF EVENT:PreAlertKey 
+  OF EVENT:AlertKey 
+  OF EVENT:CloseDown 
+  OF EVENT:LoseFocus 
+  OF EVENT:GainFocus 
+  OF EVENT:Suspend 
+  OF EVENT:Resume 
+  OF EVENT:Docked 
+  OF EVENT:Undocked 
+  OF EVENT:Timer 
+  OF EVENT:Move 
+  OF EVENT:Moved 
+  OF EVENT:Size 
+  OF EVENT:Sized 
+  OF EVENT:Restore 
+  OF EVENT:Restored 
+  OF EVENT:Maximize 
+  OF EVENT:Maximized 
+  OF EVENT:Iconize 
+  OF EVENT:Iconized 
+  OF EVENT:Completed 
+  END</CodeTemplate> 
+  <CodeTemplate template="casesel" description="case selected()">CASE SELECTED() 
+  OF ?
+  OF ? 
+  OF ? 
+  OF ? 
+  END</CodeTemplate> 
+  <CodeTemplate template="execb" description="execute code block">EXECUTE ${Selection}
+  !expression equals 1 
+  !expression equals 2 
+  END</CodeTemplate> 
+  <CodeTemplate template="ifbreak" description="if Condition then break (inside a loop)">IF ${Selection} 
+  THEN 
+     BREAK 
+  END</CodeTemplate> 
+  <CodeTemplate template="ife" description="If Else">IF (|) ${Selection} 
+  ELSE 
+  END</CodeTemplate> 
+  <CodeTemplate template="loopi" description="Loop i = initial TO limit [ BY step ]">LOOP i = | TO limit [ BY step ] 
+  END</CodeTemplate> 
+  <CodeTemplate template="loopu" description="loop until">LOOP UNTIL
+  END</CodeTemplate> 
+  <CodeTemplate template="loopw" description="loop while">LOOP WHILE
+  END</CodeTemplate> 
+  <CodeTemplate template="classdcl" description="class declaration">${selection} CLASS !, TYPE 
+  CONSTRUCT PROCEDURE 
+  DESTRUCT PROCEDURE 
+  !Properties 
+  !Methods 
+  END</CodeTemplate> 
+  <CodeTemplate template="filedcl" description="File Structure starter">${selection} FILE, DRIVER(|) 
+    RECORD 
+    END 
+  END</CodeTemplate> 
+  <CodeTemplate template="loopqueue" description="loop through a given queue">LOOP NDX# = 1 TO RECORDS(${selection}) 
+     GET(${selection}, NDX#)
+  END</CodeTemplate> 
+  <CodeTemplate template="groupdcl" description="group structure starter">${selection} GROUP !, TYPE
+  END</CodeTemplate> 
+  <CodeTemplate template="queuedcl" description="queue structure starter">${selection} QUEUE !, TYPE
+  END</CodeTemplate> 
+  <CodeTemplate template="routinedef" description="routine starter">${selection} ROUTINE
+  DATA
+  CODE
+  </CodeTemplate> 
+  <CodeTemplate template="procdef" description="procedure starter">${selection} PROCEDURE()
+  CODE
+  </CodeTemplate> 
+  <CodeTemplate template="omitb" description="omit directive">OMIT('!***') ${selection} !***</CodeTemplate> 
+  <CodeTemplate template="compileb" description="compile directive">COMPILE('!***') ${selection} !***</CodeTemplate> 
+  <CodeTemplate template="!!!&lt;" description="XML comment">!!! &lt;Summary&gt;
+!!! |
+!!! &lt;/Summary&gt;</CodeTemplate>
+  </CodeTemplateGroup>
+    <CodeTemplateGroup extensions=".cln">
+    <CodeTemplate template="ife" description="IF Else">IF (|) 
+	${Selection}
+Else 
+	
+End</CodeTemplate>
+    <CodeTemplate template="omdi" description=" open an MDI child window">! create instance of a window and open as an MDI child
+! * declare a local reference variable in the data section: myMDI &amp;$Form
+! where &amp;$Form is replaced with the name of your Form, and myMDI is replaced 
+! with the name of the variable you declared
+myMDI := new $Form() ! replace $Form with the name of _your Form, i.e. new Form1()
+myMDI.MdiParent := Self   ! this Window is the MDI Parent
+myMdi.Show()|		  ! show the Form to the user
+
+</CodeTemplate>
+    <CodeTemplate template="tryc" description="Try Catch ">Try
+   ${Selection}|
+Catch (Exception ex) 
+	
+End</CodeTemplate>
+    <CodeTemplate template="trycf" description="Try Catch Finally">Try
+   ${Selection}
+Catch (Exception ex) 
+
+Finally
+	
+End</CodeTemplate>
+    <CodeTemplate template="tryf" description="Try Finally">Try
+   ${Selection}
+Finally
+	
+End</CodeTemplate>
+    <CodeTemplate template="loopw" description="Loop While">Loop While |
+
+End</CodeTemplate>
+    <CodeTemplate template="loopu" description="Loop Until">Loop Until |
+
+End</CodeTemplate>
+    <CodeTemplate template="loopi" description="Loop  i = initial TO limit [ BY step ]">Loop i = | TO limit [ BY step ]
+
+End
+		</CodeTemplate>
+    <CodeTemplate template="caseof" description="Case Of">Case ${Selection}|
+OF expression
+   
+End</CodeTemplate>
+    <CodeTemplate template="execb" description="Execute code block">Execute ${Selection}|
+ expression equals 1
+ expression equals 2
+End</CodeTemplate>
+    <CodeTemplate template="scwl" description="Write a line to the Console">System.Console.WriteLine(${Selection}|)</CodeTemplate>
+    <CodeTemplate template="debugw" description="output debug information">System.Diagnostics.Trace.WriteLine(|)</CodeTemplate>
+    <CodeTemplate template="!!!&lt;" description="XML comment">!!! &lt;Summary&gt;
+!!! |
+!!! &lt;/Summary&gt;</CodeTemplate>
+  </CodeTemplateGroup>
+  
+  <CodeTemplateGroup extensions=".cs">
+    <CodeTemplate template="classp" description="class declaration (public)">public class |
+{
+	${Selection}
+}</CodeTemplate>
+    <CodeTemplate template="forb" description="for block">for (|; ; ) {
+	${Selection}
+}</CodeTemplate>
+    <CodeTemplate template="fors" description="for (no braces)">for (|; ; )
+	${Selection}</CodeTemplate>
+    <CodeTemplate template="ifb" description="if statement">if (|) {
+	${Selection}
+}</CodeTemplate>
+    <CodeTemplate template="ife" description="if else">if (|) {
+	${Selection}
+} else {
+	
+}</CodeTemplate>
+    <CodeTemplate template="ifs" description="if statement (no braces)">if (|)
+	${Selection}</CodeTemplate>
+    <CodeTemplate template="switchd" description="switch statement (with default)">switch (|) {
+	case:
+		break;
+	default:
+		${Selection}
+		break;
+}</CodeTemplate>
+    <CodeTemplate template="switchs" description="switch statement">switch (|) {
+	case :
+		${Selection}
+	break;
+}</CodeTemplate>
+    <CodeTemplate template="tryc" description="try / catch">try {
+	${Selection}|
+} catch (Exception) {
+	
+}</CodeTemplate>
+    <CodeTemplate template="trycf" description="try / catch / finally">try {
+	${Selection}|
+} catch (Exception) {
+	
+} finally {
+	
+}</CodeTemplate>
+    <CodeTemplate template="tryf" description="try / finally">try {
+	${Selection}|
+} finally {
+	
+}</CodeTemplate>
+    <CodeTemplate template="whileb" description="while">while (|) {
+	${Selection}
+}</CodeTemplate>
+    <CodeTemplate template="whiles" description="while (no braces)">while (|)
+	${Selection}</CodeTemplate>
+    <CodeTemplate template="scwl" description="System.Console.WriteLine">System.Console.WriteLine(${Selection}|);</CodeTemplate>
+    <CodeTemplate template="scw" description="System.Console.Write">System.Console.Write(${Selection}|);</CodeTemplate>
+  </CodeTemplateGroup>
+	<CodeTemplateGroup extensions=".vb">
+    <CodeTemplate template="classp" description="class declaration (public)">Public Class |
+	${Selection}
+End Class</CodeTemplate>
+    <CodeTemplate template="forb" description="for block">For i As Integer = 0 To |
+	${Selection}
+Next</CodeTemplate>
+    <CodeTemplate template="ifb" description="if statement">If | Then
+	${Selection}
+End If</CodeTemplate>
+    <CodeTemplate template="ife" description="if else">If | Then
+	${Selection}
+Else
+	
+End If</CodeTemplate>
+    <CodeTemplate template="selectd" description="Select Case statement (with default)">Select Case |
+	Case 
+	
+	Case Else
+		${Selection}
+End Select</CodeTemplate>
+    <CodeTemplate template="selects" description="Select Case statement">Select Case |
+	Case
+		${Selection}
+End Select</CodeTemplate>
+    <CodeTemplate template="tryc" description="try / catch">Try
+	${Selection}|
+Catch ex As System.Exception
+	
+End Try</CodeTemplate>
+    <CodeTemplate template="trycf" description="try / catch / finally">Try
+	${Selection}|
+Catch ex As System.Exception
+	
+Finally
+	
+End Try</CodeTemplate>
+    <CodeTemplate template="tryf" description="try / finally">Try
+	${Selection}|
+Finally
+	
+End Try</CodeTemplate>
+    <CodeTemplate template="whileb" description="while">While |
+	${Selection}
+End While</CodeTemplate>
+    <CodeTemplate template="scwl" description="System.Console.WriteLine">System.Console.WriteLine(${Selection}|)</CodeTemplate>
+    <CodeTemplate template="scw" description="System.Console.Write">System.Console.Write(${Selection}|)</CodeTemplate>
+  </CodeTemplateGroup>
+  <CodeTemplateGroup extensions=".html;.htm">
+    <CodeTemplate template="boldb" description="bold block">&lt;b&gt;|${Selection}&lt;/b&gt;</CodeTemplate>
+    <CodeTemplate template="commentb" description="comment block">&lt;!--|${Selection}--&gt;</CodeTemplate>
+    <CodeTemplate template="heading1b" description="heading 1 block">&lt;h1&gt;|${Selection}&lt;/h1&gt;</CodeTemplate>
+    <CodeTemplate template="heading2b" description="heading 2 block">&lt;h2&gt;|${Selection}&lt;/h2&gt;</CodeTemplate>
+    <CodeTemplate template="heading3b" description="heading 3 block">&lt;h3&gt;|${Selection}&lt;/h3&gt;</CodeTemplate>
+    <CodeTemplate template="heading4b" description="heading 4 block">&lt;h4&gt;|${Selection}&lt;/h4&gt;</CodeTemplate>
+    <CodeTemplate template="italicb" description="italic block">&lt;i&gt;|${Selection}&lt;/i&gt;</CodeTemplate>
+    <CodeTemplate template="parab" description="paragraph block">&lt;p&gt;|${Selection}&lt;/p&gt;</CodeTemplate>
+  </CodeTemplateGroup>
+</CodeTemplates>

@@ -1,0 +1,502 @@
+<AddIn name        = "ApplicationGenerator"
+       author      = "SoftVelocity"
+       copyright   = "Copyright SoftVelocity 1986-2010"
+       url         = "http://www.softvelocity.com"
+       description = "Application Generator interface">
+
+	<Manifest>
+		<Identity name = "SoftVelocity.Generator"/>
+		<Dependency addin = "SoftVelocity.ClarionBinding"/>
+	</Manifest>
+	
+	<Runtime>
+		<Import assembly = "Controls\ListControl.dll"/>
+		<Import assembly = "CommonSources.dll"/>
+		<Import assembly = "ClarionNetReport.dll"/>
+		<Import assembly = "Generator.dll">
+			<ConditionEvaluator name="CurrentViewIsApplication" class="SoftVelocity.Generator.Conditions.CurrentViewIsApplication"/>
+			<ConditionEvaluator name="AreApplicationsLoaded" class="SoftVelocity.Generator.Conditions.AreApplicationsLoaded"/>
+			<ConditionEvaluator name="AreApplicationsInPad" class="SoftVelocity.Generator.Conditions.AreApplicationsInPad"/>
+			<ConditionEvaluator name="AreApplicationsOnEdit" class="SoftVelocity.Generator.Conditions.AreApplicationsOnEdit"/>
+			<ConditionEvaluator name="IsTemplateRegistryOpen" class="SoftVelocity.Generator.Conditions.IsTemplateRegistryOpen"/>
+			<ConditionEvaluator name="CanGenerateApplications" class="SoftVelocity.Generator.Conditions.CanGenerateApplications"/>				
+			<ConditionEvaluator name="CanGenerateLoadedApplications" class="SoftVelocity.Generator.Conditions.CanGenerateLoadedApplications"/>							
+			<ConditionEvaluator name="CanOpenApplicationOptions" class="SoftVelocity.Generator.Conditions.CanOpenApplicationOptions"/>
+			<ConditionEvaluator name="CanOpenTemplateRegistry" class="SoftVelocity.Generator.Conditions.CanOpenTemplateRegistry"/>
+			<ConditionEvaluator name="CanGenerateCurrentApplication" class="SoftVelocity.Generator.Conditions.CanGenerateCurrentApplication"/>
+			<ConditionEvaluator name="GeneratingApplication" class="SoftVelocity.Generator.Conditions.GeneratingApplication"/>
+			<ConditionEvaluator name="IsGeneratingOrBuilding" class="SoftVelocity.Generator.Conditions.IsGeneratingOrBuilding"/>
+			<ConditionEvaluator name="ClearCachedABCFilesMenuCommandEnable" class="SoftVelocity.Generator.Commands.ClearCachedABCFilesMenuCommand"/>      
+		</Import>
+		<Import assembly = "FormulaEditor.dll"/>
+		<Import assembly = "clarion.gen.dll"/>
+	</Runtime>
+
+	<StringResources file="Resources\Generator.StringResources.resources" />
+	<StringResources file="Resources\FormulaEditor.StringResources.resources" />
+
+	<Path name = "/Workspace/Terminate">
+		<Class id    = "CleanupGenerator"
+		       class = "SoftVelocity.Generator.TerminationCode"/>
+	</Path> <!-- /Workspace/Terminate -->
+
+	<Path name = "/Workspace/Autostart">
+		<Class id    = "StartGenerator"
+		       class = "SoftVelocity.Generator.StartupCode"/>
+		<Class id    = "StartABCCaching"
+		       class = "SoftVelocity.Generator.Commands.ClearCachedABCFilesMenuCommand"/>
+	</Path> <!-- /Workspace/Terminate -->
+	<Path name = "/SharpDevelop/Workbench/MainMenu/Tools">
+		<Condition name = "ClearCachedABCFilesMenuCommandEnable">
+		<MenuItem id    = "ClearCachedABCFiles"
+			label = "${res:Clarion.Generator.Addin.ClearCachedABCFiles}"
+			insertafter  = "EditTemplateRegistry"
+			insertbefore = "Separator2"
+			class = "SoftVelocity.Generator.Commands.ClearCachedABCFilesMenuCommand"/>
+		</Condition>
+	</Path>
+
+	<!-- Templates SyntaxMode -->
+	<Path name = "/SharpDevelop/ViewContent/DefaultTextEditor/SyntaxModes">
+		<SyntaxMode id         = "Clarion Template Syntax Mode"
+		            name       = "Clarion Template"
+		            extensions = ".tpl;.tpw"
+		            resource   = "SoftVelocity.Generator.Resources.ClarionTemplate-Mode.xshd"/>
+	</Path>
+	<Path name = "/SharpDevelop/Workbench/FileFilter">
+		<FileFilter id = "Clarion Template"
+		            insertbefore="AllFiles"
+		            name = "Clarion Templates (*.tpl,*.tpw)"
+		            extensions = "*.tpl;*.tpw"/>
+	</Path>
+	<Path name = "/SharpDevelop/Workbench/QuickOpen/FileFilter">
+		<FileFilter id = "Clarion Template"
+		            name = "Clarion Templates (*.tpl,*.tpw)"
+		            extensions = "*.tpl;*.tpw"/>
+	</Path>
+	<!-- ApplicationBrowserPad -->
+	<Path name = "/SharpDevelop/Workbench/Pads">
+		<Pad id       = "ApplicationBrowser"
+		     category = "Main"
+		     title    = "${res:Clarion.Generator.ApplicationPad.Title}"
+		     icon     = "Generator.Application.Icon" 
+		     class    = "SoftVelocity.Generator.UI.ApplicationBrowserPad"/>
+	</Path>
+	<!-- Application Wiz -->  
+	<Path name = "/SoftVelocity/BinaryProjectGenerator">
+		<BinaryProjectGenerator id    = "NewAppBinaryProjectGenerator"
+		                        class = "SoftVelocity.Generator.UI.NewAppBinaryProjectGenerator"/>
+	</Path>
+	<Path name = "/SoftVelocity/NewAppFromTxaBinaryProjectGenerator">
+		<BinaryProjectGenerator id    = "NewAppFromTxaBinaryProjectGenerator"
+		                        class = "SoftVelocity.Generator.UI.NewAppFromTxaBinaryProjectGenerator"/>
+	</Path>
+	<!-- ApplicationOptions -->
+	<Path name = "/SharpDevelop/Workbench/MainMenu/Tools">
+		<Condition name = "CanOpenApplicationOptions" action="Disable">
+			<MenuItem id    = "EditApplicationOptions"
+			          label = "${res:Clarion.Generator.Addin.Options}"
+			          insertafter  = "EditTemplateRegistry"
+			          insertbefore = "Separator2"
+			          class = "SoftVelocity.Generator.Commands.EditApplicationOptions"/>
+		</Condition>
+	</Path>
+	<!-- Menu Generate&Make support-->
+	<Path name = "/SharpDevelop/Workbench/MainMenu/Build">
+		<Condition name = "CanGenerateCurrentApplication" action="Disable">
+			<MenuItem id      = "GenerateAndRunActive"
+			          shortcut = "Control|R"
+			          insertbefore   = "Build"
+			          icon    = "Icons.24x24.MakeRunCurrent"
+			          label    = "${res:Clarion.Generator.Pad.Buttons.GenerateMakeAndRunCurrent}"
+			          class   = "SoftVelocity.Generator.Commands.GenerateMakeAndRunCurrentApplicationAsyncMenuCommand"/>
+			<MenuItem id       = "GenerateAndMakeMenuItem"
+			          label    = "${res:Clarion.Generator.Pad.Buttons.GenerateAndMakeCurrent}"
+			          shortcut = "Control|M"
+			          insertbefore   = "Build"
+			          icon    = "Icons.24x24.BuildCurrentSelectedProject"
+			          class   = "SoftVelocity.Generator.Commands.GenerateAndMakeCurrentApplicationAsyncMenuCommand"/>
+		</Condition>
+		<Condition name = "AreApplicationsInPad" action="Disable">
+			<MenuItem id       = "GenerateAndMakePadApplications"
+			          label    = "${res:Clarion.Generator.Pad.Buttons.GenerateAndMake}"
+			          shortcut = "Control|Shift|M"
+			          insertbefore   = "Build"
+			          icon    = "Generator.GenerateAll"
+			          class   = "SoftVelocity.Generator.Commands.GenerateAndMakePadApplicationsAsyncMenuCommand"/>
+		</Condition>   
+		<MenuItem id = "SeparatorGenerateAndMakeManu" type = "Separator" insertbefore   = "Build"/>
+		<Condition name = "GeneratingApplication">
+			<MenuItem id    = "CancelGeneration"
+			          label = "${res:Clarion.Generator.Menu.CancelGeneration}"
+			          icon  = "Icons.16x16.CancelIcon"
+			          class   = "SoftVelocity.Generator.Commands.CancelGeneration"/>
+		</Condition>
+	</Path>
+	<!-- Menu Make&Run support -->
+	<Path name = "/SharpDevelop/Workbench/MainMenu/Debug">
+		<ComplexCondition action="Disable">
+			<Or>
+				<And>
+					<Or>
+						<Condition name = "WindowActive" activewindow="ICSharpCode.SharpDevelop.DefaultEditor.Gui.Editor.ITextEditorControlProvider"/>
+						<Condition name = "WindowActive" activewindow="ICSharpCode.FormsDesigner.FormsDesignerViewContent"/>
+					</Or>
+					<Condition name = "ActiveViewContentUntitled" activewindowuntitled="False"/>
+				</And>
+					<Condition name = "SolutionOpen"/>
+				</Or>
+				<Condition name="DebuggerSupports" debuggersupports = "Start">
+					<Condition name="IsProcessRunning" isdebugging="False" action="Disable">
+						<MenuItem id       = "MakeAndRunAllApplicationsMenuItem"
+						          label    = "${res:Clarion.Generator.MenuItem.MakeAndRunAll}"
+						          shortcut = "Control|Shift|R"
+						          insertbefore   = "Run"
+						          icon    = "Generator.MakeAndRunAllApplications"
+						          class   = "SoftVelocity.Generator.Commands.MakeAndRunAllApplicationsAsyncMenuCommand"/>
+					</Condition>
+				</Condition>
+				<Condition name="DebuggerSupports" debuggersupports = "StartWithoutDebugging">
+					<Condition name="IsProcessRunning" isdebugging="False" action="Disable">
+						<MenuItem id       = "MakeAndRunAllApplicationsDebuggerMenuItem"
+						          label    = "${res:Clarion.Generator.MenuItem.MakeAndDebugAll}"
+						          shortcut = "Control|Shift|D"
+						          insertbefore   = "Run"
+						          icon    = "Generator.MakeAndRunAllApplicationsDebugger"
+						          class   = "SoftVelocity.Generator.Commands.MakeAndRunAllApplicationsDebuggerAsyncMenuCommand"/>
+					</Condition>
+				</Condition>
+				<MenuItem id = "SeparatorMakeAndRun" type = "Separator" insertbefore   = "Run"/>
+				</ComplexCondition>
+	</Path> 
+	<!-- ApplicationToolbar -->
+	<Path name = "/SharpDevelop/Workbench/ToolBar/Standard">
+		<MenuItem id = "AppgenToolbarSeparator" type = "Separator" insertbefore = "DebuggerSeparator"/>
+		<Condition name = "SolutionOpen" action="Disable">
+			<ComplexCondition>
+				<Or>
+					<Condition name="IsProcessRunning" isdebugging = "False"/>
+					<Not>
+						<Condition name="DebuggerSupports" debuggersupports = "ExecutionControl"/>
+					</Not>
+				</Or>
+				<Condition name="IsProcessRunning" isdebugging = "False" action = "Disable">
+					<Condition name = "CanGenerateCurrentApplication" action="Disable">
+						<ToolbarItem id      = "GenerateCurrent"
+						             insertbefore  = "Compile"
+						             icon    = "Icons.24x24.GenerateSelected"
+						             tooltip = "${res:Clarion.Generator.Pad.Buttons.GenerateCurrent}"
+						             class   = "SoftVelocity.Generator.Commands.GenerateCurrentApplicationAsyncMenuCommand"/>
+						<ToolbarItem id      = "GenerateAndMakeCurrent"
+						             insertbefore  = "Compile"
+						             icon    = "Icons.24x24.BuildCurrentSelectedProject"
+						             tooltip = "${res:Clarion.Generator.Pad.Buttons.GenerateAndMakeCurrent}"
+						             class   = "SoftVelocity.Generator.Commands.GenerateAndMakeCurrentApplicationAsyncMenuCommand"/>
+						<ToolbarItem id      = "GenerateAndRunActive"
+						             insertbefore  = "Compile"
+						             icon    = "Icons.24x24.MakeRunCurrent"
+						             tooltip = "${res:Clarion.Generator.Pad.Buttons.GenerateMakeAndRunCurrent}"
+						             class   = "SoftVelocity.Generator.Commands.GenerateMakeAndRunCurrentApplicationAsyncMenuCommand"/>
+					</Condition>
+					<Condition name = "IsGeneratingOrBuilding" action="Disable">
+						<ToolbarItem id      = "CancelGenerateAndBuild"
+						             insertbefore  = "Compile"
+						             icon    = "Icons.24x24.CancelGenerateAndBuild"
+						             tooltip = "${res:Clarion.Generator.Pad.Buttons.CancelGenerateAndBuild}"
+						             class   = "SoftVelocity.Generator.Commands.CancelGenerationAndBuild"/>
+					</Condition>
+					<MenuItem id = "GenerateAndMakeCurrentSeparator" type = "Separator" insertbefore = "Compile"/>
+					<Condition name="DebuggerSupports" debuggersupports = "Start">
+						<ToolbarItem id      = "Run"
+						             insertbefore  = "DebuggerSeparator"
+						             icon    = "Icons.24x24.MakeAndRunDebugger"
+						             tooltip = "${res:XML.MainMenu.RunMenu.Run.Description}"
+						             class   = "SoftVelocity.Generator.Commands.MakeAndRunEditedApplicationsDebuggerAsyncMenuCommand"/>
+					</Condition>
+					<Condition name="DebuggerSupports" debuggersupports = "StartWithoutDebugging">
+						<ToolbarItem id      = "RunWithoutDebugger"
+						             insertbefore  = "DebuggerSeparator"
+						             icon    = "Icons.24x24.MakeRunExeIcon"
+						             tooltip = "${res:XML.MainMenu.DebugMenu.RunWithoutDebug.Description}"
+						             class   = "SoftVelocity.Generator.Commands.MakeAndRunEditedApplicationsAsyncMenuCommand"/>
+						<ToolbarItem id      = "RunStartUpProject"
+						             insertbefore  = "DebuggerSeparator"
+						             icon    = "Icons.24x24.RunExeIcon"
+						             tooltip = "${res:Generator.RunStartUp.Description}"
+						             class   = "SoftVelocity.Generator.Commands.RunStartUpProject"/>
+					</Condition>
+				</Condition>
+			</ComplexCondition>
+		</Condition>
+	</Path>
+	<!-- ApplicationEditorMenu -->
+	<Path name = "/SharpDevelop/Workbench/MainMenu">
+		<Condition name = "CurrentViewIsApplication">
+			<MenuItem id = "ApplicationMainMenu" label    = "${res:Generator.ApplicationMenu}" type="Menu" insertbefore = "Tools">
+
+			<MenuItem id           = "ApplicationMainWindowControlFileImportFromApplicationCommand"
+			          label        = "${res:Generator.ImportFromApplication}"
+			          icon         = "Generator.ImportFromApplication"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlFileImportFromApplicationCommand"/>
+			<MenuItem id           = "ApplicationMainWindowControlFileImportTextCommand"
+			          label        = "${res:Generator.ImportTxa}"
+			          icon         = "Generator.ImportTxa"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlFileImportTextCommand"/>
+			<MenuItem id           = "ApplicationMainWindowControlFileExportTextCommand"
+			          label        = "${res:Generator.AppToText}"
+			          icon         = "Generator.AppToText"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlFileExportTextCommand"/>
+			<MenuItem id           = "ApplicationMainWindowControlFileSelectiveExportCommand"
+			          label        = "${res:Generator.SelectiveAppToText}"
+			          icon         = "Generator.SelectiveAppToText"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlFileSelectiveExportCommand"/>
+			<MenuItem id = "Separator4" type = "Separator"  />
+			<MenuItem id           = "OpenApplicationDictionaryCommand"
+			          label        = "${res:Generator.OpenApplicationDictionaryCommand}"
+			          icon         = "Generator.Dictionary"
+			          class        = "SoftVelocity.Generator.Commands.OpenApplicationDictionaryMenuCommand"/>
+			<MenuItem id           = "ApplicationMainWindowControlApplicationInsertModuleCommand"
+			          label        = "${res:Generator.InsertModule}"
+			          icon         = "Generator.InsertModule"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlApplicationInsertModuleCommand"/>
+			<MenuItem id           = "ApplicationMainWindowControlApplicationSynchronizeCommand"
+			          label        = "${res:Generator.SynchronizeApp}"
+			          icon         = "Generator.SynchronizeApp"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlApplicationSynchronizeCommand"/>
+			<MenuItem id = "Separator4" type = "Separator"  />
+			<MenuItem id           = "ApplicationMainWindowControlApplicationRedistributeProceduresCommand"
+			          label        = "${res:Generator.RedistributeProcedures}"
+			          icon         = "Generator.RedistributeProcedures"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlApplicationRedistributeProceduresCommand"/>
+			<MenuItem id           = "ApplicationMainWindowControlApplicationRepopulateModulesCommand"
+			          label        = "${res:Generator.RepopulateModules}"
+			          icon         = "Generator.RepopulateModules"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlApplicationRepopulateModulesCommand"/>
+			<MenuItem id           = "ApplicationMainWindowControlApplicationRenumberModulesCommand"
+			          label        = "${res:Generator.RenumberModules}"
+			          icon         = "Generator.RenumberModules"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlApplicationRenumberModulesCommand"/>
+			<MenuItem id           = "ApplicationMainWindowControlApplicationDeleteEmptyModulesCommand"
+			          label        = "${res:Generator.DeleteEmptyModules}"
+			          icon         = "Generator.Delete"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlApplicationDeleteEmptyModulesCommand"/>
+			<MenuItem id           = "ApplicationMainWindowControlApplicationDeleteEmptylibrariesCommand"
+			          label        = "${res:Generator.DeleteEmptyLibraries}"
+			          icon         = "Generator.DeleteEmptyLibraries"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlApplicationDeleteEmptylibrariesCommand"/>
+			<MenuItem id = "Separator4" type = "Separator"  />
+			<MenuItem id           = "ApplicationMainWindowControlProcedureNewCommand"
+			          label        = "${res:Generator.NewProcedure}"
+			          icon         = "Generator.InsertModule"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlProcedureNewCommand"/>
+			<MenuItem id           = "ApplicationMainWindowControlEditDeleteCommand"
+			          label        = "${res:Generator.DeleteProcedure}"
+			          icon         = "Generator.Delete"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlEditDeleteCommand"/>
+			<MenuItem id           = "ApplicationMainWindowControlProcedureCopyCommand"
+			          label        = "${res:Generator.CopyProcedure}"
+			          icon         = "Generator.CopyProcedure"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlProcedureCopyCommand"/>
+			<MenuItem id           = "ApplicationMainWindowControlProcedureSynchronizeCommand"
+			          label        = "${res:Generator.SynchronizeProcedure}"
+			          icon         = "Generator.SynchronizeProcedure"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlProcedureSynchronizeCommand"/>
+			<MenuItem id           = "ApplicationMainWindowControlTemplateUtilityCommand"
+			          label        = "${res:Generator.TemplateUtility}"
+			          icon         = "Generator.TemplateUtility"
+			          shortcut     = "Control|U"
+			          class        = "SoftVelocity.Generator.UI.Commands.ApplicationMainWindowControlTemplateUtilityCommand"/>
+			</MenuItem>
+		</Condition>
+	</Path> 
+	<!-- Application File filters -->
+	<Path name = "/SharpDevelop/Workbench/Combine/FileFilter">
+		<FileFilter id         = "ClarionApplication"
+		            insertbefore="Combine"
+		            name       = "${res:Clarion.Generator.Application.FileTypeRegisterer.Application.Filter}"
+		            class      = "SoftVelocity.Generator.ApplicationLoader"
+		            category   = "Application" 
+		            extensions = "*.app"/>
+	</Path>
+	<Path name = "/Clarion/Generator/FileFilter/App">
+		<FileFilter id         = "ClarionApplication"
+		            name       = "${res:Clarion.Generator.Application.FileTypeRegisterer.Application.Filter}"
+		            extensions = "*.app"/>
+	</Path>
+	<Path name = "/SharpDevelop/Workbench/QuickOpen/FileFilter">
+		<FileFilter id         = "ClarionApplication"
+		            name       = "${res:Clarion.Generator.Application.FileTypeRegisterer.Application.Filter}"
+		            extensions = "*.app"/>
+	</Path>
+	<Path name = "/SharpDevelop/Workbench/FileFilter">
+		<FileFilter id         = "ClarionApplication"
+		            insertbefore = "AllFiles"
+		            name       = "${res:Clarion.Generator.Application.FileTypeRegisterer.Application.Filter}"
+		            extensions = "*.app"/>
+	</Path>
+	<Path name = "/Clarion/Generator/FileFilter/Txa">
+		<FileFilter id         = "TxaFiles"
+		            name       = "${res:Clarion.Generator.FileFilter.TxaFiles}"
+		            extensions = "*.txa"/>
+	</Path>
+
+	<Path name = "/AddIns/FileTypeRegisterer/FileTypes">
+		<FiletypeAssociation
+			id = "app"
+			insertafter = "sln"
+			insertbefore = "sdaddin"
+			autoRegister = "True"
+			icon = "${AddInPath:SoftVelocity.Generator}/Resources/Application.ico"
+			text = "${res:Clarion.Generator.Application.FileTypeRegisterer.Application}"/>
+	</Path>
+	<!-- Application Tree -->
+	<Path name = "/SharpDevelop/Workbench/DisplayBindings">
+		<DisplayBinding id    = "ApplicationEditor"
+		                class = "SoftVelocity.Generator.UI.ApplicationEditorDisplayBinding"
+		                insertbefore    = "Text"
+		                fileNamePattern = "\.app$"
+		                languagePattern = "^ApplicationFiles$"/>
+	</Path>
+	<!-- Language description for Templates -->
+	<Path name = "/SharpDevelop/Workbench/LanguageBindings">
+		<LanguageBinding id                   = "ClarionTemplates"
+		                 guid                 = "{418D9F34-9668-4ea7-B141-BF9260E29A3A}"
+		                 supportedextensions  = ".tpw;.tpl"
+		                 class                = "SoftVelocity.Generator.ClarionTemplateLanguageBinding" />
+	</Path>
+	<!-- Clarion Template Editor -->
+	<Path name = "/SharpDevelop/Workbench/DisplayBindings">
+		<DisplayBinding id    = "ClarionTemplateEditor"
+		                insertbefore    = "Text"
+		                supportedformats = "Clarion Templates"
+		                fileNamePattern = "\.tpl$|\.tpw$"
+		                class = "SoftVelocity.Generator.ClarionTemplateEditorDisplayBinding" />
+	</Path>
+	<Path name = "/SharpDevelop/ViewContent/DefaultTextEditor/ContextMenu">
+		<Condition name = "WindowActive" activewindow="SoftVelocity.Generator.ClarionTemplateEditorDisplayBindingWrapper">
+			<MenuItem id = "TemplateSymbol3" type = "Separator" />
+			<MenuItem id = "SearchSymbolInFilesLocal"
+			          label = "Search Symbol in Files (current directory)"
+			          class = "SoftVelocity.Generator.TemplateRegistry.Actions.SearchSymbolInFilesLocalMenuCommand"/>
+			<MenuItem id = "SearchSymbolDeclarationInFilesLocal"
+			          label = "Search Symbol Declaration in Files (current directory)"
+			          class = "SoftVelocity.Generator.TemplateRegistry.Actions.SearchSymbolDeclarationInFilesLocalMenuCommand"/>
+			<MenuItem id = "TemplateSymbol1" type = "Separator" />
+			<MenuItem id = "SearchTemplateSymbolDeclarationInBuffer"
+			          label = "Search Symbol Declaration in Buffer"
+			          class = "SoftVelocity.Generator.TemplateRegistry.Actions.SearchSymbolDeclarationInBufferMenuCommand"/>
+			<MenuItem id = "SearchTemplateSymbolInBuffer"
+			          label = "Search Symbol in Buffer"
+			          class = "SoftVelocity.Generator.TemplateRegistry.Actions.SearchSymbolInBufferMenuCommand"/>
+			<MenuItem id = "TemplateSymbol2" type = "Separator" />
+			<MenuItem id = "SearchTemplateSymbolInFile"
+			          label = "Search Symbol in Files (red file)"
+			          class = "SoftVelocity.Generator.TemplateRegistry.Actions.SearchSymbolInFilesMenuCommand"/>
+			<MenuItem id = "SearchTemplateSymbolDeclarationInFile"
+			          label = "Search Symbol Declaration in Files (red file)"
+			          class = "SoftVelocity.Generator.TemplateRegistry.Actions.SearchSymbolDeclarationInFilesMenuCommand"/>
+			<MenuItem id    = "RedirectionSeparator" type = "Separator" />
+			<MenuItem id = "OpenSelectedViaRedFile"
+			          label = "${res:Clarion.ProjectComponent.ContextMenu.OpenUsingRedirection}"
+			          class = "SoftVelocity.Common.Redirection.OpenSelectedViaRedirectionFile"/>			          
+		</Condition>
+	</Path>
+	<Path name = "/AddIns/DefaultTextEditor/EditActions">
+		<Condition name = "WindowActive" activewindow="SoftVelocity.Generator.ClarionTemplateEditorDisplayBindingWrapper">
+			<EditAction id = "SearchTemplateSymbolDeclarationInBufferAction"  class = "SoftVelocity.Generator.TemplateRegistry.Actions.SearchSymbolDeclarationInBufferAction"  keys = "Control|Return"/>
+			<EditAction id = "SearchTemplateSymbolInBufferAction"  class = "SoftVelocity.Generator.TemplateRegistry.Actions.SearchSymbolInBufferAction"  keys = "Control|Shift|Return"/>
+		</Condition>
+	</Path>  
+	<!-- Language description -->
+	<Path name = "/SharpDevelop/Workbench/LanguageBindings">
+		<LanguageBinding id                   = "ClarionGenerator"
+			         guid                 = "{E5AD0897-F16C-42b7-BB55-48ED3327E622}"
+			         projectfileextension = ".app"
+			         class                = "SoftVelocity.Generator.ApplicationLanguageBinding" />
+	</Path>
+	<Path name = "/Clarion/OldProjectFiles/FileFilter">
+		<Include  id = "AppFiles" item = "/Clarion/Generator/FileFilter/App/ClarionApplication"
+		          insertbefore = "OldProject"/>
+	</Path>
+	<!-- Templates Location -->
+	<Path name = "/SharpDevelop/BackendBindings/Templates">
+		<Directory id = "ClarionApplication" path = "./Templates" />
+	</Path>
+	<!-- Generator binding-->
+	<Path name = "/Clarion/GeneratorBindings">
+		<GeneratorBinding id     = "ClarionGenerator"
+		                  class  = "SoftVelocity.Generator.UI.GeneratorBinding" />
+	</Path>
+	<Path name = "/SharpDevelop/Workbench/DisplayBindings">
+		<DisplayBinding id              = "FormulaEditor"
+		                type            = "Secondary"
+		                fileNamePattern = "\.app"
+		                class           = "SoftVelocity.Generator.FormulaEditorDisplayBinding" />
+	</Path>
+	<Path name = "/SharpDevelop/Workbench/DisplayBindings">
+		<DisplayBinding id              = "CWDialog"
+		                type            = "Secondary"
+		                fileNamePattern = "\.app"
+		                class           = "SoftVelocity.CWPInvoke.CWDialogDisplayBinding" />
+	</Path>
+	<!-- Application Service Options Dialog -->
+	<Path name = "/SharpDevelop/Dialogs/OptionsDialog/Clarion Options">
+		<DialogPanel id = "ApplicationServiceOptions"
+		             label = "${res:OptionsDialog.ApplicationServiceOptions}"
+		             class = "SoftVelocity.Generator.OptionPanels.ApplicationServiceOptionPanel"/>
+	</Path>
+	<!-- Command Line Support -->
+	<Path name = "/SharpDevelop/Workbench/CommandLines">
+		<CommandLine id     = "RegisterTemplate"
+		             class  = "SoftVelocity.Generator.CommandLine.RegisterTemplate"
+		             switch = "tr"
+		             runafter ="SetRedirectionSection" 
+		             description = "${res:Clarion.Generator.CommandLine.Templates.Register}"/>
+		<CommandLine id     = "UnregisterTemplate"
+		             class  = "SoftVelocity.Generator.CommandLine.UnRegisterTemplate"
+		             switch = "tu"
+		             insertafter ="RegisterTemplate" 
+		             description = "${res:Clarion.Generator.CommandLine.Templates.UnRegister}"/>
+		<CommandLine id     = "ListTemplates"
+		             class  = "SoftVelocity.Generator.CommandLine.ListTemplates"
+		             switch = "tl"
+		             parameters = "0"
+		             insertafter ="UnregisterTemplate"
+		             description = "${res:Clarion.Generator.CommandLine.Templates.ListTemplates}"/>
+		<CommandLine id     = "GenerateApplication"
+		             class  = "SoftVelocity.Generator.CommandLine.GenerateApplication"
+		             switch = "ag"
+		             insertbefore ="RegisterTemplate"
+		             runafter ="SetRedirectionSection" 
+		             description = "${res:Clarion.Generator.CommandLine.Application.Generate}"/>
+		<CommandLine id     = "SetConditionalGeneration"
+		             class  = "SoftVelocity.Generator.CommandLine.SetConditionalGeneration"
+		             switch = "agc"
+		             multi = "false" 
+		             runbefore = "GenerateApplication" 
+		             insertafter ="GenerateApplication"
+		             insertbefore ="RegisterTemplate"
+		             description = "${res:Clarion.Generator.CommandLine.Application.SetConditionalGeneration}"/>
+		<CommandLine id     = "SetDebugGeneration"
+		             class  = "SoftVelocity.Generator.CommandLine.SetDebugGeneration"
+		             switch = "agd"
+		             multi = "false"
+		             runbefore = "GenerateApplication" 
+		             insertafter ="SetConditionalGeneration"
+		             insertbefore ="RegisterTemplate"
+		             description = "${res:Clarion.Generator.CommandLine.Application.SetDebugGeneration}"/>
+		<CommandLine id     = "GenerationUtility"
+		             class  = "SoftVelocity.Generator.CommandLine.RunUtility"
+		             switch = "aru"
+		             parameters = "2"
+		             optionalparameters = "1"
+		             runafter ="SetRedirectionSection" 
+		             insertafter ="SetDebugGeneration"
+		             insertbefore ="RegisterTemplate"
+		             description = "${res:Clarion.Generator.CommandLine.Application.RunUtility}"/>
+	</Path>
+	<Path name = "/Clarion/Messaging">
+		<Class id    = "GeneratorMessages"
+		       class = "SoftVelocity.Generator.GeneratorMessage"/>
+	</Path>
+</AddIn>

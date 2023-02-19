@@ -1,0 +1,660 @@
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphControlAtStart)
+  #CALL(%ReadABCFiles(ABC))
+  #CALL(%FileControlInitialize(ABC))
+  #CALL(%FileControlSetFlags(ABC))
+  #EQUATE(%InstancePrefix, 'GRP' & %ActiveTemplateInstance)
+  #CALL(%SetClassDefaults(ABC), %InstancePrefix, %InstancePrefix, %GraphType)
+  #CALL(%GetControlName),%LocalControlName
+  #!
+  #DECLARE(%ListView)
+  #FOR(%GraphDataSources), WHERE(%GraphDataSource='File')
+    #SET(%ListView, %InstancePrefix & '::View:Graph')
+    #BREAK
+  #ENDFOR
+  #!
+  #DECLARE(%GraphPointHFFB),MULTI,UNIQUE
+  #DECLARE(%GraphPointHFFBField,%GraphPointHFFB)
+  #DECLARE(%QueueField),MULTI
+  #DECLARE(%QueueFieldAssignment,%QueueField)
+  #DECLARE(%QueueFieldComment,%QueueField)
+  #DECLARE(%ThisGraphDataHasBreaks)
+  #DECLARE(%GraphDataSourceQueueSortExpresion)
+  #DECLARE(%ThisGraphPoint)
+  #DECLARE(%PointCounter)
+  #DECLARE(%Temp1)
+  #DECLARE(%Temp2)
+   #CASE(%SortRangeLimitType)
+   #OF('Range of Values')
+     #SET(%Temp1,%SortRangeLow)
+     #SET(%Temp2,%SortRangeHigh)
+   #OF('Single Value')
+     #SET(%Temp1,%SortRangeLimit)
+   #OF('File Relationship')
+     #SET(%Temp1,%SortRangeFile)
+   #ENDCASE
+  #! Load the field to be included into the view
+   #CALL(%FileControlInitialize(ABC))
+   #FOR(%GraphDataSources)
+      #FOR(%GraphHotFields),WHERE(~%GraphHotFieldBindOnly)
+        #SET(%ValueConstruct,%GraphHotField)
+        #IF(~INLIST(%ValueConstruct,%QueueField))
+          #ADD(%QueueField,%ValueConstruct)
+          #SET(%QueueFieldAssignment,%GraphHotField)
+        #ENDIF
+      #ENDFOR
+   #ENDFOR
+   #FOR(%GraphDataSources),WHERE(%GraphDataSource='File')
+      #IF(%GraphPointField)
+        #SET(%ValueConstruct,%GraphPointField)
+        #IF(~INLIST(%ValueConstruct,%QueueField))
+          #ADD(%QueueField,%ValueConstruct)
+          #SET(%QueueFieldAssignment,%GraphPointField)
+        #ENDIF
+      #ENDIF
+      #FOR(%GraphPointBreak)
+        #SET(%ValueConstruct,%GraphPointBreakField)
+        #IF(~INLIST(%ValueConstruct,%QueueField))
+          #ADD(%QueueField,%ValueConstruct)
+          #SET(%QueueFieldAssignment,%GraphPointBreakField)
+        #ENDIF
+      #ENDFOR
+   #ENDFOR
+   #IF(%GraphXAxisLabel)
+     #SET(%ValueConstruct,%StripPling(%GraphXAxisLabel))
+     #IF(~INLIST(%ValueConstruct,%QueueField))
+       #ADD(%QueueField,%ValueConstruct)
+       #SET(%QueueFieldAssignment,%StripPling(%GraphXAxisLabel))
+     #ENDIF
+   #ENDIF
+   #IF(%GraphYAxisLabel)
+     #SET(%ValueConstruct,%StripPling(%GraphYAxisLabel))
+     #IF(~INLIST(%ValueConstruct,%QueueField))
+       #ADD(%QueueField,%ValueConstruct)
+       #SET(%QueueFieldAssignment,%StripPling(%GraphYAxisLabel))
+     #ENDIF
+   #ENDIF
+   #CALL(%AddAllSeriesMethods)
+   #!CALL(%GraphControlInsertBind)
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphCheckSeriesName), AUTO
+  #DECLARE(%locYes, LONG)
+  #DECLARE(%locIs, LONG)
+  #DECLARE(%locId, LONG)
+  #DECLARE(%locName)
+  #!.....................................................................................
+  #SET(%locName, upper(%GraphPointSerieName))
+  #IF(%locName)
+    #SET(%locIs, instance(%GraphDataSources))
+    #SET(%locId, instance(%GraphDataPoints))
+    #FOR(%GraphDataSources), WHERE(instance(%GraphDataSources) <> %locIs)
+      #FOR(%GraphDataPoints), WHERE(instance(%GraphDataPoints) <> %locId AND %locName=upper(%GraphPointSerieName))
+        #SET(%locYes, %True)
+        #BREAK
+      #ENDFOR
+      #IF(%locYes)
+        #BREAK
+      #ENDIF
+    #ENDFOR
+    #SELECT(%GraphDataPoints,%locId)
+  #ENDIF
+  #RETURN(choose(~%locYes,'',%True))
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphPointName)
+  #IF(%GraphPointAction='Count')
+    #RETURN('Count_' & INSTANCE(%GraphDataPoints))
+  #ELSE
+    #RETURN(CLIP(%GraphPointField))
+  #ENDIF
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphSeriesName, LONG %parStripPling=%True), AUTO
+  #DECLARE(%locName)
+  #!.....................................................................................
+  #IF(%GraphPointSerieName)
+    #SET(%locName,%GraphPointSerieName)
+  #ELSE
+    #SET(%locName,'Serie ' & instance(%GraphDataSources) &':'& instance(%GraphDataPoints) )
+  #ENDIF
+  #RETURN(choose(~%parStripPling,%locName,%StripPling(%locName)))
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphBreakPrefix)
+  #RETURN('_Break' & %GraphDataSources)
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphObjectTotalPrefix)
+  #RETURN(%ThisObjectName & %GraphTotalPrefix())
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphTotalPrefix)
+  #RETURN('_Total' & %GraphDataSources)
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphSeriesPrefix)
+  #RETURN('Series' & %GraphDataSources)
+#!------------------------------------------------------------------------------------------
+#! Returns the name VM
+#GROUP(%GraphVMname)
+  #RETURN(%ThisObjectName & ':VM' & %GraphDataSources)
+#!---------------------------------------------------------------------------------------
+#GROUP(%GrapInsertCodeVMinit)
+  #FOR(%GraphDataSources), WHERE(%GraphDataSource='File')
+! Initializing ViewManager of object %ThisObjectName
+%(%GraphVMname()).Init(%ListView,Relate:%Primary)
+%(%GraphVMname()).AddSortOrder(%SortKey)
+    #SET(%ValueConstruct,'')
+    #FOR(%GraphDataSourceFileSort)
+      #IF(%ValueConstruct)
+        #SET(%ValueConstruct,%ValueConstruct &','& %GraphDataSourceFileSortFieldSec & %GraphDataSourceFileSortField)
+      #ELSE
+        #SET(%ValueConstruct,%ValueConstruct & %GraphDataSourceFileSortFieldSec & %GraphDataSourceFileSortField)
+      #ENDIF
+    #ENDFOR
+    #IF(%ValueConstruct)
+%(%GraphVMname()).AppendOrder('%'ValueConstruct')
+    #ENDIF
+    #IF(%SortRangeField)
+      #CASE(%SortRangeLimitType)
+      #OF('Single Value')
+%(%GraphVMname()).AddRange(%SortRangeField,%SortRangeLimit)
+      #OF('Range of Values')
+%(%GraphVMname()).AddRange(%SortRangeField,%SortRangeLow,%SortRangeHigh)
+      #OF('File Relationship')
+%(%GraphVMname()).AddRange(%SortRangeField,Relate:%Primary,Relate:%SortRangeFile)
+      #OF('Current Value')
+%(%GraphVMname()).AddRange(%SortRangeField)
+      #ENDCASE
+    #ENDIF
+    #IF(%SortRecordFilter)
+%(%GraphVMname() &'.SetFilter('& %StripPling(%SortRecordFilter) &')')
+    #ENDIF
+  #ENDFOR
+#!---------------------------------------------------------------------------------------
+#GROUP(%AddGraphPointBreakBreaksClassDeclaration),AUTO
+  #FOR(%GraphDataSources)
+    #IF(%GraphPointBreakHasBreaks())
+%[20](%ThisObjectName & %GraphBreakPrefix()) class(%DefaultBreakBaseClassType)
+TakeStart              PROCEDURE(SHORT BreakId, SHORT LevelId),VIRTUAL
+TakeEnd                PROCEDURE(SHORT BreakId, SHORT LevelId),VIRTUAL
+UpdateTotal            PROCEDURE(SHORT BreakId, SHORT LevelId),VIRTUAL
+                     END
+    #ENDIF
+  #ENDFOR
+#!--------------------------------------------------
+#GROUP(%AddGraphTotalsFieldsDeclaration),AUTO
+  #DECLARE(%locType)
+  #!.....................................................................................
+  #FOR(%GraphDataSources)
+    #FOR(%GraphDataPoints)
+      #SET(%PointCounter,%PointCounter+1)
+      #IF(%GraphPointAction<>'Graph')
+        #SET(%locType, CHOOSE(%GraphPointAction='Count','long','like(' & %GraphPointField & ')'))
+%[20](%GraphObjectTotalPrefix() &'_'& %GraphPointName()) %(%locType)
+      #ENDIF
+%[20](%GraphObjectTotalPrefix() &'_PointNumber_'& %GraphPointName()) long
+    #ENDFOR
+  #ENDFOR
+#!--------------------------------------------------
+#GROUP(%AddGraphPointBreakBreaksClassInitialisation),AUTO
+  #DECLARE(%ACondition)
+  #DECLARE(%ThisHasBreaks)
+  #DECLARE(%CountInstance)
+  #FOR(%GraphDataSources)
+    #CALL(%GraphPointBreakHasBreaks),%ThisHasBreaks
+    #IF(%ThisHasBreaks)
+%ThisObjectName%(%GraphBreakPrefix()).Init()
+    #ENDIF
+    #FOR(%GraphDataPoints)
+      #IF(ITEMS(%GraphPointBreak)<=0 OR (%GraphPointAction='Graph'))
+        #CYCLE
+      #ENDIF
+%ThisObjectName%(%GraphBreakPrefix()).AddBreak()
+%ThisObjectName%(%GraphBreakPrefix()).AddLevel()
+      #FOR(%GraphPointBreak)
+%ThisObjectName%(%GraphBreakPrefix()).AddResetField(%GraphPointBreakField)
+      #ENDFOR
+      #CASE(%GraphPointAction)
+      #OF('Count')
+        #SET(%CountInstance,INSTANCE(%GraphDataPoints))
+        #IF(%GraphPointFilter)
+          #SET(%ACondition,QUOTE(%GraphPointFilter))
+%ThisObjectName%(%GraphBreakPrefix()).AddTotal(%(%GraphObjectTotalPrefix())_Count_%CountInstance,True,'%ACondition')
+        #ELSE
+%ThisObjectName%(%GraphBreakPrefix()).AddTotal(%(%GraphObjectTotalPrefix())_Count_%CountInstance,True)
+        #ENDIF
+      #OF('Sum')
+        #IF(%GraphPointFilter)
+          #SET(%ACondition,QUOTE(%GraphPointFilter))
+%ThisObjectName%(%GraphBreakPrefix()).AddTotal(%(%GraphObjectTotalPrefix())_%GraphPointField,%GraphPointField,eBreakTotalSum,True,'%ACondition')
+        #ELSE
+%ThisObjectName%(%GraphBreakPrefix()).AddTotal(%(%GraphObjectTotalPrefix())_%GraphPointField,%GraphPointField,eBreakTotalSum,True)
+        #ENDIF
+      #OF('Average')
+        #IF(%GraphPointFilter)
+          #SET(%ACondition,QUOTE(%GraphPointFilter))
+%ThisObjectName%(%GraphBreakPrefix()).AddTotal(%(%GraphObjectTotalPrefix())_%GraphPointField,%GraphPointField,eBreakTotalAve,True,'%ACondition')
+        #ELSE
+%ThisObjectName%(%GraphBreakPrefix()).AddTotal(%(%GraphObjectTotalPrefix())_%GraphPointField,%GraphPointField,eBreakTotalAve,True)
+        #ENDIF
+      #ENDCASE
+    #ENDFOR
+    #IF(%ThisHasBreaks)
+      #FOR(%GraphHotFields),WHERE(NOT %GraphHotFieldBindOnly)
+%ThisObjectName%(%GraphBreakPrefix()).AddHotField(%GraphHotField)
+      #ENDFOR
+%ThisObjectName%(%GraphBreakPrefix()).Reset()
+    #ENDIF
+  #ENDFOR
+#!--------------------------------------------------
+#GROUP(%AddGraphPointBreakBreaksClassCode),AUTO
+  #DECLARE(%BIndex)
+  #DECLARE(%LastLevel)
+  #FOR(%GraphDataSources)
+    #IF(%GraphPointBreakHasBreaks())
+%[20](%ThisObjectName & %GraphBreakPrefix() & '.TakeStart') PROCEDURE(SHORT BreakId, SHORT LevelId)
+ CODE
+  PARENT.TakeStart(BreakId,LevelId)
+!
+%[20](%ThisObjectName & %GraphBreakPrefix() & '.TakeEnd') PROCEDURE(SHORT BreakId, SHORT LevelId)
+ CODE
+      #SET(%BIndex,0)
+  CASE BreakId
+      #FOR(%GraphDataPoints)
+        #SET(%BIndex,%BIndex+1)
+  OF %BIndex
+        #SET(%LastLevel,ITEMS(%GraphPointBreak))
+    IF LevelId=1
+      %ThisObjectName.%(%GraphSeriesPrefix())_AddPoint_%(%GraphPointName())()
+    END
+      #ENDFOR
+  END
+  PARENT.TakeEnd(BreakId,LevelId)
+!
+%[20](%ThisObjectName & %GraphBreakPrefix() & '.UpdateTotal') PROCEDURE(SHORT BreakId, SHORT LevelId)
+ CODE
+  PARENT.UpdateTotal(BreakId,LevelId)
+    #ENDIF
+  #ENDFOR
+#!--------------------------------------------------
+#GROUP(%GraphHasBreaks),AUTO
+  #FOR(%GraphDataSources)
+    #IF(%GraphPointBreakHasBreaks())
+      #RETURN(%True)
+    #ENDIF
+  #ENDFOR
+  #RETURN('')
+#!--------------------------------------------------
+#GROUP(%GraphPointBreakHasBreaks),AUTO
+  #FOR(%GraphDataPoints), WHERE(ITEMS(%GraphPointBreak) AND %GraphPointAction<>'Graph')
+    #RETURN(%True)
+  #ENDFOR
+ #RETURN('')
+#!--------------------------------------------------
+#GROUP(%AddAllSeriesMethods),AUTO
+  #CALL(%DeleteAllSeriesMethods)
+  #FOR(%GraphDataSources)
+    #CALL(%AddSeriesMethods, %GraphSeriesPrefix() & '_Process','()')
+    #CALL(%AddSeriesMethods, %GraphSeriesPrefix() & '_TakeNextValue','(),BYTE')
+    #CALL(%AddSeriesMethods, %GraphSeriesPrefix() & '_FilterRecord','(),BYTE')
+    #FOR(%GraphDataPoints)
+      #CALL(%AddSeriesMethods, %GraphSeriesPrefix() &'_AddPoint_'& %GraphPointName(),'()')
+      #CALL(%AddSeriesMethods, %GraphSeriesPrefix() &'_AddSerie_'& %GraphPointName(),'()')
+    #ENDFOR
+  #ENDFOR
+  #IF(ITEMS(%GraphDataSources))
+    #CALL(%AddSeriesProperty,'Graph:RecordIndex','LONG')
+    #CALL(%AddSeriesProperty,'Graph:SPointNumber','LONG')
+    #SET(%DeriveFromBaseClass,%True)
+  #ENDIF
+#!------------------------------------------------
+#GROUP(%DeleteAllSeriesMethods),AUTO
+  #DECLARE(%LocMethod),MULTI
+  #DECLARE(%LocMethodName,%LocMethod)
+  #DECLARE(%LocMethodProt,%LocMethod)
+  #DECLARE(%ValidMethod)
+  #!.....................................................................................
+  #FREE(%LocMethod)
+  #FOR(%GraphDataSources)
+    #ADD(%LocMethod,ITEMS(%LocMethod)+1)
+    #SET(%LocMethodName, %GraphSeriesPrefix() & '_Process')
+    #SET(%LocMethodProt,'()')
+    #ADD(%LocMethod,ITEMS(%LocMethod)+1)
+    #SET(%LocMethodName, %GraphSeriesPrefix() & '_TakeNextValue')
+    #SET(%LocMethodProt,'(),BYTE')
+    #ADD(%LocMethod,ITEMS(%LocMethod)+1)
+    #SET(%LocMethodName, %GraphSeriesPrefix() & '_FilterRecord')
+    #SET(%LocMethodProt,'(),BYTE')
+    #FOR(%GraphDataPoints)
+      #ADD(%LocMethod,ITEMS(%LocMethod)+1)
+      #SET(%LocMethodName, %GraphSeriesPrefix() &'_AddPoint_'& %GraphPointName())
+      #SET(%LocMethodProt,'()')
+      #ADD(%LocMethod,ITEMS(%LocMethod)+1)
+      #SET(%LocMethodName, %GraphSeriesPrefix() &'_AddSerie_'& %GraphPointName())
+      #SET(%LocMethodProt,'()')
+    #ENDFOR
+  #ENDFOR
+  #FOR(%NewMethods)
+    #FOR(%NewMethods)
+      #IF(LEFT(%NewMethodName,6) = 'Series' AND (INSTRING('_AddSerie_Count_',%NewMethodName,1,1) OR INSTRING('_AddPoint_Count_',%NewMethodName,1,1) OR INSTRING('_AddSerie_',%NewMethodName,1,1) OR INSTRING('_AddPoint_',%NewMethodName,1,1) OR INSTRING('_FilterRecord',%NewMethodName,1,1) OR INSTRING('_TakeNextValue',%NewMethodName,1,1) OR INSTRING('_Process',%NewMethodName,1,1)))
+         #SET(%ValidMethod,%False)
+         #FOR(%LocMethod)
+            #IF(CLIP(%NewMethodName)=CLIP(%LocMethodName) AND CLIP(%NewMethodPrototype)=CLIP(%LocMethodProt))
+               #SET(%ValidMethod,%True)
+            #ENDIF
+         #ENDFOR
+         #IF(NOT %ValidMethod)
+            #DELETE(%NewMethods)
+         #ENDIF
+      #ENDIF
+    #ENDFOR
+  #ENDFOR
+#!------------------------------------------------
+#GROUP(%AddSeriesProperty,%pClassProperty,%pClassDataType),AUTO
+  #DECLARE(%SeriesPropertyPresent)
+  #DECLARE(%LastNewMethodsInstance)
+  #SET(%SeriesPropertyPresent,0)
+  #SET(%LastNewMethodsInstance,0)
+  #FOR(%NewClassPropertyItems)
+    #SET(%LastNewMethodsInstance,%NewClassPropertyItems)
+    #IF(UPPER(%NewClassProperty)=UPPER(%pClassProperty))
+      #SET(%SeriesPropertyPresent,1)
+      #BREAK
+    #ENDIF
+  #ENDFOR
+  #IF(%SeriesPropertyPresent=0)
+    #ADD(%NewClassPropertyItems,%LastNewMethodsInstance+1)
+    #SET(%NewClassProperty,%pClassProperty)
+    #SET(%NewClassDataType,%pClassDataType)
+  #ENDIF
+  #SET(%DeriveFromBaseClass,%True)
+#!------------------------------------------------
+#GROUP(%AddSeriesMethods,%pMethodName,%pMethodPrototype),AUTO
+  #DECLARE(%SeriesMethodsPresent)
+  #DECLARE(%LastNewMethodsInstance)
+  #SET(%SeriesMethodsPresent,0)
+  #SET(%LastNewMethodsInstance,0)
+  #FOR(%NewMethods)
+    #SET(%LastNewMethodsInstance,%NewMethods)
+    #IF(UPPER(CLIP(%NewMethodName))=UPPER(CLIP(%pMethodName)) AND UPPER(CLIP(%NewMethodPrototype))=UPPER(CLIP(%pMethodPrototype)))
+      #SET(%SeriesMethodsPresent,1)
+      #BREAK
+    #ENDIF
+  #ENDFOR
+  #IF(%SeriesMethodsPresent=0)
+    #ADD(%NewMethods,%LastNewMethodsInstance+1)
+    #SET(%NewMethodName,%pMethodName)
+    #SET(%NewMethodPrototype,%pMethodPrototype)
+  #ENDIF
+  #SET(%DeriveFromBaseClass,%True)
+#!------------------------------------------------
+#GROUP(%GraphManagerVirtuals, %TreeText, %DataText, %CodeText)
+#EMBED(%GraphMethodDataSection,'Graph Method Data Section'),%ActiveTemplateInstance, %pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(%FixClassName(%FixBaseClassToUse('Default'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%GraphMethodCodeSection,'Graph Method Executable Code Section'),%ActiveTemplateInstance, %pClassMethod,%pClassMethodPrototype,PREPARE(%FixClassName(%FixBaseClassToUse('Default'))),TREE(%TreeText & %CodeText)
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphControlInsertBind)
+  #FOR(%GraphDataSources)
+    #CASE(%GraphDataSource)
+    #OF('Queue')
+       #IF(%GraphDataSourceQueueFilter)
+           #CALL(%ProcedureBindParseText,%GraphDataSourceQueueFilter)
+       #ENDIF
+    #OF('File')
+       #IF(%SortRecordFilter)
+           #CALL(%ProcedureBindParseText,%SortRecordFilter)
+       #ENDIF
+    #OF('Other View')
+       #IF(%SortRecordFilterView)
+           #CALL(%ProcedureBindParseText,%SortRecordFilterView)
+       #ENDIF
+    #ENDCASE
+    #FOR(%GraphHotFields),WHERE(%GraphHotFieldBindOnly)
+      #SET(%ValueConstruct,%GraphHotField)
+#CALL(%AddFieldToBindToList,%GraphHotField)
+    #ENDFOR
+  #ENDFOR
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphControlAtSerieEmbeds5000),AUTO
+  #DECLARE(%locGraphColor)
+  #DECLARE(%locGraphColor2)
+  #DECLARE(%locXvalue)
+  #!.....................................................................................
+  #SET(%PointCounter,0)
+  #FOR(%GraphDataSources)
+    #CALL(%GraphPointBreakHasBreaks),%ThisGraphDataHasBreaks
+    #IF(UPPER(CLIP(%NewMethodName))=UPPER(CLIP(%GraphSeriesPrefix()&'_Process')) AND UPPER(CLIP(%NewMethodPrototype))=UPPER(CLIP('()')))
+      #IF(%GraphDataSource='Queue')
+        #IF(ITEMS(%GraphDataSourceQueueSort))
+          #CLEAR(%GraphDataSourceQueueSortExpresion)
+          #FOR(%GraphDataSourceQueueSort)
+            #SET(%ValueConstruct,%SVFGetOptField(%GraphDataSourceQueueSortField))
+            #IF(%GraphDataSourceQueueSortExpresion)
+              #SET(%GraphDataSourceQueueSortExpresion,(%GraphDataSourceQueueSortExpresion & ','&%GraphDataSourceQueueSortFieldSec & %ValueConstruct))
+            #ENDIF
+            #SET(%GraphDataSourceQueueSortExpresion,(%GraphDataSourceQueueSortExpresion & %GraphDataSourceQueueSortFieldSec & %ValueConstruct))
+          #ENDFOR
+          #SET(%GraphDataSourceQueueSortExpresion,('''' & %GraphDataSourceQueueSortExpresion & ''''))
+          #SET(%ValueConstruct,%SVFGetOptField(%GraphDataSourceQueueName))
+  SORT(%ValueConstruct,%GraphDataSourceQueueSortExpresion)
+        #ENDIF
+      #ELSE
+        #IF(%IsAppTemplate('ABC'))
+          #IF(%SortRecordSQLFilter)
+  %ListView{PROP:SQLFilter} = '+' & %(%StripPling(%SortRecordSQLFilter))
+          #ENDIF
+  %(%GraphVMname()).Reset()
+  %(%GraphVMname()).ApplyRange()
+        #ELSE
+   #! - This is the filter, setkey and order to Clarion Chain
+   #! ---------------------------------
+  CLOSE(%ListView)
+  #INSERT(%StandardViewFilter(Clarion),%SortRecordFilter,%PrimaryKey,%SortRangeField,%SortRangeLimitType,'Graph:Save:'&%ActiveTemplateInstance,%Temp1,%Temp2,'Save')
+  #INSERT(%StandardViewFilter(Clarion),%SortRecordFilter,%PrimaryKey,%SortRangeField,%SortRangeLimitType,'Graph:Save:'&%ActiveTemplateInstance,%Temp1,%Temp2,'Construct')
+          #IF(%PrimaryKey)
+  CLEAR(%Primary.Record)
+  SET(%PrimaryKey)
+          #ELSE
+  CLEAR(%Primary.Record)
+  SET(%Primary)
+          #ENDIF
+  #INSERT(%StandardWriteViewFilter(Clarion),%ValueConstruct)
+          #SET(%ValueConstruct,'')
+          #FOR(%GraphDataSourceFileSort)
+            #IF(%ValueConstruct)
+              #SET(%ValueConstruct,%ValueConstruct&','&%GraphDataSourceFileSortFieldSec&%GraphDataSourceFileSortField)
+            #ELSE
+              #SET(%ValueConstruct,%ValueConstruct&%GraphDataSourceFileSortFieldSec&%GraphDataSourceFileSortField)
+            #ENDIF
+          #ENDFOR
+          #IF(%ValueConstruct)
+  %ListView{PROP:Order} = '%'ValueConstruct'
+          #ENDIF
+          #IF(%SortRecordSQLFilter)
+  %ListView{PROP:SQLFilter} = '+' & %(%StripPling(%SortRecordSQLFilter))
+          #ENDIF
+  IF ERRORCODE()
+    StandardWarning(Warn:ViewOpenError)
+  END
+  open(%ListView)
+  IF ERRORCODE()
+    StandardWarning(Warn:ViewOpenError)
+  END
+  #! ---------------------------------
+        #ENDIF
+      #ENDIF
+  SELF.Graph:RecordIndex = 1
+      #SET(%PointCounter,0)
+      #FOR(%GraphDataPoints)
+  SELF.%(%GraphSeriesPrefix())_AddSerie_%(%GraphPointName())()
+      #ENDFOR
+      #IF(%ThisGraphDataHasBreaks)
+  %ThisObjectName%(%GraphBreakPrefix()).Reset()
+      #ENDIF
+      #FOR(%GraphDataPoints)
+  %(%GraphObjectTotalPrefix())_PointNumber_%(%GraphPointName()) = 0
+        #IF(%GraphPointAction<>'Graph' AND %GraphPointAction<>'Count')
+  %(%GraphObjectTotalPrefix())_%GraphPointField = 0
+        #ENDIF
+      #ENDFOR
+  LOOP
+    IF SELF.%(%GraphSeriesPrefix())_TakeNextValue()<>Level:Benign then break END
+    IF SELF.%(%GraphSeriesPrefix())_FilterRecord()<>Level:Benign then cycle END
+      #IF(%ThisGraphDataHasBreaks)
+    %ThisObjectName%(%GraphBreakPrefix()).AskBreak()
+      #ELSE
+        #FOR(%GraphDataPoints)
+    SELF.%(%GraphSeriesPrefix())_AddPoint_%(%GraphPointName())()
+        #ENDFOR
+      #ENDIF
+  END
+      #IF(%ThisGraphDataHasBreaks)
+  %ThisObjectName%(%GraphBreakPrefix()).AskBreak(True)
+      #ENDIF
+    #ENDIF
+   #!-----------------------
+    #IF(UPPER(CLIP(%NewMethodName))=UPPER(%GraphSeriesPrefix()&'_TakeNextValue') AND UPPER(CLIP(%NewMethodPrototype))='(),BYTE')
+      #IF(%GraphDataSource='Queue')
+        #CALL(%SVFGetOptField,%GraphDataSourceQueueName),%ValueConstruct
+  GET(%ValueConstruct,SELF.Graph:RecordIndex)
+  IF ERRORCODE() then RETURN Level:Fatal END
+        #IF(%GraphDataSourceQueueFilter)
+  IF NOT(%GraphDataSourceQueueFilter) THEN RETURN Level:Fatal END
+        #ENDIF
+      #ELSE
+        #IF(%GraphDataSource='File')
+          #IF(%IsAppTemplate('ABC'))
+  ReturnValue = %(%GraphVMname()).Next()
+          #ELSE
+  NEXT(%ListView)
+  IF ERRORCODE() THEN RETURN Level:Fatal END
+          #ENDIF
+        #ELSE
+      Not supported Yet
+        #ENDIF
+      #ENDIF
+  SELF.Graph:RecordIndex += 1
+    #ENDIF
+   #!-----------------------
+    #FOR(%GraphDataPoints)
+      #IF(UPPER(CLIP(%NewMethodName))=UPPER(%GraphSeriesPrefix()&'_AddSerie_'&%GraphPointName()) AND CLIP(%NewMethodPrototype)='()')
+  SELF.GraphAdd(%(%GraphSeriesName()))
+        #CLEAR(%locGraphColor)
+        #CLEAR(%locGraphColor2)
+        #IF(%GraphFillStyle<>'0')
+          #CASE(%GraphColor2Type)
+          #OF('Fixed')
+            #SET(%locGraphColor2, %GraphColor2Fixed)
+          #OF('Variable')
+            #SET(%locGraphColor2, %GraphColor2Variable)
+          #ENDCASE
+        #ENDIF
+        #CASE(%GraphColorType)
+        #OF('Fixed')
+          #SET(%locGraphColor, %GraphColorFixed)
+        #OF('Variable')
+          #SET(%locGraphColor, %GraphColorVariable)
+        #ENDCASE
+  #INSERT(%InsertProc,'SELF.GraphFill',%locGraphColor,%locGraphColor2,choose(%GraphFillStyle<>'0',%GraphFillStyle,''))
+      #ENDIF
+    #ENDFOR
+  #!-----------------------
+    #FOR(%GraphDataPoints)
+      #IF(UPPER(CLIP(%NewMethodName))=UPPER(%GraphSeriesPrefix()&'_AddPoint_'&%GraphPointName()) AND CLIP(%NewMethodPrototype)='()')
+  %(%GraphObjectTotalPrefix())_PointNumber_%(%GraphPointName()) += 1
+  SELF.Graph:SPointNumber = %(%GraphObjectTotalPrefix())_PointNumber_%(%GraphPointName())
+        #SET(%locXvalue, '!SELF.Graph:SPointNumber')
+        #CASE(%GraphPointAction)
+        #OF('Graph')
+          #SET(%ThisGraphPoint,%GraphPointField)
+        #OF('Count')
+          #SET(%ThisGraphPoint,%GraphObjectTotalPrefix() &'_'& %GraphPointName())
+        #OF('Average')
+          #IF(ITEMS(%GraphPointBreak)>0)
+            #SET(%ThisGraphPoint,%GraphObjectTotalPrefix() &'_'& %GraphPointName())
+          #ELSE
+            #SET(%ThisGraphPoint,%GraphObjectTotalPrefix() &'_'& %GraphPointName() & ' / SELF.Graph:RecordIndex')
+          #ENDIF
+        #ELSE
+          #SET(%ThisGraphPoint,%GraphObjectTotalPrefix() &'_'& %GraphPointName())
+        #ENDCASE
+        #IF(%GraphPointGrouping=%equSVTrue and %GraphPointGroupingName)
+  #! It is required only for the discrete diagrams
+  IF %('~' & %CallProc('SELF.ClusterAdd',%GraphPointGroupingName,%GraphPointGroupingText))
+    #INSERT(%InsertProc,'SELF.NodeAdd',%locXvalue,'!'&%ThisGraphPoint,,%GraphPointFieldName,'!SELF.qCluster.eID')
+  ELSE
+    #INSERT(%InsertProc,'SELF.NodeAdd',%locXvalue,'!'&%ThisGraphPoint,,%GraphPointFieldName)
+  END
+        #ELSE
+           #IF(%GraphPointXvalue)
+             #SET(%locXvalue, %GraphPointXvalue)
+           #ENDIF
+  #INSERT(%InsertProc,'SELF.NodeAdd',%locXvalue,'!'&%ThisGraphPoint,,%GraphPointFieldName)
+        #ENDIF
+      #ENDIF
+    #ENDFOR
+  #ENDFOR
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphControlAtSerieEmbeds45002)
+  #FOR(%GraphDataSources)
+    #CALL(%GraphPointBreakHasBreaks),%ThisGraphDataHasBreaks
+    #!-----------------------
+    #FOR(%GraphDataPoints)
+      #IF(ITEMS(%GraphPointBreak)=0)
+        #IF(UPPER(CLIP(%NewMethodName))=UPPER(%GraphSeriesPrefix()&'_AddPoint_'&%GraphPointName()) AND CLIP(%NewMethodPrototype)='()')
+          #SET(%ThisGraphPoint,%GraphObjectTotalPrefix() &'_'& %GraphPointName())
+          #CASE(%GraphPointAction)
+          #OF('Count')
+  %ThisGraphPoint += 1
+          #OF('Sum')
+  %ThisGraphPoint += %GraphPointField
+          #OF('Average')
+  %ThisGraphPoint += %GraphPointField
+          #ENDCASE
+        #ENDIF
+      #ENDIF
+    #ENDFOR
+  #ENDFOR
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphControlAtSerieEmbeds45001),AUTO
+  #SET(%PointCounter,0)
+  #FOR(%GraphDataSources)
+    #FOR(%GraphDataPoints)
+      #SET(%PointCounter,%PointCounter+1)
+      #IF(UPPER(CLIP(%NewMethodName))=UPPER(%GraphSeriesPrefix()&'_AddPoint_'&%GraphPointName()) AND CLIP(%NewMethodPrototype)='()')
+  SELF.GraphSearch(%(%GraphSeriesName()))
+      #ENDIF
+    #ENDFOR
+  #ENDFOR
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphControlAtSerieEmbeds9000)
+  #FOR(%GraphDataSources)
+    #CASE(UPPER(CLIP(%NewMethodName)))
+    #OF(UPPER(%GraphSeriesPrefix()&'_TakeNextValue'))
+    #OROF(UPPER(%GraphSeriesPrefix()&'_FilterRecord'))
+      #IF(UPPER(CLIP(%NewMethodPrototype))='(),BYTE')
+  RETURN ReturnValue
+      #ENDIF
+    #ENDCASE
+  #ENDFOR
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphControlAtSerieEmbedsData5000)
+  #FOR(%GraphDataSources)
+    #CASE(UPPER(CLIP(%NewMethodName)))
+    #OF(UPPER(%GraphSeriesPrefix()&'_TakeNextValue'))
+    #OROF(UPPER(%GraphSeriesPrefix()&'_FilterRecord'))
+      #IF(UPPER(CLIP(%NewMethodPrototype))='(),BYTE')
+%[20]('ReturnValue') byte
+      #ENDIF
+    #OF(UPPER(%GraphSeriesPrefix()&'_Process'))
+      #IF(UPPER(CLIP(%NewMethodPrototype))='()' and UPPER(%GraphDataSource)<>'QUEUE')
+%[20]('locSaveViewPosition' & %GraphDataSources) any
+      #ENDIF
+    #ENDCASE
+  #ENDFOR
+#!------------------------------------------------------------------------------------------
+#GROUP(%GraphControlAtSerieEmbeds500)
+  #FOR(%GraphDataSources)
+    #CASE(UPPER(CLIP(%NewMethodName)))
+    #OF(UPPER(%GraphSeriesPrefix()&'_TakeNextValue'))
+    #OROF(UPPER(%GraphSeriesPrefix()&'_FilterRecord'))
+      #IF(UPPER(CLIP(%NewMethodPrototype))='(),BYTE')
+  ReturnValue = Level:Benign
+      #ENDIF
+    #ENDCASE
+  #ENDFOR

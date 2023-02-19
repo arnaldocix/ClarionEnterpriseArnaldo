@@ -1,0 +1,69 @@
+<AddIn name        = "WindowPreviewer"
+       author      = "SoftVelocity"
+       copyright   = "Copyright SoftVelocity 1986-2014"
+       url         = "http://www.softvelocity.com"
+       description = "Allow WINDOW structures to be previewed">
+	
+	<Manifest>
+		<Identity name = "Softvelocity.Clarion.WindowPreviewer"/>
+		<Dependency addin = "ICSharpCode.XmlEditor"/>
+		<Dependency addin = "SoftVelocity.ClarionBinding"/>
+	</Manifest>
+
+	<Runtime>
+		<Import assembly = "WindowPreviewer.dll"/>
+		<Import assembly = "..\..\..\DisplayBindings\XmlEditor\XmlEditor.dll"/>
+	</Runtime>
+
+	<StringResources file="Resources\WindowPreviewer.StringResources.resources" />
+	<Path name = "/AddIns/FileTypeRegisterer/FileTypes">
+		<FiletypeAssociation
+			id = "winprev"
+			insertafter = "dct"
+			insertbefore = "sdaddin"
+			autoRegister = "True"
+			icon = "${AddInPath:Softvelocity.Clarion.WindowPreviewer}/Resources/winprev.ico"
+			text = "${res:Softvelocity.WindowPreviewer.FiletypeRegisterer.winprev}"/>
+	</Path>
+	<!-- Flag winprev files as xml files in the editor -->
+	<Path name = "/Workspace/Parser">
+		<Parser id = "XmlFoldingParser-winprev"
+		        supportedextensions  = ".winprev"
+		        class = "ICSharpCode.XmlEditor.Parser"/>
+	</Path>
+
+	<!-- Window Formatter Toolbar -->
+  <Path name = "/SoftVelocity/Clarion/ToolBar/ClarionFormater">
+    <Condition name = "ClaStructureIsWindow" action="Exclude">
+      <ToolbarItem id      = "WindowPreview"
+		             insertafter = "ExitSeparator"
+                 insertbefore = "AlignToGrid"
+                 icon    = "Icons.24x24.FormsDesigner.Preview"
+		             tooltip = "${res:Clarion.Tooltips.Format.WindowPreView}"
+		             class   = "SoftVelocity.Clarion.WindowPreviewer.Commands.ShowPreviewToolbarButtonCommand"/>
+      <ToolbarItem id = "WindowPreviewSeparator" insertbefore = "AlignToGrid" insertafter = "WindowPreview"  type = "Separator"/>
+    </Condition>
+  </Path>
+	<!-- Window Formatter Menu -->
+	<Path name = "/SharpDevelop/Workbench/MainMenu/WindowDesigner">
+		<ComplexCondition action = "Exclude">
+			<And>
+				<Condition name = "WindowActive" activewindow="SoftVelocity.Common.ClarionEditor.CommonClarionDesignerView"/>
+				<Condition name = "ClarionDesignerState" state = "window"/>
+			</And>
+			<MenuItem id    = "WindowPreview"
+			          label = "${res:Clarion.Tooltips.Format.WindowPreView}"
+			          shortcut = "Control|Shift|V"
+			          class = "SoftVelocity.Clarion.WindowPreviewer.Commands.ShowPreviewToolbarButtonCommand"/>
+		</ComplexCondition>
+	</Path>
+
+	<!-- Clarion Options Dialog -->
+	<Path name = "/SharpDevelop/Dialogs/OptionsDialog/Clarion Options">
+		<DialogPanel id    = "WindowPreviewerOptions"
+		             label = "${res:SoftVelocity.Clarion.WindowPreviwer.OptionsPanel}"
+		             class = "SoftVelocity.Clarion.WindowPreviewer.WindowPreviewerOptionsPanel"/>
+	</Path>
+
+
+</AddIn>

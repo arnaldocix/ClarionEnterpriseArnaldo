@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<Template author="SoftVelocity" version="1.0">
+	<Config
+		  name        = "Window Previewer Include File"
+		  icon        = "CW.File.EmptyFile"
+		  category    = "Clarion"
+		  defaultname = "WindowPreviewer.inc"
+		  language    = "Clarion"/>
+	 
+	<Description>An include file used to add code to the generated program used to preview a window</Description>
+	
+	<Files>
+		<File name="${FullName}" language="Clarion">
+			<![CDATA[
+  SECTION('Includes')
+!Put variable and equate declarations here
+
+  SECTION('AfterOpen')
+!Put code that needs to be executed after the window is opened, but before entering the ACCEPT loop
+  SECTION('InAccept')
+!Put code here that is executed at the top of the ACCEPT loop
+!if you set windowPreviewerCanExit__ to FALSE, the generated code will not
+!check to see if a button was pressed and exit the preview
+!Note that windowPreviewerCanExit__ is reset to TRUE every iteration of the ACCEPT loop
+
+]]>
+		</File>
+	</Files>
+	<AdditionalOptions/>
+</Template>
+
+

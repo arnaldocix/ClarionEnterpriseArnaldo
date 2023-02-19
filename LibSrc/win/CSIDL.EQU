@@ -1,0 +1,57 @@
+
+		ITEMIZE, PRE(SV)
+CSIDL_DESKTOP       			EQUATE(0000H)           !Desktop
+CSIDL_INTERNET  					EQUATE(0001H)           !Internet Explorer (icon on desktop)
+CSIDL_PROGRAMS  					EQUATE(0002H)           !Start Menu\Programs
+CSIDL_CONTROLS  					EQUATE(0003H)           !My Computer\Control Panel
+CSIDL_PRINTERS  					EQUATE(0004H)       		!My Computer\Printers
+CSIDL_PERSONAL  					EQUATE(0005H)   	    	!My Documents
+CSIDL_FAVORITES  					EQUATE(0006H)	        	!User name\Favorites
+CSIDL_STARTUP  						EQUATE(0007H)           !Start Menu\Programs\Startup
+CSIDL_RECENT  						EQUATE(0008H)           !User Name\Recent
+CSIDL_SENDTO  						EQUATE(0009H)           !User Name\SendTo
+CSIDL_BITBUCKET  					EQUATE(000AH)           !Desktop\Recycle Bin
+CSIDL_STARTMENU  					EQUATE(000BH)           !User Name\Start Menu
+CSIDL_DESKTOPDIRECTORY  	EQUATE(0010H)         	!User Name\Desktop
+CSIDL_DRIVES  						EQUATE(0011H)           !My Computer
+CSIDL_NETWORK  						EQUATE(0012H)           !Network Neighborhood
+CSIDL_NETHOOD  						EQUATE(0013H)           !User Name\nethood
+CSIDL_FONTS  							EQUATE(0014H)       		!windows\fonts
+CSIDL_TEMPLATES  					EQUATE(0015H)						!common repository for document templates 
+CSIDL_COMMON_STARTMENU  	EQUATE(0016H)		    		!All Users\Start Menu
+CSIDL_COMMON_PROGRAMS  		EQUATE(0017H)						!All Users\Programs
+CSIDL_COMMON_STARTUP  		EQUATE(0018H)    				!All Users\Startup
+CSIDL_COMMON_DESKTOPDIRECTORY	EQUATE(0019H)				!All Users\Desktop
+CSIDL_APPDATA  						EQUATE(001AH)           !User Name\Application Data
+CSIDL_PRINTHOOD  					EQUATE(001BH)           !User Name\PrintHood
+CSIDL_LOCAL_APPDATA  			EQUATE(001CH)           !User Name}\LocalSettings\Application Data (non roaming)
+CSIDL_ALTSTARTUP  				EQUATE(001DH)           !Non localized startup
+CSIDL_COMMON_ALTSTARTUP  	EQUATE(001EH)        		!Mon localized common startup
+CSIDL_COMMON_FAVORITES  	EQUATE(001FH)						!common repository for favorite items common to all users
+CSIDL_INTERNET_CACHE  		EQUATE(0020H)						!common repository for temporary Internet files
+CSIDL_COOKIES  						EQUATE(0021H)						!common repository for Internet cookies
+CSIDL_HISTORY  						EQUATE(0022H)						!common repository for Internet history items
+CSIDL_COMMON_APPDATA  		EQUATE(0023H)           !All Users\Application Data
+CSIDL_WINDOWS  						EQUATE(0024H)           !corresponds to the %windir% or %SYSTEMROOT% environment variables
+CSIDL_SYSTEM  						EQUATE(0025H)           !Windows System folder
+CSIDL_PROGRAM_FILES  			EQUATE(0026H)           !C:\Program Files
+CSIDL_MYPICTURES  				EQUATE(0027H)           !C:\Program Files\My Pictures
+CSIDL_PROFILE  						EQUATE(0028H)           !USERPROFILE
+CSIDL_SYSTEMX86  					EQUATE(0029H)           !x86 system directory on RISC
+CSIDL_PROGRAM_FILESX86  	EQUATE(002AH)           !x86 C:\Program Files on RISC
+CSIDL_PROGRAM_FILES_COMMON  	EQUATE(002BH)       !C:\Program Files\Common
+CSIDL_PROGRAM_FILES_COMMONX86 EQUATE(002CH)       !x86 Program Files\Common on RISC
+CSIDL_COMMON_TEMPLATES  			EQUATE(002DH)       !All Users\Templates
+CSIDL_COMMON_DOCUMENTS  			EQUATE(002EH)       !All Users\Documents
+CSIDL_COMMON_ADMINTOOLS  			EQUATE(002FH)       !All Users\StartMenu\Programs\Administrative Tools
+CSIDL_ADMINTOOLS  						EQUATE(0030H)       !User Name\StartMenu\Programs\Administrative Tools
+CSIDL_FLAG_CREATE  						EQUATE(8000H)       !combine with CSIDL_ value to forcecreate on SHGetSpecialFolderLocation()
+CSIDL_FLAG_DONT_VERIFY  			EQUATE(4000H)       !combine with CSIDL_ value to force create on SHGetSpecialFolderLocation()
+CSIDL_FLAG_MASK     					EQUATE(0FF00H)      !mask for all possible flag values
+SHGFP_TYPE_CURRENT  					EQUATE(0)           !Retrieve the folder's current path
+SHGFP_TYPE_DEFAULT  					EQUATE(1)						!Retreive the folder's default path
+MAX_LENGTH 										EQUATE(260)
+	END
+	
+
+

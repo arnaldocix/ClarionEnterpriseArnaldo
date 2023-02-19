@@ -1,0 +1,194 @@
+#!
+#! Trrigers Support
+#!
+#!---------------------------------------------------------------------------------------
+#!
+#!
+#GROUP(%TriggersClassCodeGeneration),PRESERVE
+#FOR(%UsedFile)
+   #FIX(%File,%UsedFile)
+   #IF((%DefaultExternal='All External' AND %OverrideExternal='Not External') OR (%DefaultExternal='None External' AND NOT %OverrideExternal='External'))
+     #CALL(%SetClassItem(ABC) , 'ClientSideTriggers:' & %File)
+#CALL(%GenerateVirtuals(ABC), 'ClientSideTriggers:' & %File, 'Global Objects|Abc Objects|Client Side Triggers|Triggers for ' & %File, '%TriggerManagerVirtuals(Clarion)', %True)
+   #ENDIF
+#ENDFOR
+#!
+#!
+#!---------------------------------------------------------------------------------------
+#!
+#!
+#GROUP(%TriggersClassDataGeneration),PRESERVE
+#FOR(%UsedFile)
+   #FIX(%File,%UsedFile)
+   #IF((%DefaultExternal='All External' AND %OverrideExternal='Not External') OR (%DefaultExternal='None External' AND NOT %OverrideExternal='External'))
+     #CALL(%SetClassItem(ABC) , 'ClientSideTriggers:' & %File)
+     #FOR(%FileTriggerData)
+      #CALL(%MakeDeclr(ABC), 24, %OOPConstruct, %FileTriggerData, %FileTriggerDataStatement)
+      #ADD(%ClassLines, %OOPConstruct)
+     #ENDFOR
+     #IF(%FileThreaded)
+#INSERT(%GenerateClass(ABC), 'ClientSideTriggers:' & %File, 'Triggers for ' & %File, %False,'THREAD')
+     #ELSE
+#INSERT(%GenerateClass(ABC), 'ClientSideTriggers:' & %File, 'Triggers for ' & %File, %False)
+     #ENDIF
+     #ENDIF
+#ENDFOR
+#!
+#!
+#!---------------------------------------------------------------------------------------
+#!
+#!
+#GROUP(%TriggerManagerVirtuals, %TreeText, %DataText, %CodeText)
+#IF(UPPER(%pClassMethod)='SETUP'AND %pClassMethodPrototype='()')
+#EMBED(%TriggerManagerDataSection,'Trigger Manager Data Section'),%File,%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('ClientSideTriggers:' & %File))),HIDE
+  #?CODE
+  #EMBED(%TriggerManagerCodeSection,'Trigger Manager Executable Code Section'),%File,%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('ClientSideTriggers:' & %File))),HIDE
+#ELSE
+#EMBED(%TriggerManagerDataSection,'Trigger Manager Data Section'),%File,%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('ClientSideTriggers:' & %File))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%TriggerManagerCodeSection,'Trigger Manager Executable Code Section'),%File,%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('ClientSideTriggers:' & %File))),TREE(%TreeText & %CodeText)
+#ENDIF
+#!
+#!
+#!---------------------------------------------------------------------------------------
+#!
+#!
+#GROUP(%TriggersSetupGlobalObjects)
+#FOR(%File)
+  #CALL(%SetClassDefaults(ABC), 'ClientSideTriggers:' & %File, 'ClientSideTriggers:' & %File, %TriggersManagerType)
+#ENDFOR
+#!
+#!
+#!---------------------------------------------------------------------------------------
+#!
+#!
+#GROUP(%GenerateTriggersCLW)
+#CREATE(%Application&'T0.2$$')
+#SECTION
+#INSERT(%TriggersClassCodeGeneration)
+#ENDSECTION
+#CLOSE(%Application&'T0.2$$')
+#!
+#CREATE(%Application&'T0.1$$')
+#SECTION
+#INSERT(%TriggersClassDataGeneration)
+#ENDSECTION
+#CLOSE(%Application&'T0.1$$')
+#!
+#!
+#!
+#CREATE(%Application&'T0.$$$')
+#!
+  MEMBER('%(%Application&'.CLW')')
+
+  INCLUDE('TRIGGER.INC'),ONCE
+
+
+#APPEND(%Application&'T0.1$$')
+#APPEND(%Application&'T0.2$$')
+#!
+#!
+
+#!
+#!
+#CLOSE(%Application&'T0.$$$')
+#REPLACE(%Application&'T0.CLW',%Application&'T0.$$$')
+#REMOVE(%Application&'T0.$$$')
+#REMOVE(%Application&'T0.1$$')
+#REMOVE(%Application&'T0.2$$')
+#!
+#!
+#!---------------------------------------------------------------------------------------
+#!
+#!
+#GROUP(%TriggerGenerateData,%pTriggerName)
+  #FIX(%Trigger, UPPER(%pTriggerName))
+  #IF(%Trigger = UPPER(%pTriggerName))
+    #FOR(%TriggerData)
+      #CALL(%MakeDeclr(ABC), 22, %ValueConstruct, %TriggerData, %TriggerDataStatement)
+#?%ValueConstruct
+    #ENDFOR
+ #ENDIF
+#?Buffer               LIKE(%FilePrefix:RECORD)
+#!
+#!
+#!---------------------------------------------------------------------------------------
+#!
+#!
+#GROUP(%TriggerGenerateCodeStart,%pTriggerName)
+#?PUSHERRORS()
+#?IF SELF.SavePreviousBuffer AND NOT(SELF.PreviousBuffer &= NULL)
+   #?Buffer = SELF.PreviousBuffer
+#?END
+#!
+#!
+#!---------------------------------------------------------------------------------------
+#!
+#!
+#GROUP(%TriggerGenerateCodeRoutine,%pTriggerName)
+#INSERT(%TriggerGenerateCodeDCTCode,%pTriggerName,%True)
+#!
+#GROUP(%TriggerGenerateCodeDCTCode,%pTriggerName,%pJustRoutines=%False)
+#DECLARE(%lFoundRoutine)
+#DECLARE(%lGenerateChainOnlyCode)
+#DECLARE(%lGenerateCode)
+#SET(%lGenerateCode,%True)
+#SET(%lFoundRoutine,%False)
+#SET(%lGenerateChainOnlyCode,%False)
+  #FIX(%Trigger, UPPER(%pTriggerName))
+  #IF(%Trigger = UPPER(%pTriggerName))
+    #FOR(%TriggerSourceLine)
+       #IF(%lFoundRoutine = %False)
+          #IF(INSTRING(' ROUTINE', UPPER(CLIP(%TriggerSourceLine)),1,1))
+             #SET(%lFoundRoutine,%True)
+             #INDENT(-%Indent)
+          #ENDIF
+       #ENDIF
+       #IF(%pJustRoutines)
+          #IF(%lFoundRoutine = %False)
+             #CYCLE
+          #ENDIF
+       #ELSE
+          #IF(%lFoundRoutine = %True)
+             #CYCLE
+          #ENDIF
+       #ENDIF
+       #IF(LEFT(%TriggerSourceLine,3)='---')
+            #SET(%lGenerateChainOnlyCode,%True)
+            #IF('TARGET '&UPPER(%AppTemplateFamily)=UPPER(SUB(%TriggerSourceLine,4,7+LEN(%AppTemplateFamily))))
+                #SET(%lGenerateCode,%True)
+            #ELSE
+                #IF('ENDTARGET'=UPPER(SUB(%TriggerSourceLine,4,9)))
+                   #SET(%lGenerateChainOnlyCode,%False)
+                   #SET(%lGenerateCode,%True)
+                #ELSE
+                   #SET(%lGenerateCode,%False)
+                   #CYCLE
+                #ENDIF
+            #ENDIF
+            #CYCLE
+       #END
+       #IF(%lGenerateChainOnlyCode)
+          #IF(%lGenerateCode)
+%TriggerSourceLine
+          #ENDIF
+       #ELSE
+%TriggerSourceLine
+       #ENDIF
+    #ENDFOR
+  #ENDIF
+  #IF(%lFoundRoutine = %True)
+     #INDENT(%Indent)             
+  #ENDIF
+#!
+#!
+#!---------------------------------------------------------------------------------------
+#!
+#!
+#GROUP(%TriggerGenerateCodeEnd,%pTriggerName)
+#?POPERRORS()
+#!
+#!
+#!---------------------------------------------------------------------------------------
+#!
+#!

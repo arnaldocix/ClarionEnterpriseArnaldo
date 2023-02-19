@@ -1,0 +1,62 @@
+#EXTENSION(BLOBInControl, 'Display / Update BLOB used in a Control (Image or Text)'),HLP('~TPLExtensionBLOBInControl.htm')
+#!
+#PREPARE
+  #CALL(%BLOBInControlLoadBlobFieldNames)
+#ENDPREPARE
+#INSERT(%BLOBInControlPrompts)
+#!
+#ATSTART
+#CALL(%BLOBInControlAtStart)
+#ENDAT
+#!
+#AT(%CustomGlobalDeclarations)
+  #FOR(%BlobLinkedFields),WHERE(%BlobLinkedControlType='IMAGE' AND %BlobLinkedImageResize)
+    #ADD(%CustomGlobalMapIncludes,'CWUtil.INC' )
+  #ENDFOR
+#ENDAT
+#!
+#!
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8100),DESCRIPTION('Linking Blob to Controls')
+#!HELLO FORM
+#INSERT(%BLOBInControlGetDataFromBlobForm)
+#ENDAT
+#!
+#!
+#AT(%WindowManagerMethodCodeSection, 'InsertAction','(),BYTE'),PRIORITY(3000),WHERE(UPPER(%ProcedureTemplate)<>'REPORT'),DESCRIPTION('Refresh Blob Content')
+#!HELLO FORM
+#INSERT(%BLOBInControlPutDataInBlob)
+#ENDAT
+#!
+#!
+#AT(%WindowManagerMethodCodeSection, 'ChangeAction','(),BYTE'),PRIORITY(3000),WHERE(UPPER(%ProcedureTemplate)<>'REPORT'),DESCRIPTION('Refresh Blob Content')
+#!HELLO FORM
+#INSERT(%BLOBInControlPutDataInBlob)
+#ENDAT
+#!
+#!
+#AT(%WindowManagerMethodCodeSection, 'SaveOnInsertAction','(),BYTE'),PRIORITY(3000),WHERE(UPPER(%ProcedureTemplate)<>'REPORT'),DESCRIPTION('Refresh Blob Content')
+#!HELLO FORM
+#INSERT(%BLOBInControlPutDataInBlob)
+#ENDAT
+#!
+#!
+#AT(%WindowManagerMethodCodeSection, 'SaveOnChangeAction','(),BYTE'),PRIORITY(3000),WHERE(UPPER(%ProcedureTemplate)<>'REPORT'),DESCRIPTION('Refresh Blob Content')
+#!HELLO FORM
+#INSERT(%BLOBInControlPutDataInBlob)
+#ENDAT
+#!
+#AT(%BrowserMethodCodeSection),PRIORITY(5500),WHERE(UPPER(%pClassMethod)='TAKENEWSELECTION' AND %pClassMethodPrototype='()'),DESCRIPTION('Linking Blob to Controls')
+#!HELLO BROWSE
+#INSERT(%BLOBInControlGetDataFromBlobBrowse)
+#ENDAT
+#AT(%FormVCRMethodCodeSection),PRIORITY(5500),WHERE(UPPER(%pClassMethod)='FETCH' AND %pClassMethodPrototype='(BYTE Direction)'),DESCRIPTION('Linking Blob to Controls')
+#!HELLO FORMVCR
+#INSERT(%BLOBInControlGetDataFromBlobFormVCR)
+#ENDAT
+#AT(%ProcessManagerMethodCodeSection,'TakeRecord','(),BYTE'),PRIORITY(5500),WHERE(UPPER(%ProcedureTemplate)='REPORT'),DESCRIPTION('Linking Blob to Controls')
+#!HELLO REPORT
+#INSERT(%BLOBInControlGetDataFromBlobReport)
+#ENDAT
+#!
+#!
+#!

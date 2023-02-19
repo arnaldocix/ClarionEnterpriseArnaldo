@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<Template originator   = "SoftVelocity">
+
+	<!-- Template Header -->
+	<TemplateConfiguration>
+		<Name>${res:Clarion.Templates.Project.Win32DLL.Name}</Name>
+		<Category>Clarion for Windows</Category>
+		<Icon>CW.Project.EmptyProject</Icon>
+		<Description>${res:Clarion.Templates.Project.Win32DLL.Description}</Description>
+	</TemplateConfiguration>
+
+	<Actions>
+		<Open filename = "${ProjectName}.clw"/>
+	</Actions>
+
+	<Project name = "${ProjectName}" directory = "." language = "Clarion">
+		<PropertyGroup>
+			<OutputType>Dll</OutputType>
+		</PropertyGroup>
+
+		<Files>
+			<File name="${ProjectName}.clw">
+				<![CDATA[
+  PROGRAM
+
+${StandardHeader.Clarion}
+
+  MAP
+  END
+
+  CODE
+]]>
+				</File>
+			<File name="${ProjectName}.exp">
+				<![CDATA[LIBRARY '${ProjectName}' GUI
+EXPORTS
+
+   Define_Exported_Functions_In_Project_EXP_File @?
+]]>
+			</File>
+		</Files>
+	</Project>
+</Template>
+

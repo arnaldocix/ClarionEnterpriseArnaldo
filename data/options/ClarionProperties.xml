@@ -1,0 +1,8 @@
+<ClarionProperties>
+  <ShowTipsAtStartup value="True" />
+  <Properties name="WorkbenchMemento">
+    <bounds value="0,0,800,600" />
+    <windowstate value="Maximized" />
+    <defaultstate value="Maximized" />
+  </Properties>
+</ClarionProperties>

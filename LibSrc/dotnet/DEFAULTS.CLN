@@ -1,0 +1,84 @@
+!  Default Report Structures
+!  =========================
+!
+!  Used by Format New Structure (Ctrl-D) in CW editor
+!
+!  You may modify these, or add new report types
+!  (NB remember to add preceeding '!!> title' line)
+!  It *is* safe to use the C.Net Editor or Report
+!  formatter to edit these structures
+!
+
+!!> (Paper size A4 - Portrait)
+Report REPORT,AT(1000,2000,6250,7688),PAPER(PAPER:A4),PRE(RPT),FONT('Arial',10,,FONT:regular,CHARSET:ANSI),THOUS
+       HEADER,AT(1000,1000,6250,1000),USE(?Header)
+       END
+Detail DETAIL,USE(?Detail)
+       END
+       FOOTER,AT(1000,9688,6250,1000),USE(?Footer)
+       END
+       FORM,AT(1000,1000,6250,9688),USE(?Form)
+       END
+     END
+
+!!> (Paper size A4 - Landscape)
+Report REPORT,AT(1000,2000,7688,4250),PAPER(PAPER:A4),PRE(RPT),FONT('Arial',10,,FONT:regular,CHARSET:ANSI),LANDSCAPE,THOUS
+       HEADER,AT(1000,1000,7688,1000),USE(?Header)
+       END
+Detail DETAIL,USE(?Detail)
+       END
+       FOOTER,AT(1000,6250,7688,1000),USE(?Footer)
+       END
+       FORM,AT(1000,1000,7688,6250),USE(?Form)
+       END
+     END
+
+!!> (Paper size Legal - Portrait)
+Report REPORT,AT(1000,2000,6500,10000),PAPER(PAPER:LEGAL),PRE(RPT),FONT('Arial',10,,FONT:regular,CHARSET:ANSI),THOUS
+       HEADER,AT(1000,1000,6500,1000),USE(?Header)
+       END
+Detail DETAIL,USE(?Detail)
+       END
+       FOOTER,AT(1000,12000,6500,1000),USE(?Footer)
+       END
+       FORM,AT(1000,1000,6500,12000),USE(?Form)
+       END
+     END
+
+!!> (Paper size Legal - Landscape)
+Report REPORT,AT(1000,2000,10000,4500),PAPER(PAPER:LEGAL),PRE(RPT),FONT('Arial',10,,FONT:regular,CHARSET:ANSI),LANDSCAPE,THOUS
+       HEADER,AT(1000,1000,10000,1000),USE(?Header)
+       END
+Detail DETAIL,USE(?Detail)
+       END
+       FOOTER,AT(1000,6500,10000,1000),USE(?Footer)
+       END
+       FORM,AT(1000,1000,10000,6500),USE(?Form)
+       END
+     END
+
+!!> (Paper size Letter - Landscape)
+Report REPORT,AT(1000,2000,9000,4500),PAPER(PAPER:LETTER),PRE(RPT),FONT('Arial',10,,FONT:regular,CHARSET:ANSI), |
+         LANDSCAPE,THOUS
+       HEADER,AT(1000,1000,9000,1000),USE(?Header)
+       END
+Detail DETAIL,USE(?Detail)
+       END
+       FOOTER,AT(1000,6500,9000,1000),USE(?Footer)
+       END
+       FORM,AT(1000,1000,9000,6500),USE(?Form)
+       END
+     END
+
+!!> (Paper size Letter - Portrait)
+Report REPORT,AT(1000,2000,6500,7000),PAPER(PAPER:LETTER),PRE(RPT),FONT('Arial',10,,FONT:regular,CHARSET:ANSI), |
+         THOUS
+       HEADER,AT(1000,1000,6500,1000),USE(?Header)
+       END
+Detail DETAIL,USE(?Detail)
+       END
+       FOOTER,AT(1000,9000,6500,1000),USE(?Footer)
+       END
+       FORM,AT(1000,1000,6500,9000),USE(?Form)
+       END
+     END

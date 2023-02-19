@@ -1,0 +1,686 @@
+#!***************************************************************************************************************************
+#CONTROL(SaveChangeButton,'Save Records Change to a data file'),DESCRIPTION('Save ' & %Primary & ' record changes on disk'),WINDOW,HLP('~TPLControlSaveButton.htm'),REQ(SaveButton)
+  CONTROLS
+    BUTTON,AT(,,16,14),USE(?Save),TIP('Save Record and Close'),KEY(CtrlAltEnter),ICON('SAVE.ICO')
+  END
+#BOXED('Save Change Button Properties')
+  #PROMPT('Disable Cancel button after save',CHECK),%DisableCancelAllowed,DEFAULT(%True),AT(10)
+#ENDBOXED
+#ATSTART
+  #DECLARE(%SaveChangeControl)
+  #SET(%SaveChangeControl,%GetControlName())
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(7550)
+SELF.SaveControl = %SaveChangeControl
+SELF.DisableCancelButton = %DisableCancelAllowed
+#ENDAT
+#!***************************************************************************************************************************
+#CONTROL(FormVCRButtons,'Control Form using VCR Buttons'),DESCRIPTION('Control Form using VCR Buttons'),WINDOW,HLP('~TPLExtensionFormVCRFrame.htm'),REQ(SaveButton)
+#PREPARE
+    #CALL(%ReadABCFiles)
+    #CALL(%SetClassDefaults, 'Default','FormVCR'&%ActiveTemplateInstance,%FormVCRManagerType)
+#ENDPREPARE
+  CONTROLS
+    GROUP('FormVCRControls'),AT(,,168,18),USE(?FormVCRControls)
+       BUTTON,AT(0,1,16,14),USE(?FormVCR:Top),DISABLE,TIP('Go to the First Record'),KEY(CtrlAltHome),ICON('VCRFIRST.ICO')
+       BUTTON,AT(16,0,16,14),USE(?FormVCR:PageUp),DISABLE,TIP('Page Up to the Record'),KEY(CtrlAltPgUp),ICON('VCRPRIOR.ICO')
+       BUTTON,AT(16,0,16,14),USE(?FormVCR:Up),DISABLE,TIP('Go to the Prior Record'),KEY(CtrlAltUp),ICON('VCRUP.ICO')
+       BUTTON,AT(16,0,16,14),USE(?FormVCR:Down),DISABLE,TIP('Go to the Next Record'),KEY(CtrlAltDown),ICON('VCRDOWN.ICO')
+       BUTTON,AT(16,0,16,14),USE(?FormVCR:PageDown),DISABLE,TIP('Page Down to the Record'),KEY(CtrlAltPgDn),ICON('VCRNEXT.ICO')
+       BUTTON,AT(16,0,16,14),USE(?FormVCR:Bottom),DISABLE,TIP('Go to the Last Record'),KEY(CtrlAltEnd),ICON('VCRLAST.ICO')
+       OPTION('Form VCR Request'),AT(18,-2,70,18),USE(?FormVCR:Request)
+            RADIO,AT(5,2,16,14),USE(?FormVCR:Request:View),ICON('WAView.ico'),TIP('View Record in Batch Mode')
+            RADIO,AT(16,0,16,14),USE(?FormVCR:Request:Insert),ICON('WAINSERT.ICO'),TIP('Insert New Record in Batch Mode')
+            RADIO,AT(16,0,16,14),USE(?FormVCR:Request:Change),ICON('WAChange.ICO'),TIP('Change Record in Batch Mode')
+            RADIO,AT(16,0,16,14),USE(?FormVCR:Request:Delete),ICON('WADELETE.ICO'),TIP('Delete Record in Batch Mode')
+       END
+    END
+  END
+#!
+#BUTTON('FormVCR buttons Prompts'),AT(,,170)
+#SHEET,ADJUST
+  #!INSERT(%OOPPrompts)
+  #TAB('OOP'),WHERE(%False)
+    #BOXED('Default FormVCR prompts'),HIDE
+      #INSERT(%OOPHiddenPrompts)
+    #ENDBOXED
+  #ENDTAB
+  #TAB('&Default Behavior'),HLP('~TPLFormVCR_General.htm')
+    #BOXED,HIDE
+      #BUTTON('&Reset Fields'),MULTI(%ResetFields,%ResetField)
+         #PROMPT('&Reset Field:',FIELD),%ResetField
+      #ENDBUTTON
+    #ENDBOXED
+    #PROMPT('Default Action:',DROP('InsertRecord|ChangeRecord|ViewRecord')),%FormVCRDefaultAction,DEFAULT('ChangeRecord')
+    #PROMPT('Do not include Primary key in view', CHECK),%FormVCRDoNotIncludePrimaryKey,AT(10),DEFAULT(%False)
+    #PROMPT('Use MSAccess Mode', CHECK),%FormVCRUseMSAccessMode,AT(10),DEFAULT(%False)
+    #ENABLE(%FormVCRDefaultAction<>'InsertRecord')
+      #PROMPT('Change to Insert mode if table is empty',CHECK),%FormVCRInserWhenEmpty,DEFAULT(1),AT(10,,180)
+    #ENDENABLE
+    #PROMPT('Page Size:',SPIN(@n2,0,99)),%FormVCRPageSize,DEFAULT(10)
+    #PROMPT('&Quick-Scan Records (buffered reads)',CHECK),%EnableQuickScan,DEFAULT(0),AT(10,,180)
+    #PROMPT('Accept FormVCR control from ToolBar',CHECK),%AcceptToolBarControl,DEFAULT(0),AT(10,,180)
+    #ENABLE(%PrimaryKey)
+      #BUTTON('&Locator Behavior'),AT(,,175),HLP('~Entry_Locator.htm')
+        #PROMPT('&Locator:',DROP('None|Entry|Filtered')),%LocatorType,DEFAULT('None'),WHENACCEPTED(%SetFormVCRLocatorClass(0,%LocatorType))
+        #BOXED('Locator Field'),WHERE(%LocatorType = 'Entry' OR %LocatorType = 'Incremental' OR %LocatorType = 'Filtered')
+          #BOXED,HIDE
+            #PROMPT('&Override default locator control',CHECK),%OverrideDefaultLocator,AT(10,,180),DEFAULT(%True)
+          #ENDBOXED
+          #ENABLE(%OverrideDefaultLocator)
+            #PROMPT('&Locator Control:',CONTROL),%OverrideLocator,REQ
+          #ENDENABLE
+        #ENDBOXED
+        #BOXED('Find method'),WHERE(%LocatorType = 'Filtered')
+          #PROMPT('Find Anywhere',CHECK),%FindDefaultAnywhere
+        #ENDBOXED
+        #BUTTON('Locator &Class'),WHERE(%LocatorType='Step' OR %LocatorType='Entry' OR %LocatorType='Incremental' OR %LocatorType='Filtered'),AT(,,180)
+          #WITH(%ClassItem,'Locator0')
+            #INSERT(%ClassPrompts)
+          #END
+        #ENDBUTTON
+      #ENDBUTTON
+    #ENDENABLE
+    #PROMPT('&Record Filter:',EDIT),%RecordFilter,WHENACCEPTED(%SVExpresionEditor(%RecordFilter))
+    #ENABLE(%PrimaryKey)
+      #INSERT(%RangeLimitOptions)
+    #ENDENABLE
+    #BUTTON('Additional Sort Fields'),AT(,,175),HLP('~TPLAdditionalSortFields.htm')
+      #PROMPT('Sort Type:',DROP('Manual|Assisted')),%AdditionalSortType,DEFAULT('Manual')
+      #DISPLAY
+      #BOXED,SECTION
+        #BOXED('Sort Order'),WHERE(%AdditionalSortType = 'Manual'),AT(,0)
+          #PROMPT('&Additional Sort Fields',EDIT(1024)),%AddSortFields,WHENACCEPTED(%SVExpresionEditor(%AddSortFields))
+          #DISPLAY
+          #DISPLAY('This can be a string or a variable.  Example:')
+          #DISPLAY
+          #DISPLAY('String:           +Cli:FirstName,+Cli:SecondName')
+          #DISPLAY('Variable:      !Loc:Order')
+        #ENDBOXED
+        #BOXED('Sort Order'),WHERE(%AdditionalSortType = 'Assisted'),AT(,0)
+          #BUTTON('Additional Sort Fields'),MULTI(%AddSortFieldsAssisted,%AddSortFieldAssistedOrder & %AddSortFieldAssisted),INLINE,HLP('~TPLAdditionalSortFields.htm')
+            #PROMPT('Field:',FIELD),%AddSortFieldAssisted,REQ
+            #PROMPT('Order:',DROP('Ascending[+]|Descending[-]')),%AddSortFieldAssistedOrder,DEFAULT('+')
+          #ENDBUTTON
+        #ENDBOXED
+      #ENDBOXED
+    #ENDBUTTON
+  #ENDTAB
+  #TAB('&Conditional Behavior'),HLP('~TPLFormVCR.htm#Conditional_Behavior')
+    #BUTTON('Conditional Browse Behavior'),MULTI(%SortOrder,%SortCondition & ' - ' & %SortKey),AT(,35),INLINE,HLP('~TPLControlBrowseBox.htm#Conditional_Behavior')
+      #PROMPT('Condition:',@S255),%SortCondition
+      #PROMPT('Key to Use:',KEY(%Primary)),%SortKey,WHENACCEPTED(%SetFormVCRLocatorClass(%Sortorder,%SortLocatorType))
+      #ENABLE(%SortKey)
+        #BUTTON('&Locator Behavior'),AT(,,180),HLP('~Locator_Entry.htm')
+          #PROMPT('&Locator:',DROP('None|Entry|Filtered')),%SortLocatorType,DEFAULT('None'),WHENACCEPTED(%SetFormVCRLocatorClass(%SortOrder,%SortLocatorType))
+          #BOXED('Locator Field'),WHERE(%SortLocatorType = 'Entry' OR %SortLocatorType = 'Incremental' OR %SortLocatorType = 'Filtered')
+            #BOXED,HIDE
+              #PROMPT('&Override default locator control',CHECK),%SortOverrideDefaultLocator,AT(10,,180),DEFAULT(%True)
+            #ENDBOXED
+            #ENABLE(%SortOverrideDefaultLocator)
+              #PROMPT('&Locator Control:',CONTROL),%SortOverrideLocator,REQ
+            #ENDENABLE
+          #ENDBOXED
+          #BOXED('Find Method'),WHERE(%SortLocatorType = 'Filtered')
+            #PROMPT('Find Anywhere',CHECK),%SortFindAnywhere
+          #ENDBOXED
+          #BUTTON('Locator &Class'),AT(,,180),WHERE(%SortLocatorType='Step' OR %SortLocatorType='Entry' OR %SortLocatorType='Incremental' OR %SortLocatorType='Filtered')
+            #WITH(%ClassItem,'Locator'&%SortOrder)
+              #INSERT(%ClassPrompts)
+            #ENDWITH
+          #ENDBUTTON
+        #ENDBUTTON
+      #ENDENABLE
+      #PROMPT('&Record Filter:',EDIT),%SortRecordFilter,WHENACCEPTED(%SVExpresionEditor(%SortRecordFilter))
+      #ENABLE(%SortKey)
+        #PREPARE
+          #CALL(%LoadHigherKeysComponets,%Primary,%SortKey,%SortRangeField,%SortRangeLimitType,1)
+        #ENDPREPARE
+        #PROMPT('Range Limit &Field:',COMPONENT(%SortKey)),%SortRangeField,WHENACCEPTED(%LoadHigherKeysComponets(%Primary,%SortKey,%SortRangeField,%SortRangeLimitType,1))
+        #ENABLE(%SortRangeField)
+          #BOXED,HIDE
+            #BUTTON('HigherKeys'),MULTI(%SortHigherKeys,%SortHigherKey)
+              #PROMPT('Higher Field',COMPONENT(%SortKey)),%SortHigherKey
+            #ENDBUTTON
+          #ENDBOXED
+          #PROMPT('Range Limit &Type:',DROP('Current Value|Single Value|Range of Values|File Relationship')),%SortRangeLimitType,DEFAULT('Current Value'),WHENACCEPTED(%LoadHigherKeysComponets(%Primary,%SortKey,%SortRangeField,%SortRangeLimitType,1))
+          #BOXED,WHERE((%SortRangeLimitType='Single Value' OR %SortRangeLimitType='Range of Values'))
+            #ENABLE(ITEMS(%SortHigherKeys))
+              #BUTTON('Higher Key Component'),AT(,,175),FROM(%SortHigherKeys,%SortHigherKeyField&' = '&CHOOSE(%SortHigherKeyValueType,'Current Value',%SortHigherKeyValueVariable,%SortHigherKeyValueFixed)),HLP('~TPLHigherKeyComponent.htm')
+                #ENABLE(%False)
+                  #PROMPT ('Key Field:', FIELD),%SortHigherKeyField,DEFAULT(%SortHigherKey)
+                #ENDENABLE
+                #PROMPT('Value Type:',DROP('Current Value|Variable Value|Fixed Value')),%SortHigherKeyValueType,CHOICE,DEFAULT(1)
+                #BOXED,WHERE(%SortHigherKeyValueType=2),AT(,30)
+                  #PROMPT ('Value:', FIELD),%SortHigherKeyValueVariable
+                #ENDBOXED
+                #BOXED,WHERE(%SortHigherKeyValueType=3),AT(,30)
+                  #PROMPT ('Value:', EXPR),%SortHigherKeyValueFixed
+                #ENDBOXED
+              #ENDBUTTON
+            #ENDENABLE
+          #ENDBOXED
+          #BOXED,SECTION
+            #BOXED('Range Limit Boundary'),WHERE(%SortRangeLimitType='Single Value'),AT(,0)
+              #PROMPT('&Range Limit Value:',FIELD),%SortRangeLimit
+            #ENDBOXED
+            #BOXED('Range Limit Boundaries'),WHERE(%SortRangeLimitType='Range of Values'),AT(,0)
+              #PROMPT('&Low Limit Value:',FIELD),%SortRangeLow
+              #PROMPT('&High Limit Value:',FIELD),%SortRangeHigh
+            #ENDBOXED
+            #BOXED('Range Limiting File'),WHERE(%SortRangeLimitType='File Relationship'),AT(,0)
+              #PROMPT('&Related File:',FILE),%SortRangeFile
+            #ENDBOXED
+          #ENDBOXED
+        #ENDENABLE
+      #ENDENABLE
+      #BUTTON('Additional Sort Fields'),AT(,,175),HLP('~TPLAdditionalSortFields.htm')
+        #PROMPT('Sort Type:',DROP('Manual|Assisted')),%SortAdditionalSortType,DEFAULT('Manual')
+        #DISPLAY
+        #BOXED,SECTION
+          #BOXED('Sort Order'),WHERE(%SortAdditionalSortType = 'Manual'),AT(,0)
+            #PROMPT('&Additional Sort Fields',EDIT(1024)),%SortAddSortFields,WHENACCEPTED(%SVExpresionEditor(%AddSortFields))
+            #DISPLAY
+            #DISPLAY('This can be a string or a variable.  Example:')
+            #DISPLAY
+            #DISPLAY('String:           +Cli:FirstName,+Cli:SecondName')
+            #DISPLAY('Variable:      !Loc:Order')
+          #ENDBOXED
+          #BOXED('Sort Order'),WHERE(%SortAdditionalSortType = 'Assisted'),AT(,0)
+            #BUTTON('Additional Sort Fields'),MULTI(%SortAddSortFieldsAssisted,%SortAddSortFieldAssistedOrder & %SortAddSortFieldAssisted),INLINE,HLP('~TPLAdditionalSortFields.htm')
+              #PROMPT('Field:',FIELD),%SortAddSortFieldAssisted,REQ
+              #PROMPT('Order:',DROP('Ascending[+]|Descending[-]')),%SortAddSortFieldAssistedOrder,DEFAULT('+')
+            #ENDBUTTON
+          #ENDBOXED
+        #ENDBOXED
+      #ENDBUTTON
+      #BOXED,HIDE
+        #BUTTON('&Reset Fields'),MULTI(%SortResetFields,%SortResetField),AT(,,86)
+          #PROMPT('&Reset Field:',FIELD),%SortResetField
+        #ENDBUTTON
+      #ENDBOXED
+    #ENDBUTTON
+  #ENDTAB
+  #TAB('&Hot Fields'),HLP('~TPLFormVCR_Hot_Fields')
+    #BUTTON('"Hot" Fields'),MULTI(%HotFields,%HotField),AT(,35),INLINE,HLP('~TPLControlBrowseBox.htm#HotFields')
+      #PROMPT('Hot Field:',FIELD),%HotField,REQ
+      #PROMPT('BIND Field',CHECK),%HotFieldBound
+      #PROMPT('Do NOT add to View',CHECK),%HotFieldBindOnly
+    #ENDBUTTON
+  #ENDTAB
+  #TAB('&Classes'),HLP('~TPLFormVCR_General.htm#Classes')
+    #WITH(%ClassItem,'Default')
+      #INSERT(%ClassPrompts)
+    #ENDWITH
+  #ENDTAB
+#ENDSHEET
+#ENDBUTTON
+#!
+#ATSTART
+    #MESSAGE('Initializing FormVCR',3)
+    #INSERT(%FileControlInitialize)
+    #CALL(%ReadABCFiles)
+    #CALL(%SetClassDefaults, 'Default','FormVCR'&%ActiveTemplateInstance,%FormVCRManagerType)
+    #CALL(%SetFormVCRLocatorClass,0,%LocatorType)
+    #FOR(%SortOrder)
+      #CALL(%SetFormVCRLocatorClass,%SortOrder,%SortLocatorType)
+    #ENDFOR
+    #! will store any non null vcr control
+    #DECLARE(%ListControl)
+    #!
+    #DECLARE(%FormVCRGroup)
+    #DECLARE(%FormVCRTop)
+    #DECLARE(%FormVCRPageUp)
+    #DECLARE(%FormVCRUp)
+    #DECLARE(%FormVCRDown)
+    #DECLARE(%FormVCRPageDown)
+    #DECLARE(%FormVCRBottom)
+    #DECLARE(%FormVCRNewRecord)
+    #DECLARE(%FormVCRRequest)
+    #DECLARE(%FormVCRRequestView)
+    #DECLARE(%FormVCRRequestInsert)
+    #DECLARE(%FormVCRRequestChange)
+    #DECLARE(%FormVCRRequestDelete)
+    #DECLARE(%HelpControl)
+    #FOR(%Control)
+      #IF(UPPER(EXTRACT(%ControlStatement,'STD',1))='STD:HELP')
+        #SET(%HelpControl,%Control)
+        #BREAK
+      #ENDIF
+    #ENDFOR
+    #FOR(%Control),WHERE(%ControlInstance = %ActiveTemplateInstance)
+      #CASE(%ControlOriginal)
+      #OF('?FormVCRControls')
+         #SET(%FormVCRGroup,%Control)
+         #SET(%ListControl,%Control)
+      #OF('?FormVCR:Top')
+         #SET(%FormVCRTop,%Control)
+      #OF('?FormVCR:PageUp')
+         #SET(%FormVCRPageUp,%Control)
+      #OF('?FormVCR:Up')
+         #SET(%FormVCRUp,%Control)
+      #OF('?FormVCR:Down')
+         #SET(%FormVCRDown,%Control)
+      #OF('?FormVCR:PageDown')
+         #SET(%FormVCRPageDown,%Control)
+      #OF('?FormVCR:Bottom')
+         #SET(%FormVCRBottom,%Control)
+      #OF('?FormVCR:NewRecord')
+         #SET(%FormVCRNewRecord,%Control)
+      #OF('?FormVCR:Request')
+         #SET(%FormVCRRequest,%Control)
+      #OF('?FormVCR:Request:View')
+         #SET(%FormVCRRequestView,%Control)
+      #OF('?FormVCR:Request:Insert')
+         #SET(%FormVCRRequestInsert,%Control)
+      #OF('?FormVCR:Request:Change')
+         #SET(%FormVCRRequestChange,%Control)
+      #OF('?FormVCR:Request:Delete')
+         #SET(%FormVCRRequestDelete,%Control)
+      #ENDCASE
+    #ENDFOR
+#EQUATE(%InstancePrefix,'FormVCR'&%ActiveTemplateInstance&':')
+#DECLARE(%AdditionObjectNumber,LONG)
+#DECLARE(%ManagerName)
+#FIX(%ClassItem,'Default')
+#SET(%ManagerName,%ThisObjectName)
+#DECLARE(%ListView)
+#SET(%ListView,%InstancePrefix & ':View')
+#DECLARE(%VerticalScrollBarFound)
+#DECLARE(%UseValidateRoutine)
+#DECLARE(%BeginningOffset)
+#DECLARE(%EndingOffset)
+#SET(%VerticalScrollBarFound,%False)
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#!
+#! Same as Browse
+#!
+#DECLARE(%ListViewBoundField),UNIQUE
+#DECLARE(%BrowseAccessID),MULTI
+#DECLARE(%BrowseTotalKeys)
+#DECLARE(%BrowseSortOrderInstance,%BrowseAccessID,LONG)         #!Stores the %SortOrder instance number or 0
+#DECLARE(%BrowseKey,%BrowseAccessID)
+#DECLARE(%BrowsePrefix,%BrowseAccessID)
+#DECLARE(%BrowseCondition,%BrowseAccessID)
+#DECLARE(%BrowseRecordFilter,%BrowseAccessID)
+#DECLARE(%BrowseRangeField,%BrowseAccessID)
+#DECLARE(%BrowseRangeLimitType,%BrowseAccessID)
+#DECLARE(%BrowseRangeLimit,%BrowseAccessID)
+#DECLARE(%BrowseRangeHigh,%BrowseAccessID)
+#DECLARE(%BrowseRangeLow,%BrowseAccessID)
+#DECLARE(%BrowseRangeFile,%BrowseAccessID)
+#DECLARE(%BrowseRangeLimitField,%BrowseAccessID),MULTI
+#DECLARE(%BrowseRangeLimitValue,%BrowseRangeLimitField)
+#DECLARE(%BrowseResetField,%BrowseAccessID),UNIQUE
+#DECLARE(%BrowseFreeElement,%BrowseAccessID)
+#DECLARE(%BrowseFreeElementNumber,%BrowseAccessID)
+#DECLARE(%BrowseFilterStatement,%BrowseAccessID)
+#DECLARE(%BrowseOrderStatement,%BrowseAccessID)
+#DECLARE(%BrowseLocatorType,%BrowseAccessID)
+#DECLARE(%BrowseLocatorName,%BrowseAccessID)
+#DECLARE(%BrowseLocatorField,%BrowseAccessID)
+#DECLARE(%BrowseLocatorControl,%BrowseAccessID)
+#DECLARE(%BrowseLocatorFindAny,%BrowseAccessID)
+#DECLARE(%BrowseScrollBehavior,%BrowseAccessID)
+#!
+#DECLARE(%QueueField),MULTI
+#DECLARE(%QueueFieldAssignment,%QueueField)
+#DECLARE(%QueueFieldComment,%QueueField)
+#!
+#DECLARE(%Found,LONG)
+#DECLARE(%ListQueue)
+#SET(%ListQueue,'QUEUE-->>GROUP')
+#FIX(%File,%Primary)
+#FIX(%Key,%PrimaryKey)
+#!FIX(%Control,%ListControl)
+#FOR (%Control),WHERE(%ControlUse)
+  #SET(%ValueConstruct,%ControlUse)
+  #INSERT(%CleanDimensions)
+  #ADD(%QueueField,%ValueConstruct)
+  #SET(%QueueFieldAssignment,%ControlUse)
+#ENDFOR
+#CALL(%BuildQueueFields,%ManagerName,%ListControl,%FormVCRDoNotIncludePrimaryKey)
+#! to aboid the scrollbar
+#SET(%VerticalScrollBarFound,%False)
+#INSERT(%SetupBrowseBehavior)
+#IF(%RangeField)
+   #CALL(%LoadHigherKeysComponets,%Primary,%PrimaryKey,%RangeField,%RangeLimitType)
+#ENDIF
+#IF(%RecordFilter)
+    #CALL(%ProcedureBindParseText,%RecordFilter)
+#ENDIF
+#FOR(%SortOrder)
+   #IF(%SortRecordFilter)
+       #CALL(%ProcedureBindParseText,%SortRecordFilter)
+   #ENDIF
+   #IF(%SortKey AND %SortRangeField)
+       #CALL(%LoadHigherKeysComponets,%Primary,%SortKey,%SortRangeField,%SortRangeLimitType,1)
+   #ENDIF
+#ENDFOR
+#!-------------------------------------------------------------------------
+#!
+#! Adding the bind fields
+#!
+#FOR(%HotFields),WHERE(%HotFieldBound)
+  #FIND(%Field,%HotField)
+  #IF(NOT %FieldFile OR %FieldName AND ~INLIST(%HotField,%ListViewBoundField))
+    #SET(%ValueConstruct,%HotField)
+    #INSERT(%CleanDimensions)
+    #IF(~INLIST(%ValueConstruct,%QueueField))
+#CALL(%AddFieldToBindToList,%HotField)
+    #ENDIF
+  #ENDIF
+#ENDFOR
+#FOR(%ListViewBoundField)
+  #FIND(%Field,%ListViewBoundField)
+  #IF(NOT %FieldFile OR %FieldName)
+    #SET(%ValueConstruct,%ListViewBoundField)
+    #INSERT(%CleanDimensions)
+#CALL(%AddFieldToBindToList,%ListViewBoundField)
+  #ENDIF
+#ENDFOR
+#FOR(%QueueField)
+  #FIND(%Field,%QueueFieldAssignment)
+  #IF(NOT %FieldFile OR %FieldName)
+    #IF(~INLIST(%QueueFieldAssignment,%ListViewBoundField))
+#CALL(%AddFieldToBindToList,%QueueFieldAssignment)
+    #ENDIF
+  #ENDIF
+#ENDFOR
+#ENDAT
+#!-------------------------------------------------------------------------
+#AT(%GatherObjects)
+#CALL(%AddObjectList, 'Default')
+#IF(%PrimaryKey)
+  #CASE(%LocatorType)
+  #OF('Step')
+    #CALL(%AddObjectList, 'Locator0', %StepLocatorType)
+  #OF('Entry')
+    #CALL(%AddObjectList, 'Locator0', %EntryLocatorType)
+  #OF('Incremental')
+    #CALL(%AddObjectList, 'Locator0', %IncrementalLocatorType)
+  #OF('Filtered')
+    #CALL(%AddObjectList, 'Locator0', %FilteredLocatorType)
+  #ENDCASE
+#ENDIF
+#FOR(%SortOrder)
+  #CASE(%SortLocatorType)
+  #OF('Step')
+    #CALL(%AddObjectList, 'Locator' & %SortOrder, %StepLocatorType)
+  #OF('Entry')
+    #CALL(%AddObjectList, 'Locator' & %SortOrder, %EntryLocatorType)
+  #OF('Incremental')
+    #CALL(%AddObjectList, 'Locator' & %SortOrder, %IncrementalLocatorType)
+  #OF('Filtered')
+    #CALL(%AddObjectList, 'Locator' & %SortOrder, %FilteredLocatorType)
+  #ENDCASE
+#ENDFOR
+#ENDAT
+#AT(%CustomModuleDeclarations)
+  #IF(%AcceptToolbarControl)
+    #CALL(%AddModuleIncludeFile,%ToolbarClass)
+  #ENDIF
+#ENDAT
+#AT(%GenerateInstanceUpdate)
+  #IF(%AcceptToolbarControl)
+    #CALL(%AddModuleIncludeFile,%ToolbarFormVCRType)
+  #ENDIF
+#ENDAT
+#!-------------------------------------------------------------------------
+#!
+#AT(%DataSection),PRIORITY(3500),DESCRIPTION('Views & Queues')
+#FIX(%Control,%ListControl)
+#INSERT(%ConstructView)
+#EMBED(%BeforeConstructingBrowseQueue, ''),%ActiveTemplateInstance,HIDE
+#ENDAT
+#!-------------------------------------------------------------------------
+#AT(%FormVCRMethodCodeSection,%ActiveTemplateInstance,'UpdateWindow','()'),PRIORITY(5500)
+CASE SELF.Window.Request                         #<! Configure the action message text
+OF ViewRecord
+  #INSERT(%StandardValueAssignment, 'ActionMessage', %ViewMessage)
+OF InsertRecord
+  #IF(%InsertAllowed)
+    #IF(%InsertMessage)
+  #INSERT(%StandardValueAssignment,'ActionMessage',%InsertMessage)
+    #ELSE
+  CLEAR(ActionMessage)
+    #ENDIF
+  #ELSE
+  #ENDIF
+OF ChangeRecord
+  #IF(%ChangeAllowed)
+    #IF(%ChangeMessage)
+  #INSERT(%StandardValueAssignment,'ActionMessage',%ChangeMessage)
+    #ELSE
+  CLEAR(ActionMessage)
+    #ENDIF
+  #ENDIF
+  #SUSPEND
+#?OF DeleteRecord
+  #IF(%DeleteAllowed)
+    #!IF(%ActionOnDelete = 'Display Form')
+      #IF(%DeleteMessage)
+  #INSERT(%StandardValueAssignment,'ActionMessage',%DeleteMessage)
+      #ELSE
+  CLEAR(ActionMessage)
+      #ENDIF
+    #!ENDIF
+  #ENDIF
+  #RESUME
+END
+  #IF(%MessageLocation = 'Title Bar')
+%Window{PROP:Text} = ActionMessage                              #<! Display status message in title bar
+  #ELSIF(%MessageLocation = 'Status Bar')
+%Window{PROP:StatusText,%MessageStatusSection} = ActionMessage  #<! Display status message in status bar
+  #ENDIF
+  #IF(%AppendToTitle)
+    #IF(%DeleteAllowed OR %ChangeAllowed OR %InsertAllowed)
+CASE SELF.Window.Request
+      #IF(%DeleteAllowed OR %ChangeAllowed)
+        #IF(%DeleteAllowed AND %ChangeAllowed)
+OF ChangeRecord OROF DeleteRecord
+        #ELSIF(%ChangeAllowed)
+OF ChangeRecord
+        #ELSE
+OF DeleteRecord
+        #ENDIF
+      #SET(%ValueConstruct,%StripPling(%AppendToTitleID))
+  %Window{PROP:Text} = %Window{PROP:Text} & '  (' & %ValueConstruct & ')'   #<! Append status message to window title text
+      #ENDIF
+      #IF(%InsertAllowed)
+OF InsertRecord
+  %Window{PROP:Text} = %Window{PROP:Text} & '  (New)'
+      #ENDIF
+END
+    #ENDIF
+  #ENDIF
+#ENDAT
+#!AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8030)
+#!ENDAT
+#!-------------------------------------------------------------------------
+#AT(%WindowManagerMethodCodeSection,'Run','(),BYTE'),PRIORITY(2500)
+#CASE(%FormVCRDefaultAction)
+#OF('InsertRecord')
+    #IF(NOT %FormVCRRequestInsert)
+    #ERROR('Default Value (InsertRecord) on FormVCR is not supported - Procedure'&%Procedure)
+    #ENDIF
+#OF('ChangeRecord')
+    #IF(NOT %FormVCRRequestChange)
+    #ERROR('Default Value (ChangeRecord) on FormVCR is not supported - Procedure'&%Procedure)
+    #ENDIF
+#OF('DeleteRecord')
+    #IF(NOT %FormVCRRequestDelete)
+    #ERROR('Default Value (DeleteRecord) on FormVCR is not supported - Procedure'&%Procedure)
+    #ENDIF
+#OF('ViewRecord')
+    #IF(NOT %FormVCRRequestView)
+    #ERROR('Default Value (ViewRecord) on FormVCR is not supported - Procedure'&%Procedure)
+    #ENDIF
+#ENDCASE
+GlobalRequest = %FormVCRDefaultAction   #<! Default FormVCR Action
+SELF.BatchProcessing = True             #<! Will use FormVCR for Batch Processing
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8030),DESCRIPTION('Initialize FormVCR')
+#FIX(%Control,%ListControl)
+%ManagerName.Init(%ListControl,%FormVCRPageSize,%ListView,Relate:%Primary,SELF) #<! Initialize the FormVCR manager
+#IF(%FormVCRUseMSAccessMode)
+%ManagerName.MSAccessMode = True
+#ENDIF
+#IF(%FormVCRDefaultAction<>'InsertRecord' AND %FormVCRInserWhenEmpty)
+%ManagerName.InsertWhenNoRecords = True
+#ENDIF
+#IF(%FormVCRNewRecord)
+%ManagerName.SetVCRControls(%FormVCRTop,%FormVCRPageUp,%FormVCRUp,%FormVCRDown,%FormVCRPageDown,%FormVCRBottom,%FormVCRNewRecord)
+#ELSE
+%ManagerName.SetVCRControls(%FormVCRTop,%FormVCRPageUp,%FormVCRUp,%FormVCRDown,%FormVCRPageDown,%FormVCRBottom)
+#ENDIF
+#IF(%FormVCRRequest OR %FormVCRRequestView OR %FormVCRRequestInsert OR %FormVCRRequestChange OR %FormVCRRequestDelete)
+#IF(NOT %FormVCRRequestView)
+   #SET(%FormVCRRequestView,0)
+#ENDIF
+#IF(NOT %FormVCRRequestInsert)
+   #SET(%FormVCRRequestInsert,0)
+#ENDIF
+#IF(NOT %FormVCRRequestChange)
+   #SET(%FormVCRRequestChange,0)
+#ENDIF
+#IF(NOT %FormVCRRequestDelete)
+   #SET(%FormVCRRequestDelete,0)
+#ENDIF
+%ManagerName.SetRequestControl(%FormVCRRequest,%FormVCRRequestView,%FormVCRRequestInsert,%FormVCRRequestChange,%FormVCRRequestDelete)
+#ENDIF
+#PRIORITY(8125),DESCRIPTION('Filling in FormVCR options')
+#FIX(%File,%Primary)
+#FOR(%BrowseAccessID)
+  #IF(%BrowseSortOrderInstance)
+    #SELECT(%SortOrder,%BrowseSortOrderInstance)
+    #SET(%AdditionObjectNumber,%SortOrder)
+  #ELSE
+    #SET(%AdditionObjectNumber,0)
+  #ENDIF
+%ManagerName.AddSortOrder(%BrowseKey)                          #<! Add the sort order for %BrowseKey for sort order %BrowseAccessID
+  #IF (%BrowseRangeField)
+    #CASE (%BrowseRangeLimitType)
+    #OF ('Single Value')
+%ManagerName.AddRange(%BrowseRangeField,%BrowseRangeLimit)      #<! Add single value range limit for sort order %BrowseAccessID
+    #OF ('Range of Values')
+%ManagerName.AddRange(%BrowseRangeField,%BrowseRangeLow,%BrowseRangeHigh) #<! Add 'range of values' range limit for sort order %BrowseAccessID
+    #OF ('File Relationship')
+%ManagerName.AddRange(%BrowseRangeField,Relate:%Primary,Relate:%BrowseRangeFile) #<! Add file relationship range limit for sort order %BrowseAccessID
+    #OF ('Current Value')
+%ManagerName.AddRange(%BrowseRangeField)                        #<! Add current value range limit for sort order %BrowseAccessID
+    #ENDCASE
+  #ENDIF
+  #CALL(%SetClassItem,'Locator'&%AdditionObjectNumber)
+  #IF (%BrowseLocatorType AND %BrowseLocatorType <> 'None')
+%ManagerName.AddLocator(%ThisObjectName)                        #<! Browse has a locator for sort order %BrowseAccessID
+#FIND(%KeyField,%BrowseLocatorName)
+%ThisObjectName.Init(%BrowseLocatorControl,%BrowseLocatorName,%KeyNoCase,%ManagerName) #<! Initialize the browse locator using %BrowseLocatorControl
+    #IF (%BrowseLocatorType = 'Filtered' AND %BrowseLocatorFindAny)
+%ThisObjectName.FloatRight = 1
+    #END
+  #ENDIF
+#IF (%BrowseOrderStatement)
+%ManagerName.AppendOrder(%(%StripPling(%BrowseOrderStatement))) #<! Append an additional sort order
+#ENDIF
+  #IF(%GetBrowseFilter() <> '')
+%ManagerName.SetFilter(%(%StripPling(%GetBrowseFilter())))      #<! Apply filter expression to browse
+  #ENDIF
+#ENDFOR
+#FIX(%Control,%ListControl)
+#EMBED(%AddFieldsToFormVCR),%ActiveTemplateInstance,HIDE
+#PRIORITY(8510),DESCRIPTION('Setting up FormVCR toolbar control')
+#IF(%AcceptToolbarControl)
+%ManagerName.AddToolbarTarget(Toolbar)                          #<! Browse accepts toolbar control
+  #IF ( %HelpControl )
+%ManagerName.ToolbarItem.HelpButton = %HelpControl
+  #ENDIF
+#ENDIF
+#EMBED(%FormVCRInit,'FormVCR Initialization'),%ActiveTemplateInstance,MAP(%ActiveTemplateInstance,%ActiveTemplateinstanceDescription),LEGACY
+%ManagerName.Reset
+#ENDAT
+#!
+#!
+#AT(%AddFieldsToBrowse, %ActiveTemplateInstance),PRIORITY(5000)
+#FOR(%QueueField)
+  #FIND(%Field,%QueueFieldAssignment)
+  #FIND(%HotField,%QueueFieldAssignment,%HotFields)
+  #IF (%Field OR %HotField AND ~%HotFieldBindOnly OR INLIST(%QueueFieldAssignment,%ControlField))
+#!%ManagerName.AddField(%QueueFieldAssignment,%ManagerName.Q.%QueueField)  #<! Field %QueueFieldAssignment is a hot field or requires assignment from browse
+  #ENDIF
+#ENDFOR
+#ENDAT
+#!
+#!
+#AT(%FormVCRMethodCodeSection,%ActiveTemplateInstance,'ApplyRange','(),BYTE'),PRIORITY(4000),DESCRIPTION('Assign Higher Key Values based on FormVCR conditions')
+#INSERT(%GenerateHigherKeyCode)
+#ENDAT
+#!
+#AT(%FormVCRMethodCodeSection,%ActiveTemplateInstance,'ResetSort','(BYTE Force),BYTE'),PRIORITY(2500),DESCRIPTION('Select sort order based on FormVCR conditions')
+#EMBED(%BeforeControlRefresh,'Before Refresh Window for FormVCR'),%ActiveTemplateInstance,MAP(%ActiveTemplateInstance,%ActiveTemplateinstanceDescription),LEGACY
+  #IF(ITEMS(%BrowseAccessID) > 1)
+    #FOR(%BrowseAccessID)
+      #IF(%BrowseAccessID = 1)
+IF %BrowseCondition
+      #ELSIF(%BrowseAccessID = ITEMS(%BrowseAccessID))
+ELSE
+      #ELSE
+ELSIF %BrowseCondition
+      #ENDIF
+  RETURN SELF.SetSort(%BrowseAccessID,Force)
+    #ENDFOR
+END
+  #ENDIF
+#EMBED(%AfterControlRefresh,'After Refresh Window for FormVCR'),%ActiveTemplateInstance,MAP(%ActiveTemplateInstance,%ActiveTemplateinstanceDescription),LEGACY
+#ENDAT
+#!-------------------------------------------------------------------------
+#!
+#AT(%LocalProcedures)
+#FIX(%File,%Primary)
+#!
+#!
+#DECLARE(%Terminator,LONG)
+#!
+#CALL(%GenerateVirtuals, 'Default', 'Local Objects|Abc Objects|FormVCR on ' & %Primary  , '%FormVCRVirtuals(ABC)')
+#IF(%PrimaryKey AND %LocatorType NOT='None')
+  #CALL(%GenerateVirtuals, 'Locator0', 'Local Objects|Abc Objects|FormVCR on ' & %Primary & ', default locator', '%DefaultLocatorVirtuals(ABC)')
+#ENDIF
+#FOR(%SortOrder),WHERE(%SortKey)
+  #IF(%SortLocatorType <> 'None')
+    #CALL(%GenerateVirtuals, 'Locator' & %SortOrder, 'Local Objects|Abc Objects|FormVCR on ' & %Primary & ', locator when ' & %SortCondition, '%LocatorVirtuals(ABC)')
+  #ENDIF
+#ENDFOR
+#ENDAT
+#!
+#!----------------------------------------------------------------------
+#AT(%LocalDataClasses)
+#!
+#INSERT(%GenerateClass, 'Default', 'FormVCR')
+#IF(%PrimaryKey AND %LocatorType AND %LocatorType NOT='None')
+#INSERT(%GenerateClass, 'Locator0', 'Default Locator')
+#ENDIF
+#FOR(%SortOrder),WHERE(%SortKey AND %SortLocatorType AND %SortLocatorType NOT='None')
+#INSERT(%GenerateClass, 'Locator' & %SortOrder, 'Conditional Locator - '&%SortCondition)
+#ENDFOR
+#!
+#!
+#MESSAGE('FormVCR Control Declarations',3)
+#ENDAT
+#!
+#!----------------------------------------------------------------------
+#AT(%FormVCRMethodCodeSection,%ActiveTemplateInstance),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#AT(%LocatorMethodCodeSection,%ActiveTemplateInstance),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!----------------------------------------------------------------------
+#GROUP(%FormVCRVirtuals, %TreeText, %DataText, %CodeText)
+#EMBED(%FormVCRMethodDataSection,'FormVCR Method Data Section'),%ActiveTemplateInstance,%pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(,%FixClassName(%FixBaseClassToUse('Default'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%FormVCRMethodCodeSection,'FormVCR Method Code Section'),%ActiveTemplateInstance,%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('Default'))),TREE(%TreeText & %CodeText)
+#!
+#GROUP(%SetFormVCRLocatorClass,%InstanceNumber,%LocatorType)
+#CALL(%SetLocatorClass,%InstanceNumber,%LocatorType,'FormVCR'&%ActiveTemplateInstance&'::Sort')

@@ -1,0 +1,34 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<PreBuildEventDependsOn>
+			$(PreBuildEventDependsOn);
+			MultiplePreBuilds;
+		</PreBuildEventDependsOn>
+		<PostBuildEventDependsOn>
+			$(PostBuildEventDependsOn);
+			MultiplePostBuilds;
+		</PostBuildEventDependsOn>
+	</PropertyGroup>
+	<!-- Properties and Items are evaluated before Targets are run.  However, properties (like $(TargetPath)) are not know, with 
+	     Clarion for Windows, until the Redirection task is run.  So to allow these properties to be used the pre and post build
+	     events are stored in seperate project files and invoked via the MSBuild task -->
+	<Target Name="MultiplePreBuilds" Condition="Exists('$(MSBuildProjectFullPath).MultiplePreBuilds.Targets')">
+		<MSBuild Projects="$(MSBuildProjectFullPath).MultiplePreBuilds.Targets"
+		         Properties="OutputPath=$(OutputPath);TargetDir=$(TargetDir);TargetPath=$(TargetPath);OutputName=$(OutputName)"
+		         Targets="Build"/>
+	</Target>
+	<Target Name="MultiplePostBuilds"
+	        Condition="
+	                   Exists('$(MSBuildProjectFullPath).MultiplePostBuilds.Targets')
+	                   and
+	                   (
+	                     '$(RunPostBuildEvent)'!='OnOutputUpdated'
+	                     or 
+	                     '$(_BinaryTimestampBeforeCompile)'!='$(_BinaryTimestampAfterCompile)'
+	                   )
+	                 ">
+		<MSBuild Projects="$(MSBuildProjectFullPath).MultiplePostBuilds.Targets"
+		         Properties="OutputPath=$(OutputPath);TargetDir=$(TargetDir);TargetPath=$(TargetPath);OutputName=$(OutputName)"
+		         Targets="Build"/>
+	</Target>
+</Project>

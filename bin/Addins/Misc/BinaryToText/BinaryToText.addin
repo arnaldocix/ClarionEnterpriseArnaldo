@@ -1,0 +1,33 @@
+<AddIn name        = "BinaryToText"
+       author      = "SoftVelocity"
+       copyright   = "Copyright  SoftVelocity 1986-2009"
+       url         = "http://www.softvelocity.com"
+       description = "Support code to allow binary files to be imported/exported to text representations">
+
+	<Manifest>
+		<Identity name = "SoftVelocity.BinaryToText"/>
+	</Manifest>
+
+
+	<Runtime>
+		<Import assembly = "BinaryToText.dll">
+			<Doozer name="BinaryFileWatcher" class="SoftVelocity.BinaryToText.BinaryWatcherDoozer"/>
+		</Import>
+	</Runtime>
+
+	<StringResources file = "Resources/BinaryToText.StringResources.resources"/>
+
+	<Path name = "/Workspace/Autostart">
+		<Class id    = "StartDctWatcher"
+		       class = "SoftVelocity.BinaryToText.StartFileWatchers"/>
+	</Path>  <!-- /Workspace/Autostart -->
+	<Path name = "/Workspace/Terminate">
+		<Class id    = "CleanupBinaryWatcheres"
+		       class = "SoftVelocity.BinaryToText.CleanupBinaryFileWatchers"/>
+	</Path>
+	<Path name = "/SharpDevelop/Dialogs/OptionsDialog/Clarion Options">
+		<DialogPanel id    = "ImportExport"
+		             label = "${res:SoftVelocity.BinaryToText.Title}"
+		             class = "SoftVelocity.BinaryToText.ImportExportPanel"/>
+	</Path>
+</AddIn>

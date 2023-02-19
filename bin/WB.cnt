@@ -1,0 +1,29 @@
+:Base WB.hlp
+1 WebBuilder Templates
+2 WebBuilder Templates=WebBuilder_Templates
+2 Web Application Extension=Web_Application_Extension
+2 Web Procedure Extension=Web_Procedure_Extension
+2 Dynamic HTML Code Template=Dynamic_HTML_Code_Template
+2 Static HTML Code Template=Static_HTML_Code_Template
+2 GetCookie Code Template=GetCookie_Code_Template
+2 SetCookie Code Template=SetCookie_Code_Template
+2 Cookies (Persistent Client Data)=Cookies__Persistent_Client_Data_
+2 AddServerProperty Code Template=AddServerProperty_Code_Template
+2 GetServerProperty Code Template=GetServerProperty_Code_Template
+2 RedirectToPage Code Template=RedirectToPage_Code_Template
+2 WebGridExtension=WebGridExtension
+2 WebGuardLogonButton=WebGuardLogonButton
+2 WebGuard Application Extension=WebGuard_Application_Extension
+2 WebGuardProc Procedure Extenstion=WebGuardProc_Procedure_Extenstion
+2 WebHitManager=WebHitManager
+2 WebHitProc=WebHitProc
+2 WebShowHits=WebShowHits
+2 WebVisitor=WebVisitor
+2 DeleteVisitorProcess=DeleteVisitorProcess
+1 Glossary
+2 Glossary=Glossary
+2 Clarion Application Broker=Clarion_Application_Broker
+2 Clarion Session Router=Clarion_Session_Router
+2 Hybrid Web/Windows Application=Hybrid_Web_Windows_Application
+2 Java Support Library=Java_Support_Library
+2 Remote Computing Session=Remote_Computing_Session 

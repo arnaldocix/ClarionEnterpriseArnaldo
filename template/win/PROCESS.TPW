@@ -1,0 +1,780 @@
+#PROCEDURE(Process,'Sequential Record Processor'),PRIMARY('File(s) to Process',OPTKEY),WINDOW,REPORT,HLP('~TPLProcProcess.htm')
+#! Note that range limits are considered to be loop invariant
+#! This reduces code and loop overhead and allows on-server filters
+#! To use fresh limits an explicit filter re-assignment is needed
+#LOCALDATA
+RejectRecord         LONG
+LocalRequest         LONG
+OriginalRequest      LONG
+LocalResponse        LONG
+FilesOpened          LONG
+WindowOpened         LONG
+RecordsToProcess     LONG,AUTO
+RecordsProcessed     LONG,AUTO
+RecordsPerCycle      LONG,AUTO
+RecordsThisCycle     LONG,AUTO
+PercentProgress      BYTE
+RecordStatus         BYTE,AUTO
+WindowInitialized    LONG
+ForceRefresh         LONG
+#ENDLOCALDATA
+#!
+#ENABLE(%ProcedureType='FUNCTION')
+  #PROMPT('Return Value:',FIELD),%ReturnValue
+#ENDENABLE
+#INSERT(%StandardWindowPrompts)
+#BOXED,HIDE
+  #PROMPT('Data Source:',DROP('File|Queue|Memory')),%ReportDataSource,DEFAULT('File')
+#ENDBOXED
+#BUTTON('&Process Properties'),AT(10,,180)
+  #SHEET
+    #TAB('&General'),HLP('~TPLProcProcess.htm#General')
+      #PROMPT('Window Message:',@S40),%WindowMessage
+      #PROMPT('Action for Process:',DROP('No record action|PUT record|DELETE record')),%ProcessAction,DEFAULT('No record action')
+      #ENABLE(%ProcessAction <> 'No record action')
+        #PROMPT('Use RI constraints on action',CHECK),%RIProcessAction,AT(10)
+        #DISPLAY('NOTE: Setting this flag will cause the "Action for Process" to occur only to the primary file. No action will occur on secondary files.'),AT(10,,180,30)
+      #ENDENABLE
+      #ENABLE(%ProcessAction='No record action')
+        #BUTTON('&IPDRV Options'),AT(,,175),HLP('~TPLProcProcess_IPDRV.htm')
+          #PROMPT('Use MRP (Multiple Request Packet)',CHECK),%UseMRP,AT(10),DEFAULT(%True)
+          #DISPLAY
+          #DISPLAY('If you have any file access commands in your embed code')
+          #DISPLAY('that are issued in the LOOP where Process')
+          #DISPLAY('each record, set the "Use MRP" to FALSE')
+        #ENDBUTTON
+      #ENDENABLE
+      #PROMPT('Quick-Scan Records',CHECK),%EnableQuickScan,DEFAULT(1)
+      #PROMPT('&Record Filter:',EDIT),%RecordFilter,WHENACCEPTED(%SVExpresionEditor(%RecordFilter))
+      #ENABLE(%RecordFilter OR %RangeField)
+        #PROMPT('Approx. Record Count:',@N6),%ApproxRecordCount,REQ
+      #ENDENABLE
+      #INSERT(%AdditionalSortFieldsOptions)
+    #ENDTAB
+    #TAB('Range Limits'),WHERE(%PrimaryKey),HLP('~TPLProcProcess.htm#Range_Limits')
+      #INSERT(%RangeLimitOptions)
+    #ENDTAB
+    #TAB('&Range Limits'),WHERE(NOT %PrimaryKey),HLP('~TPLProcProcess.htm#Range_Limits')
+      #DISPLAY('To use a range limit, your process must use a key. You will not be able to specify a range limit until you''ve specified the process'' key.'),AT(10,30,175,30)
+    #ENDTAB
+    #TAB('&Hot Fields'),HLP('~TPLProcProcess_Hot_Fields')
+      #BUTTON('Hot Fields'),MULTI(%HotFields,%HotField),INLINE,HLP('~TPLProcProcess.htm#HotFields')
+        #PROMPT('Hot Field:',FIELD),%HotField,REQ
+        #PROMPT('BIND Field',CHECK),%HotFieldBound
+      #ENDBUTTON
+    #ENDTAB
+  #ENDSHEET
+#ENDBUTTON
+#!
+#CLASS('Procedure Setup','Upon Entry into the Procedure')
+#CLASS('Before Lookups','After Record Retrieved, Before Lookups')
+#CLASS('After Lookups','After Record Retrieved, After Lookups')
+#CLASS('Procedure Exit','Before Leaving the Procedure')
+#CLASS('Before Range Check','In Validate Record ROUTINE, Before Range Limit Code')
+#CLASS('Before Filter Check','In Validate Record ROUTINE, Before Filter Code')
+#!
+#ATSTART
+   #DECLARE(%ListView)
+   #SET(%ListView,'Process:View')
+   #DECLARE(%QueueField),UNIQUE
+   #DECLARE(%QueueFieldAssignment,%QueueField)
+   #DECLARE(%ProcessFilter)
+   #DECLARE(%InstancePrefix)
+   #DECLARE(%Temp1)
+   #DECLARE(%Temp2)
+   #CASE(%RangeLimitType)
+   #OF('Range of Values')
+     #SET(%Temp1,%RangeLow)
+     #SET(%Temp2,%RangeHigh)
+   #OF('Single Value')
+     #SET(%Temp1,%RangeLimit)
+   #OF('File Relationship')
+     #SET(%Temp1,%RangeFile)
+   #ENDCASE
+   #INSERT(%StandardViewFilter,%RecordFilter,%PrimaryKey,%RangeField,%RangeLimitType,'Process:Save:',%Temp1,%Temp2,'Construct')
+   #SET(%ProcessFilter,%ValueConstruct)
+   #DECLARE(%ListViewBoundField),UNIQUE
+   #FOR (%QueueField)
+     #SET(%QueueFieldAssignment,%QueueField)
+     #ADD(%ListViewBoundField,%QueueField)
+   #ENDFOR
+   #FOR (%HotFields)
+     #ADD(%QueueField,%HotField)
+     #SET(%QueueFieldAssignment,%HotField)
+     #IF (%HotFieldBound)
+       #ADD(%ListViewBoundField,%HotField)
+     #ENDIF
+   #ENDFOR
+   #FOR (%Formula), WHERE( ITEMS(%FormulaField) )
+     #FOR (%FormulaField)
+       #ADD(%QueueField,%FormulaField)
+       #SET(%QueueFieldAssignment,%FormulaField)
+     #ENDFOR
+   #ENDFOR
+#ENDAT
+#AT(%CustomGlobalDeclarations)
+  #INSERT(%StandardGlobalSetup)
+#ENDAT
+#INSERT(%FindProcessControls)
+#INSERT(%StandardWindowCode)
+#AT(%BeforeBind)
+   #INSERT(%StandardViewFilter,%RecordFilter,%PrimaryKey,%RangeField,%RangeLimitType,'Process:Save:',%Temp1,%Temp2,'Bind')
+   #FOR( %ListViewBoundField )
+     #FIND(%Field,%ListViewBoundField)
+     #IF (NOT %FieldFile OR %FieldName)
+       #CALL(%AddFieldToBindToList,%ListViewBoundField)
+     #ENDIF
+   #ENDFOR
+   #IF(%RecordFilter)
+     #CALL(%ProcedureBindParseText,%RecordFilter)
+   #ENDIF
+#!  #ENDFOR
+#!  #IF(%RecordFilter)
+#!      #CALL(%ProcedureBindParseText,%RecordFilter)
+#!  #ENDIF
+#ENDAT
+#AT(%WindowEventHandling,'OpenWindow'),PRIORITY(5000)
+ #INSERT(%ProcessSaveLimits)
+#ENDAT
+#AT(%WindowEventHandling,'Timer'),PRIORITY(5000)
+  RecordsThisCycle = 0
+  #IF(%ProcessAction='No record action' AND %UseMRP)
+  !Set the MRP to RecordsPerCycle
+  IF %ListView{PROP:IPRequestCount}=0
+    %ListView{PROP:IPRequestCount}=RecordsPerCycle
+  END
+  #ENDIF
+  LOOP WHILE RecordsThisCycle < RecordsPerCycle
+    #INSERT(%ProcessEventTimer)
+    LOOP
+       #EMBED(%BeforeSubsequentRead,'Before subsequent record retrieval')
+       DO GetNextRecord
+       #EMBED(%AfterSubsequentRead,'After subsequent record retrieval')
+       DO ValidateRecord
+       CASE RecordStatus
+         OF Record:OutOfRange
+            LocalResponse = RequestCancelled
+            BREAK
+         OF Record:OK
+            BREAK
+       END
+    END
+    IF LocalResponse = RequestCancelled
+       LocalResponse = RequestCompleted
+       BREAK
+    END
+    LocalResponse = RequestCancelled
+  END
+  IF LocalResponse = RequestCompleted
+    0{PROP:Timer} = 0
+    %PctTextControl{Prop:Text} = 'Process Completed'
+    DISPLAY(%PctTextControl)
+    POST(Event:CloseWindow)
+  END
+#ENDAT
+#AT(%ControlEventHandling,%CancelControl,'Accepted'),PRIORITY(5000)
+  #EMBED(%ProgressCancel,'When the process is cancelled')
+  LocalResponse = RequestCancelled
+  0{PROP:Timer} = 0
+  POST(EVENT:CloseWindow)
+#ENDAT
+#!
+#AT (%ProcedureSetup),WHERE((%AdditionalSortType='DynamicNamed' OR %AdditionalSortType='DynamicSorting') AND %ReportDataSource='File')
+#INSERT(%ProcessSortSelectionCall)
+#ENDAT
+#!
+#AT (%DeclarationSection),WHERE((%AdditionalSortType='DynamicNamed' OR %AdditionalSortType='DynamicSorting') AND %ReportDataSource='File')
+#INSERT(%ProcessSortSelectionData)
+#ENDAT
+#!
+#AT(%ProcedureRoutines),WHERE((%AdditionalSortType='DynamicNamed' OR %AdditionalSortType='DynamicSorting') AND %ReportDataSource='File')
+#INSERT(%ProcessSortSelectionRoutine)
+#ENDAT
+#!
+#!
+#!
+#!
+#!
+#AT(%DerivedEmbedAfterLocalData)
+#IF(UPPER(%ProcedureTemplate) = 'REPORT' OR UPPER(%ProcedureTemplate) = 'PROCESS')
+#INSERT(%StandardViewFilter,%RecordFilter,%PrimaryKey,%RangeField,%RangeLimitType,'Process:Save:',%Temp1,%Temp2,'Declare')
+#INSERT(%ConstructView)
+Progress:Thermometer BYTE
+#ENDIF
+#ENDAT
+#AT(%DerivedEmbedAfterAcceptLoop)
+#IF(UPPER(%ProcedureTemplate) = 'PROCESS')
+#INSERT(%ProcessEndOfProcedure)
+#ENDIF
+#IF(UPPER(%ProcedureTemplate) = 'REPORT')
+#INSERT(%ReportEndOfProcedure)
+#ENDIF
+#ENDAT
+#AT(%DerivedEmbedAfterFileOpen)
+  #IF(UPPER(%ProcedureTemplate) = 'REPORT' OR UPPER(%ProcedureTemplate) = 'PROCESS')
+     #IF(%ReportDataSource='File')
+  #INSERT(%StandardViewFilter,%RecordFilter,%PrimaryKey,%RangeField,%RangeLimitType,'Process:Save:',%Temp1,%Temp2,'Save')
+     #ENDIF
+  #IF(%ReportDataSource='File')
+    #IF(%PrimaryKey)
+        #IF(%RecordFilter OR %RangeField)
+            #IF(NOT(%ApproxRecordCount))
+RecordsToProcess = 500
+            #ELSE
+RecordsToProcess = %ApproxRecordCount
+            #ENDIF
+        #ELSE
+RecordsToProcess = RECORDS(%Primary)
+        #ENDIF
+RecordsPerCycle = 25
+    #ELSE
+        #IF(%RecordFilter)
+            #IF(NOT(%ApproxRecordCount))
+RecordsToProcess = 10000
+            #ELSE
+RecordsToProcess = %ApproxRecordCount
+            #ENDIF
+        #ELSE
+RecordsToProcess = %Primary{PROP:FileSize}
+        #ENDIF
+RecordsPerCycle = 1000
+    #ENDIF
+  #ELSIF(%ReportDataSource='Queue')
+RecordsToProcess = RECORDS(%ReportDataSourceQueueName)
+RecordsPerCycle = 1
+  #ELSE
+RecordsToProcess = 1
+RecordsPerCycle = 1
+  #ENDIF
+RecordsProcessed = 0
+PercentProgress = 0
+  #EMBED(%BeforeOpeningWindow,'Before Opening Progress Window')
+  #ENDIF
+#ENDAT
+#AT(%AfterOpeningWindow),WHERE(UPPER(%ProcedureTemplate) = 'REPORT' OR UPPER(%ProcedureTemplate) = 'PROCESS'),PRIORITY(3000)
+    #IF(UPPER(%ProcedureTemplate) = 'PROCESS')
+     #CASE(%ProcessAction)
+     #OF('Put Record')
+ProgressWindow{Prop:Text} = 'Updating Records'
+     #OF('Delete Record')
+ProgressWindow{Prop:Text} = 'Deleting Records'
+     #ELSE
+ProgressWindow{Prop:Text} = 'Processing Records'
+     #ENDCASE
+  #ELSIF(UPPER(%ProcedureTemplate) = 'REPORT')
+     #IF(%EnablePrintPreview)
+ProgressWindow{Prop:Text} = 'Generating Report'
+     #ELSE
+ProgressWindow{Prop:Text} = 'Printing Report'
+     #ENDIF
+    #ELSE
+ProgressWindow{Prop:Text} = 'Processing Records'
+    #ENDIF
+%PctTextControl{Prop:Text} = '0% Completed'
+    #IF(SUB(%WindowMessage,1,1)='!')
+      #SET(%ValueConstruct,SUB(%WindowMessage,2,LEN(%WindowMessage)-1))
+%UserStringControl{Prop:Text}=%ValueConstruct
+    #ELSE
+%UserStringControl{Prop:Text}='%'WindowMessage'
+    #ENDIF
+#ENDAT
+#AT(%DerivedEmbedAfterStandardWindowOpening)
+  #IF(UPPER(%ProcedureTemplate) = 'REPORT' OR UPPER(%ProcedureTemplate) = 'PROCESS')
+#EMBED(%AfterOpeningWindow,'After Opening Progress Window')
+    #IF(%EnableQuickScan)
+#EMBED(%BeforeTurnQuickScanOn,'Before Turning QuickScan On'),WHERE(%EnableQuickScan)
+       #IF(%ReportDataSource='File')
+SEND(%Primary,'QUICKSCAN=on')
+      #FOR(%Secondary),WHERE(%SecondaryType = '1:MANY')
+SEND(%Secondary,'QUICKSCAN=on')
+      #ENDFOR
+       #ENDIF
+#EMBED(%AfterTurnQuickScanOn,'After Turning QuickScan On'),WHERE(%EnableQuickScan)
+    #ENDIF
+  #ENDIF
+#ENDAT
+#AT(%DerivedEmbedBeforeRoutines)
+  #IF(UPPER(%ProcedureTemplate) = 'REPORT' OR UPPER(%ProcedureTemplate) = 'PROCESS')
+#INSERT(%ProcessValidateRecord)
+#INSERT(%ProcessGetRecords)
+#INSERT(%ProcessGetFirstRecord)
+  #ENDIF
+#ENDAT
+#AT(%BeforeFileClose)
+CLOSE(%ListView)
+#ENDAT
+#!---------------------------------------------------------------------
+#DEFAULT
+NAME DefaultProcess
+[COMMON]
+DESCRIPTION 'A process procedure'
+FROM Clarion Process
+[DATA]
+[PROMPTS]
+%RangeLimitType STRING  ('Current Value')
+[WINDOW]
+ProgressWindow WINDOW('Progress...'),AT(,,142,59),CENTER,TIMER(1),GRAY,DOUBLE
+       PROGRESS,USE(Progress:Thermometer),AT(15,15,111,12),RANGE(0,100),#ORIG(Progress:Thermometer)
+       STRING(''),AT(0,3,141,10),USE(?Progress:UserString),CENTER,#ORIG(?Progress:UserString)
+       STRING(''),AT(0,30,141,10),USE(?Progress:PctText),CENTER,#ORIG(?Progress:PctText)
+       BUTTON('Cancel'),AT(45,42,50,15),USE(?Progress:Cancel),#ORIG(?Progress:Cancel)
+     END
+#ENDDEFAULT
+#!---------------------------------------------------------------------
+#GROUP(%FindProcessControls)
+  #DECLARE(%ThermometerControl)
+  #DECLARE(%UserStringControl)
+  #DECLARE(%PctTextControl)
+  #DECLARE(%CancelControl)
+  #DECLARE(%ThermometerUseVariable)
+  #IF(%ProcedureTemplate='Process' OR %ProcedureTemplate='Report')
+    #IF(%Window)
+      #FOR(%Control)
+        #CASE(%ControlOriginal)
+        #OF('Progress:Thermometer')
+          #SET(%ThermometerControl, %Control)
+          #SET(%ThermometerUseVariable, %ControlUse)
+        #OF('?Progress:UserString')
+          #SET(%UserStringControl, %Control)
+        #OF('?Progress:PctText')
+          #SET(%PctTextControl, %Control)
+        #OF('?Progress:Cancel')
+          #SET(%CancelControl, %Control)
+        #ENDCASE
+      #ENDFOR
+    #ELSE
+      #SET(%ThermometerControl, '?Progress:Thermometer')
+      #SET(%ThermometerUseVariable, 'Progress:Thermometer')
+      #SET(%UserStringControl, '?Progress:UserString')
+      #SET(%PctTextControl, '?Progress:PctText')
+      #SET(%CancelControl, '?Progress:Cancel')
+    #ENDIF
+  #ENDIF
+  #ASSERT(%ThermometerUseVariable <> '', %Procedure & ': progress controls use variable not found!')
+#!---------------------------------------------------------------------
+#GROUP(%RangeLimitOptions)
+  #PREPARE
+    #CALL(%LoadHigherKeysComponets,%Primary,%PrimaryKey,%RangeField,%RangeLimitType)
+  #ENDPREPARE
+  #ENABLE(%PrimaryKey),CLEAR
+    #PROMPT('Range Limit &Field:',COMPONENT(%PrimaryKey)),%RangeField,WHENACCEPTED(%LoadHigherKeysComponets(%Primary,%PrimaryKey,%RangeField,%RangeLimitType))
+  #ENDENABLE
+  #ENABLE(%RangeField)
+    #BOXED,HIDE
+      #BUTTON('HigherKeys'),MULTI(%HigherKeys,%HigherKey)
+        #PROMPT('Higher Field',COMPONENT(%PrimaryKey)),%HigherKey
+      #ENDBUTTON
+    #ENDBOXED
+    #PROMPT('Range Limit &Type:',DROP('Current Value|Single Value|Range of Values|File Relationship')),%RangeLimitType,DEFAULT('Current Value'),WHENACCEPTED(%LoadHigherKeysComponets(%Primary,%PrimaryKey,%RangeField,%RangeLimitType))
+    #BOXED,WHERE((%RangeLimitType='Single Value' OR %RangeLimitType='Range of Values'))
+      #ENABLE(ITEMS(%HigherKeys))
+        #BUTTON('Higher Key Component'),FROM(%HigherKeys,%HigherKeyField&' = '&CHOOSE(%HigherKeyValueType,'Current Value',%HigherKeyValueVariable,%HigherKeyValueFixed)),HLP('~TPLHigherKeyComponent.htm'),AT(,,175)
+          #ENABLE(%False)
+            #PROMPT ('Key Field:', FIELD),%HigherKeyField,DEFAULT(%HigherKey)
+          #ENDENABLE
+          #PROMPT('Value Type:',DROP('Current Value|Variable Value|Fixed Value')),%HigherKeyValueType,CHOICE,DEFAULT(1)
+          #BOXED,WHERE(%HigherKeyValueType=2),AT(,30)
+            #PROMPT ('Value:', FIELD),%HigherKeyValueVariable
+          #ENDBOXED
+          #BOXED,WHERE(%HigherKeyValueType=3),AT(,30)
+            #PROMPT ('Value:', EDIT(256)),%HigherKeyValueFixed,WHENACCEPTED(%SVExpresionEditor(%HigherKeyValueFixed))
+          #ENDBOXED
+        #ENDBUTTON
+      #ENDENABLE
+    #ENDBOXED
+    #BOXED,SECTION
+      #BOXED('Range Limit Boundary:'),WHERE(%RangeLimitType='Single Value'),AT(,0)
+        #PROMPT('&Range Limit Value:',FIELD),%RangeLimit
+      #ENDBOXED
+      #BOXED('Range Limit Boundaries:'),WHERE(%RangeLimitType='Range of Values'),AT(,0)
+        #PROMPT('&Low Limit Value:',FIELD),%RangeLow
+        #PROMPT('&High Limit Value:',FIELD),%RangeHigh
+      #ENDBOXED
+      #BOXED('Range limiting file'),WHERE(%RangeLimitType='File Relationship'),AT(,0)
+        #PROMPT('&Related file:',FILE),%RangeFile
+      #ENDBOXED
+    #ENDBOXED
+  #ENDENABLE
+#!-----------------------------------------------------------------------------
+#GROUP(%AdditionalSortFieldsOptions)
+  #BUTTON('Additional Sort Fields'),AT(,,175),HLP('~TPLAdditionalSortFields.htm')
+     #PROMPT('Sort Type:',DROP('Manual|Assisted|ConditionalAssisted|DynamicSorting|DynamicNamed')),%AdditionalSortType,DEFAULT('Manual')
+     #DISPLAY
+     #BOXED,SECTION
+       #BOXED('Sort Order'),WHERE(%AdditionalSortType = 'Manual'),AT(,0)
+         #PROMPT('&Additional Sort Fields:',EDIT(1024)),%AddSortFields,WHENACCEPTED(%SVExpresionEditor(%AddSortFields))
+         #DISPLAY
+         #DISPLAY('This can be a string or a variable.  Example:')
+         #DISPLAY
+         #DISPLAY('String:           +Cli:FirstName,+Cli:SecondName')
+         #DISPLAY('Variable:      !Loc:Order')
+       #ENDBOXED
+       #BOXED('Sort Order'),WHERE(%AdditionalSortType = 'Assisted'),AT(,0)
+         #BUTTON('Additional Sort Fields'),MULTI(%AddSortFieldsAssisted,%AddSortFieldAssistedOrder & %AddSortFieldAssisted),INLINE,HLP('~TPLAdditionalSortFields.htm')
+           #PROMPT('Field:',FIELD),%AddSortFieldAssisted,REQ
+           #PROMPT('Order:',DROP('Ascending[+]|Descending[-]')),%AddSortFieldAssistedOrder,DEFAULT('+')
+         #ENDBUTTON
+       #ENDBOXED
+       #BOXED('Sort Order'),WHERE(%AdditionalSortType = 'ConditionalAssisted'),AT(,0)
+         #BUTTON('Conditional Sort'),MULTI(%AddConditionalSort,(%AddConditionalSortCondition)),INLINE
+           #PROMPT('&Condition:',EDIT),%AddConditionalSortCondition,REQ,WHENACCEPTED(%SVExpresionEditor(%AddConditionalSortCondition))
+           #BUTTON('Additional Sort Fields'),MULTI(%AddConditionalSortFieldsAssisted,%AddConditionalSortFieldAssistedOrder & %AddConditionalSortFieldAssisted),INLINE,HLP('~TPLAdditionalSortFields.htm')
+             #PROMPT('Field:',FIELD),%AddConditionalSortFieldAssisted,REQ
+             #PROMPT('Order:',DROP('Ascending[+]|Descending[-]')),%AddConditionalSortFieldAssistedOrder,DEFAULT('+')
+           #ENDBUTTON
+         #ENDBUTTON
+       #ENDBOXED
+       #BOXED('Sort Order'),WHERE(%AdditionalSortType = 'DynamicNamed'),AT(,0)
+         #BUTTON('Sort Names'),MULTI(%AddSortDynamicNamed,%AddSortFieldDinNameDescription),INLINE
+           #PROMPT('Name:',@S50),%AddSortFieldDinNameDescription,REQ
+           #BUTTON('Additional Sort Fields'),MULTI(%AddSortFieldsDinName,%AddSortFieldDinNameOrder&%AddSortFieldDinName),INLINE,HLP('~TPLAdditionalSortFields.htm')
+             #PROMPT('Field:',FIELD),%AddSortFieldDinName,REQ
+             #PROMPT('Order:',DROP('Ascending[+]|Descending[-]')),%AddSortFieldDinNameOrder,DEFAULT('+')
+           #ENDBUTTON
+         #ENDBUTTON
+       #ENDBOXED
+       #BOXED('Sort Order'),WHERE(%AdditionalSortType = 'DynamicSorting'),AT(,0)
+         #BUTTON('Additional Sort Fields'),MULTI(%AddSortFieldsDinSort,%AddSortFieldDinSortDescription&' ('&%AddSortFieldDinSortOrder & %AddSortFieldDinSort&')'),INLINE,HLP('~TPLAdditionalSortFields.htm')
+           #PROMPT('Description:',@S50),%AddSortFieldDinSortDescription,REQ
+           #PROMPT('Field:',FIELD),%AddSortFieldDinSort,REQ
+           #PROMPT('Order:',DROP('Ascending[+]|Descending[-]')),%AddSortFieldDinSortOrder,DEFAULT('+')
+         #ENDBUTTON
+       #ENDBOXED
+       #BOXED,WHERE(%AdditionalSortType <> 'Assisted' and %AdditionalSortType <> 'Manual' AND %AdditionalSortType <> 'ConditionalAssisted')
+         #BUTTON('Sorting Window'),AT(,,180)
+           #BOXED('Sorting Window')
+             #PROMPT('Title:',@s22),%AdditionalSortWindowTitle,DEFAULT('Select the Order')
+             #PROMPT('Message:',@s46),%AdditionalSortWindowMessage,DEFAULT('Select the order to process the data.')
+             #BUTTON('Ok Button')
+               #PROMPT('Text:',@S255),%AdditionalSortWindowOkButtonText,DEFAULT('&OK')
+               #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%AdditionalSortWindowOkButtonIcon,DEFAULT('SOK.ICO')
+               #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%AdditionalSortWindowOkButtonCursor,DEFAULT('')
+               #PROMPT('HotKey:',KEYCODE),%AdditionalSortWindowOkButtonKeyCode,DEFAULT('')
+               #PROMPT('Message:',@S255),%AdditionalSortWindowOkButtonMsg,DEFAULT('Accept data and close the window')
+               #DISPLAY('Tip:')
+               #PROMPT('Tip:',TEXT),%AdditionalSortWindowOkButtonTip,DEFAULT('Accept data and close the window')
+               #BOXED('Options')
+                 #PROMPT('Flat',CHECK),%AdditionalSortWindowOkButtonFlat,DEFAULT(1)
+                 #PROMPT('Skip',CHECK),%AdditionalSortWindowOkButtonSkip,DEFAULT(0)
+                 #PROMPT('Justification:',DROP('Default|Left|Right')),%AdditionalSortWindowOkButtonJustification,DEFAULT('Left')
+               #ENDBOXED
+             #ENDBUTTON
+             #BUTTON('Cancel Button')
+               #PROMPT('Text:',@S255),%AdditionalSortWindowCancelButtonText,DEFAULT('&Cancel')
+               #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%AdditionalSortWindowCancelButtonIcon,DEFAULT('SCANCEL.ICO')
+               #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%AdditionalSortWindowCancelButtonCursor,DEFAULT('')
+               #PROMPT('HotKey:',KEYCODE),%AdditionalSortWindowCancelButtonKeyCode,DEFAULT('')
+               #PROMPT('Message:',@S255),%AdditionalSortWindowCancelButtonMsg,DEFAULT('Cancel operation')
+               #DISPLAY('Tip:')
+               #PROMPT('Tip:',TEXT),%AdditionalSortWindowCancelButtonTip,DEFAULT('Cancel operation')
+               #BOXED('Options')
+                 #PROMPT('Flat',CHECK),%AdditionalSortWindowCancelButtonFlat,DEFAULT(1)
+                 #PROMPT('Skip',CHECK),%AdditionalSortWindowCancelButtonSkip,DEFAULT(0)
+                 #PROMPT('Justification:',DROP('Default|Left|Right')),%AdditionalSortWindowCancelButtonJustification,DEFAULT('Left')
+               #ENDBOXED
+             #ENDBUTTON
+             #BOXED,WHERE(%AdditionalSortType = 'DynamicSorting')
+               #BUTTON('Up Button')
+                 #PROMPT('Text:',@S255),%AdditionalSortWindowUpButtonText,DEFAULT('')
+                 #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%AdditionalSortWindowUpButtonIcon,DEFAULT('SUP.ICO')
+                 #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%AdditionalSortWindowUpButtonCursor,DEFAULT('')
+                 #PROMPT('HotKey:',KEYCODE),%AdditionalSortWindowUpButtonKeyCode,DEFAULT('')
+                 #PROMPT('Message:',@S255),%AdditionalSortWindowUpButtonMsg,DEFAULT('Move field up')
+                 #DISPLAY('Tip:')
+                 #PROMPT('Tip:',TEXT),%AdditionalSortWindowUpButtonTip,DEFAULT('Move field up')
+                 #BOXED('Options')
+                   #PROMPT('Flat',CHECK),%AdditionalSortWindowUpButtonFlat,DEFAULT(1)
+                   #PROMPT('Skip',CHECK),%AdditionalSortWindowUpButtonSkip,DEFAULT(0)
+                   #PROMPT('Justification:',DROP('Default|Left|Right')),%AdditionalSortWindowUpButtonJustification,DEFAULT('Left')
+                 #ENDBOXED
+               #ENDBUTTON
+               #BUTTON('Down Button')
+                 #PROMPT('Text:',@S255),%AdditionalSortWindowDownButtonText,DEFAULT('')
+                 #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%AdditionalSortWindowDownButtonIcon,DEFAULT('SDOWN.ICO')
+                 #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%AdditionalSortWindowDownButtonCursor,DEFAULT('')
+                 #PROMPT('HotKey:',KEYCODE),%AdditionalSortWindowDownButtonKeyCode,DEFAULT('')
+                 #PROMPT('Message:',@S255),%AdditionalSortWindowDownButtonMsg,DEFAULT('Move field down')
+                 #DISPLAY('Tip:')
+                 #PROMPT('Tip:',TEXT),%AdditionalSortWindowDownButtonTip,DEFAULT('Move field down')
+                 #BOXED('Options')
+                   #PROMPT('Flat',CHECK),%AdditionalSortWindowDownButtonFlat,DEFAULT(1)
+                   #PROMPT('Skip',CHECK),%AdditionalSortWindowDownButtonSkip,DEFAULT(0)
+                   #PROMPT('Justification:',DROP('Default|Left|Right')),%AdditionalSortWindowDownButtonJustification,DEFAULT('Left')
+                 #ENDBOXED
+               #ENDBUTTON
+               #BUTTON('Change Order Button')
+                 #PROMPT('Text:',@S255),%AdditionalSortWindowChOrdButtonText,DEFAULT('')
+                 #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%AdditionalSortWindowChOrdButtonIcon,DEFAULT('SCH-ORD.ICO')
+                 #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%AdditionalSortWindowChOrdButtonCursor,DEFAULT('')
+                 #PROMPT('HotKey:',KEYCODE),%AdditionalSortWindowChOrdButtonKeyCode,DEFAULT('')
+                 #PROMPT('Message:',@S255),%AdditionalSortWindowChOrdButtonMsg,DEFAULT('Change Order')
+                 #DISPLAY('Tip:')
+                 #PROMPT('Tip:',TEXT),%AdditionalSortWindowChOrdButtonTip,DEFAULT('Change Order')
+                 #BOXED('Options')
+                   #PROMPT('Flat',CHECK),%AdditionalSortWindowChOrdButtonFlat,DEFAULT(1)
+                   #PROMPT('Skip',CHECK),%AdditionalSortWindowChOrdButtonSkip,DEFAULT(0)
+                   #PROMPT('Justification:',DROP('Default|Left|Right')),%AdditionalSortWindowChOrdButtonJustification,DEFAULT('Left')
+                 #ENDBOXED
+               #ENDBUTTON
+             #ENDBOXED
+           #ENDBOXED
+         #ENDBUTTON
+       #ENDBOXED
+     #ENDBOXED
+  #ENDBUTTON
+#!---------------------------------------------------------------------
+#GROUP(%CreateButtonProperties,%pText,%pUse,%pX,%pY,%pW,%pH,%pIcon,%pMsg,%pTip,%pJust,%pFlat,%pSkip,%pHotKey,%pCursor),AUTO
+#DECLARE(%LocButton)
+#SET(%LocButton,'BUTTON')
+#IF(%pText)
+   #SET(%LocButton,CLIP(%LocButton)&'('''&%pText&''')')
+#ENDIF
+   #SET(%LocButton,CLIP(%LocButton)&',AT(')
+   #IF(%pX)
+      #SET(%LocButton,CLIP(%LocButton)&%pX)
+   #ENDIF
+   #IF(%pY)
+      #SET(%LocButton,CLIP(%LocButton)&','&%pY)
+   #ENDIF
+   #IF(%pW)
+      #SET(%LocButton,CLIP(%LocButton)&','&%pW)
+   #ENDIF
+   #IF(%pH)
+      #SET(%LocButton,CLIP(%LocButton)&','&%pH)
+   #ENDIF
+   #SET(%LocButton,CLIP(%LocButton)&')')
+#IF(%pIcon)
+   #CALL(%StandardAddIconToProject,%pIcon)
+   #IF(UPPER(SUB(%pIcon,1,5)) = 'ICON:')
+      #SET(%LocButton,CLIP(%LocButton)&',ICON('&%pIcon&')')
+   #ELSIF(SUB(%pIcon,1,1) = '!')
+      #SET(%LocButton,CLIP(%LocButton)&',ICON('&%pIcon&')')
+   #ELSIF(SUB(%pIcon,1,1) = '~')
+      #SET(%LocButton,CLIP(%LocButton)&',ICON('''&%pIcon&''')')
+   #ELSE
+      #SET(%LocButton,CLIP(%LocButton)&',ICON('''&%pIcon&''')')
+   #ENDIF
+#ENDIF
+#IF(%pMsg)
+   #SET(%LocButton,CLIP(%LocButton)&',MSG('''&%pMsg&''')')
+#ENDIF
+#IF(%pTip)
+   #SET(%LocButton,CLIP(%LocButton)&',TIP('''&%pTip&''')')
+#ENDIF
+#IF(%pUse)
+   #SET(%LocButton,CLIP(%LocButton)&',USE('&%pUse&')')
+#ENDIF
+#CASE(UPPER(%pJust))
+#OF('LEFT')
+   #SET(%LocButton,CLIP(%LocButton)&',LEFT')
+#OF('RIGHT')
+   #SET(%LocButton,CLIP(%LocButton)&',RIGHT')
+#ENDCASE
+#IF(%pFlat)
+   #SET(%LocButton,CLIP(%LocButton)&',FLAT')
+#ENDIF
+#IF(%pSkip)
+   #SET(%LocButton,CLIP(%LocButton)&',SKIP')
+#ENDIF
+#IF(%pCursor)
+   #IF(UPPER(LEFT(%pCursor,7))='CURSOR:')
+      #SET(%LocButton,CLIP(%LocButton)&',CURSOR('&%pCursor&')')
+   #ELSE
+      #SET(%LocButton,CLIP(%LocButton)&',CURSOR('''&%pCursor&''')')
+   #ENDIF
+#ENDIF
+#IF(%pHotKey)
+   #SET(%LocButton,CLIP(%LocButton)&',KEY('&%pHotKey&')')
+#ENDIF
+#RETURN(%LocButton)
+#!
+#!
+#!
+#!
+#!
+#GROUP(%ProcessSortSelectionCall)
+DO ProcessSortSelectionWindow
+IF ProcessSortSelectionCanceled THEN
+   DO ProcedureReturn
+END
+#!
+#!
+#!
+#!
+#GROUP(%ProcessSortSelectionData)
+#IF (%AdditionalSortType='DynamicNamed')
+ProcessSortSelectionVariable         STRING(100)        #<! Used in the sort order selection
+#ELSE
+ProcessSortSelectionVariable         STRING(1024)       #<! Used in the sort order selection
+#ENDIF
+ProcessSortSelectionCanceled         BYTE               #<! Used in the sort order selection to know if it was canceled
+#!
+#!
+#!
+#!
+#GROUP(%ProcessSortSelectionRoutine)
+ProcessSortSelectionWindow    ROUTINE
+ DATA
+#IF (%AdditionalSortType='DynamicSorting')
+SortSelectionQueue       QUEUE
+SQDS_Order                 STRING(1)
+SQDS_Description           STRING(50)
+SQDS_Field                 STRING(100)
+SQDS_Sort                  SHORT
+                         END
+SQDSIndex                SHORT(0)
+SortSelectionWindow WINDOW('%'AdditionalSortWindowTitle'),AT(,,203,92),FONT('Microsoft Sans Serif',8,,),CENTER,GRAY,DOUBLE
+       PROMPT('%'AdditionalSortWindowMessage'),AT(6,4,162,18),FONT(,,,FONT:bold),USE(?SortMessage:Prompt)
+       LIST,AT(5,26,162,42),FONT('Microsoft Sans Serif',8,,FONT:bold),USE(?SortSelectionList),VSCROLL,FORMAT('6C@s1@80L@s30@')
+       %(%CreateButtonProperties(%AdditionalSortWindowUpButtonText,'?SButtonUp',173,28,25,13,%AdditionalSortWindowUpButtonIcon,%AdditionalSortWindowUpButtonMsg,%AdditionalSortWindowUpButtonTip,%AdditionalSortWindowUpButtonJustification,%AdditionalSortWindowUpButtonFlat,%AdditionalSortWindowUpButtonSkip,%AdditionalSortWindowUpButtonKeyCode,%AdditionalSortWindowUpButtonCursor))
+       %(%CreateButtonProperties(%AdditionalSortWindowDownButtonText,'?SButtonDown',173,41,25,13,%AdditionalSortWindowDownButtonIcon,%AdditionalSortWindowDownButtonMsg,%AdditionalSortWindowDownButtonTip,%AdditionalSortWindowDownButtonJustification,%AdditionalSortWindowDownButtonFlat,%AdditionalSortWindowDownButtonSkip,%AdditionalSortWindowDownButtonKeyCode,%AdditionalSortWindowDownButtonCursor))
+       %(%CreateButtonProperties(%AdditionalSortWindowChOrdButtonText,'?SButtonChangeOrder',173,54,25,13,%AdditionalSortWindowChOrdButtonIcon,%AdditionalSortWindowChOrdButtonMsg,%AdditionalSortWindowChOrdButtonTip,%AdditionalSortWindowChOrdButtonJustification,%AdditionalSortWindowChOrdButtonFlat,%AdditionalSortWindowChOrdButtonSkip,%AdditionalSortWindowChOrdButtonKeyCode,%AdditionalSortWindowChOrdButtonCursor))
+       %(%CreateButtonProperties(%AdditionalSortWindowOkButtonText,'?SButtonOk',58,74,52,14,%AdditionalSortWindowOkButtonIcon,%AdditionalSortWindowOkButtonMsg,%AdditionalSortWindowOkButtonTip,%AdditionalSortWindowOkButtonJustification,%AdditionalSortWindowOkButtonFlat,%AdditionalSortWindowOkButtonSkip,%AdditionalSortWindowOkButtonKeyCode,%AdditionalSortWindowOkButtonCursor))
+       %(%CreateButtonProperties(%AdditionalSortWindowCancelButtonText,'?SButtonCancel',114,74,52,14,%AdditionalSortWindowCancelButtonIcon,%AdditionalSortWindowCancelButtonMsg,%AdditionalSortWindowCancelButtonTip,%AdditionalSortWindowCancelButtonJustification,%AdditionalSortWindowCancelButtonFlat,%AdditionalSortWindowCancelButtonSkip,%AdditionalSortWindowCancelButtonKeyCode,%AdditionalSortWindowCancelButtonCursor))
+     END
+#ELSE
+#! (%AdditionalSortType='DynamicNamed')
+SortSelectionWindow WINDOW('%'AdditionalSortWindowTitle'),AT(,,165,92),FONT('Microsoft Sans Serif',8,,),CENTER,GRAY,DOUBLE
+       PROMPT('%'AdditionalSortWindowMessage'),AT(5,4,156,18),FONT(,,,FONT:bold),USE(?SortMessage:Prompt)
+       LIST,AT(5,26,155,42),FONT('Microsoft Sans Serif',8,,FONT:bold),USE(ProcessSortSelectionVariable,,?SortSelectionList),VSCROLL,FORMAT('80L@s30@'),FROM('')
+       %(%CreateButtonProperties(%AdditionalSortWindowOkButtonText,'?SButtonOk',51,74,52,14,%AdditionalSortWindowOkButtonIcon,%AdditionalSortWindowOkButtonMsg,%AdditionalSortWindowOkButtonTip,%AdditionalSortWindowOkButtonJustification,%AdditionalSortWindowOkButtonFlat,%AdditionalSortWindowOkButtonSkip,%AdditionalSortWindowOkButtonKeyCode,%AdditionalSortWindowOkButtonCursor))
+       %(%CreateButtonProperties(%AdditionalSortWindowCancelButtonText,'?SButtonCancel',107,74,52,14,%AdditionalSortWindowCancelButtonIcon,%AdditionalSortWindowCancelButtonMsg,%AdditionalSortWindowCancelButtonTip,%AdditionalSortWindowCancelButtonJustification,%AdditionalSortWindowCancelButtonFlat,%AdditionalSortWindowCancelButtonSkip,%AdditionalSortWindowCancelButtonKeyCode,%AdditionalSortWindowCancelButtonCursor))
+     END
+#ENDIF
+  CODE
+#IF (%AdditionalSortType='DynamicSorting')
+  ! Loading the order fields into the queue
+    #FOR(%AddSortFieldsDinSort)
+  SortSelectionQueue.SQDS_Order      = '%'AddSortFieldDinSortOrder'
+  SortSelectionQueue.SQDS_Description= '%'AddSortFieldDinSortDescription'
+  SortSelectionQueue.SQDS_Field      = '%'AddSortFieldDinSort'
+  SortSelectionQueue.SQDS_Sort       = %(INSTANCE(%AddSortFieldsDinSort))
+  ADD(SortSelectionQueue)
+    #ENDFOR
+
+#ENDIF
+  ProcessSortSelectionCanceled = 1
+  ProcessSortSelectionVariable = ''
+  OPEN(SortSelectionWindow)
+#IF (%AdditionalSortType='DynamicNamed')
+  ?SortSelectionList{PROP:From} = '' & |
+      #FOR(%AddSortDynamicNamed)
+          #IF(INSTANCE(%AddSortDynamicNamed) = 1)
+      '%'AddSortFieldDinNameDescription' & |
+          #ELSE
+      '|' & '%'AddSortFieldDinNameDescription' & |
+          #ENDIF
+      #ENDFOR
+      ''
+#ELSE
+  ?SortSelectionList{PROP:From} = SortSelectionQueue
+#ENDIF
+  ?SortSelectionList{PROP:Selected} = 1
+  ?SortSelectionList{PROP:Alrt,252} = MouseLeft2
+
+  ACCEPT
+    CASE EVENT()
+    OF Event:OpenWindow
+      CYCLE
+    OF Event:Timer
+      CYCLE
+    END
+    CASE FIELD()
+    OF ?SortSelectionList
+      IF KEYCODE() = MouseLeft2
+#IF (%AdditionalSortType='DynamicNamed')
+        ProcessSortSelectionCanceled = 0
+        POST(EVENT:CloseWindow)
+#ELSE
+        SQDSIndex = ?SortSelectionList{PROP:Selected}
+        GET(SortSelectionQueue,SQDSIndex)
+        IF NOT ERRORCODE() THEN
+          IF SortSelectionQueue.SQDS_Order = '-' THEN
+            SortSelectionQueue.SQDS_Order = '+'
+          ELSE
+            SortSelectionQueue.SQDS_Order = '-'
+          END
+          PUT(SortSelectionQueue)
+          DISPLAY()
+        END
+#ENDIF
+      END
+    END
+    CASE ACCEPTED()
+    OF ?SButtonCancel
+      ProcessSortSelectionVariable = ''
+      ProcessSortSelectionCanceled = 1
+      POST(EVENT:CloseWindow)
+    OF ?SButtonOk
+      ProcessSortSelectionCanceled = 0
+#IF (%AdditionalSortType='DynamicNamed')
+#ELSE
+      ProcessSortSelectionVariable = ''
+      LOOP SQDSIndex=1 TO RECORDS(SortSelectionQueue)
+        GET(SortSelectionQueue,SQDSIndex)
+        IF NOT ERRORCODE() THEN
+          IF CLIP(ProcessSortSelectionVariable) THEN
+            ProcessSortSelectionVariable = CLIP(ProcessSortSelectionVariable)&','&SortSelectionQueue.SQDS_Order&SortSelectionQueue.SQDS_Field
+          ELSE
+            ProcessSortSelectionVariable = SortSelectionQueue.SQDS_Order&SortSelectionQueue.SQDS_Field
+          END
+        END
+      END
+#ENDIF
+      POST(EVENT:CloseWindow)
+#IF (%AdditionalSortType='DynamicSorting')
+    OF ?SButtonDown
+      SQDSIndex=?SortSelectionList{PROP:Selected}
+      GET(SortSelectionQueue,SQDSIndex)
+      IF NOT ERRORCODE() THEN
+        IF SortSelectionQueue.SQDS_Sort<>RECORDS(SortSelectionQueue) THEN
+          SortSelectionQueue.SQDS_Sort = SortSelectionQueue.SQDS_Sort+1
+          PUT(SortSelectionQueue)
+          GET(SortSelectionQueue,SQDSIndex+1)
+          SortSelectionQueue.SQDS_Sort = SortSelectionQueue.SQDS_Sort-1
+          PUT(SortSelectionQueue)
+          SORT(SortSelectionQueue,SortSelectionQueue.SQDS_Sort)
+          ?SortSelectionList{PROP:Selected} = SQDSIndex+1
+          DISPLAY()
+        END
+      END
+    OF ?SButtonUp
+      SQDSIndex = ?SortSelectionList{PROP:Selected}
+      GET(SortSelectionQueue,SQDSIndex)
+      IF NOT ERRORCODE() THEN
+        IF SortSelectionQueue.SQDS_Sort <> 1 THEN
+          SortSelectionQueue.SQDS_Sort = SortSelectionQueue.SQDS_Sort-1
+          PUT(SortSelectionQueue)
+          GET(SortSelectionQueue,SQDSIndex-1)
+          SortSelectionQueue.SQDS_Sort = SortSelectionQueue.SQDS_Sort+1
+          PUT(SortSelectionQueue)
+          SORT(SortSelectionQueue,SortSelectionQueue.SQDS_Sort)
+          ?SortSelectionList{PROP:Selected} = SQDSIndex-1
+          DISPLAY()
+        END
+      END
+    OF ?SButtonChangeOrder
+      SQDSIndex = ?SortSelectionList{PROP:Selected}
+      GET(SortSelectionQueue,SQDSIndex)
+      IF NOT ERRORCODE() THEN
+        IF SortSelectionQueue.SQDS_Order = '-' THEN
+          SortSelectionQueue.SQDS_Order = '+'
+        ELSE
+          SortSelectionQueue.SQDS_Order = '-'
+        END
+        PUT(SortSelectionQueue)
+        DISPLAY()
+      END
+#ENDIF
+    END
+  END
+  CLOSE(SortSelectionWindow)
+#IF (%AdditionalSortType='DynamicSorting')
+  FREE(SortSelectionQueue)
+#ENDIF
+  IF ProcessSortSelectionCanceled THEN
+    ProcessSortSelectionVariable = ''
+  END
+  EXIT
+#!---------------------------------------------------------------------
+#INCLUDE('GPProces.TPW')

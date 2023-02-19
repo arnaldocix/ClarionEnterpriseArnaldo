@@ -1,0 +1,87 @@
+<AddIn name        = "DictionaryDiagram"
+       author      = "SoftVelocity"
+       copyright   = "Copyright SoftVelocity 1986-2006"
+       url         = "http://www.SoftVelocity.com"
+       description = "Data Dictionary Diagram Support">
+
+  <Manifest>
+    <Identity name = "SoftVelocity.DictionaryDiagram"/>
+    <Dependency addin = "SoftVelocity.ClarionBinding"/>
+    <Dependency addin = "SoftVelocity.DataDictionary"/>
+  </Manifest>
+
+  <Runtime>
+    <Import assembly = ":ICSharpCode.SharpDevelop"/>
+    <Import assembly = "CommonSources.dll"/>
+    <Import assembly = "DataDictionary.dll"/>
+    <Import assembly = "DataDictionaryEditor.dll"/>
+    <Import assembly = "DictionaryDiagram.dll"/>
+  </Runtime>
+  
+  <StringResources file="Resources\DataDictionaryDiagram.StringResources.resources" />
+  
+  <Path name = "/AddIns/FileTypeRegisterer/FileTypes">
+    <FiletypeAssociation
+			id = "dcd"
+			insertafter = "sln"
+			insertbefore = "sdaddin"
+			autoRegister = "True"
+			icon = "${AddInPath:ICSharpCode.FiletypeRegisterer}/filetypes/prjx.ico"
+			text = "Dictionary Diagram"/>
+  </Path>
+  <!-- Tools Menu-->
+
+  <!-- Data Dictionary Diagram -->
+  <Path name = "/SharpDevelop/Workbench/FileFilter">
+    <FileFilter id = "DictionaryDiagram"
+		            insertbefore="AllFiles"
+		            name = "${res:Clarion.FileFilter.DcdFiles}"
+                category ="Diagram" 
+		            extensions = "*.dcd"/>
+  </Path>
+	<Path name = "/SharpDevelop/Workbench/QuickOpen/FileFilter">
+    <FileFilter id = "DictionaryDiagram"
+		            name = "${res:Clarion.FileFilter.DcdFiles}"
+		            extensions = "*.dcd"/>
+	</Path>
+  <Path name = "/SharpDevelop/Workbench/DisplayBindings">
+    <DisplayBinding id    = "DictionaryDiagramEditor"
+		                class = "SoftVelocity.DataDictionary.Diagram.DictionaryDiagramDisplayBinding"
+		                insertbefore    = "Text"
+		                fileNamePattern = "\.dcd$"
+		                languagePattern = "^DictionaryDiagram$"/>
+  </Path>
+  <!-- Clarion Applications Options Dialog -->
+  <Path name = "/SharpDevelop/Dialogs/OptionsDialog/Clarion Options">
+    <DialogPanel id    = "DCTDiagramOptions"
+                 insertafter= "ClarionNetVersionsOptionsPanel"
+                 label = "${res:SoftVelocity.DataDictionary.Diagram.Options}"
+                 class = "SoftVelocity.DataDictionary.Diagram.DiagramOptionsPanel"/>
+  </Path>
+  <Path name = "/SharpDevelop/RecentOpenCategories">
+    <String id = "diagram" insertafter = "dictionary" insertbefore = "browser" text = "Diagram"/>
+  </Path>
+
+  <Path name = "/SharpDevelop/StartPage/RecentOpenEvents">
+    <Class id = "OpenDiagram"
+				class = "SoftVelocity.DataDictionary.Diagram.Commands.OpenDiagram"/>
+		<Class id = "NewDiagram"
+				class = "SoftVelocity.DataDictionary.Diagram.Commands.CreateNewDiagram"/>>
+    <Class id = "OpenRecentDiagram"
+				class = "ICSharpCode.SharpDevelop.Commands.OpenRecentFile"/>
+  </Path>
+
+	<Path name = "/SharpDevelop/Workbench/MainMenu/File">
+		<MenuItem id = "RecentDiagrams"
+		          insertafter = "RecentProjects"
+		          insertbefore = "ExitSC:eparator"
+		          label = "${res:StartPage.StartMenu.BarDiagramName}"
+		          type="Menu">
+		<MenuItem id = "RecentDiagramsBuilder" type = "Builder" class = "SoftVelocity.DataDictionary.Diagram.Commands.RecentDiagramsMenuBuilder" />
+		<MenuItem id = "RecentDiagramsSeparator" type = "Separator"  />
+		<MenuItem id = "ClearRecentDiagrams"
+		          label = "${res:SoftVelocity.DataDictionary.Diagram.Menu.ClearRecentDiagrams}"
+		          class = "SoftVelocity.DataDictionary.Diagram.Commands.ClearRecentDiagrams" />
+		</MenuItem>
+	</Path>
+</AddIn>

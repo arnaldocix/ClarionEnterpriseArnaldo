@@ -1,0 +1,2490 @@
+#!-----------------------------------------------------------------------
+#GROUP(%CustomizationFramePrompts)
+  #BUTTON('Frame Customization'),HLP('~TPLWizardFrameCustomization.htm')
+    #BOXED
+       #SHEET
+         #TAB('Window')
+           #BOXED('Images')
+             #PROMPT('Background:',OPENDIALOG('Backgrounds','GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameBackGround
+             #ENABLE(%CusFrameBackGround<>'')
+               #PROMPT('Mode:',DROP('Stretched|Tiled|Centered')),%CusFrameBackGroundMode,DEFAULT('Tiled')
+             #ENDENABLE
+             #PROMPT('Icon:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameIcon,DEFAULT('WAFRAME.ICO')
+           #ENDBOXED
+           #BOXED('HIDDEN'),HIDE
+              #PROMPT('FontName:',@s255),%CusFrameWindowFontName,DEFAULT('Microsoft Sans Serif')
+              #PROMPT('FontSize:',@s255),%CusFrameWindowFontSize,DEFAULT(8)
+              #PROMPT('FontColor:',@s255),%CusFrameWindowFontColor,DEFAULT('')
+              #PROMPT('FontStyle:',@s255),%CusFrameWindowFontStyle,DEFAULT(400)
+              #PROMPT('FontCharSet:',@s255),%CusFrameWindowFontCharSet,DEFAULT(1)
+           #ENDBOXED
+           #BOXED('Font')
+             #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusFrameWindowFontName,%CusFrameWindowFontSize,%CusFrameWindowFontColor,%CusFrameWindowFontStyle,%CusFrameWindowFontCharSet)),AT(,,30)
+             #ENDBUTTON
+             #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusFrameWindowFontName),PROP(PROP:FONTColor,%CusFrameWindowFontColor),PROP(PROP:FONTSize,%CusFrameWindowFontSize),PROP(PROP:FONTStyle,%CusFrameWindowFontStyle),PROP(PROP:FONTCharSet,%CusFrameWindowFontCharSet)
+           #ENDBOXED
+           #BOXED('Options')
+             #PROMPT('Position:',DROP('Default[]|Center[CENTER]')),%CusFrameWindowPosition,DEFAULT('CENTER')
+             #PROMPT('System Menu',CHECK),%CusFrameSystemMenu,DEFAULT(%True)
+             #PROMPT('Entry Patterns',CHECK),%CusFrameEntryPaterns,DEFAULT(%False)
+           #ENDBOXED
+         #ENDTAB
+         #TAB('Frame Menu')
+           #BOXED
+             #SHEET
+               #TAB('File')
+                 #PROMPT('Enable File Menu',CHECK),%CusFrameMenuFileEnable,DEFAULT(%True),AT(15)
+                 #ENABLE(%CusFrameMenuFileEnable)
+                    #PROMPT('File Menu Text:',@s255),%CusFrameMenuFileText,DEFAULT('&File')
+                    #BOXED('Print item')
+                      #PROMPT('Text:',@s255),%CusFrameMenuFilePrintText,DEFAULT('&Print Setup ...')
+                      #PROMPT('Message:',@s255),%CusFrameMenuFilePrintMsg,DEFAULT('Setup printer')
+                    #ENDBOXED
+                    #BOXED('Exit item')
+                      #PROMPT('Text:',@s255),%CusFrameMenuFileExitText,DEFAULT('E&xit')
+                      #PROMPT('Message:',@s255),%CusFrameMenuFileExitMsg,DEFAULT('Exit this application')
+                    #ENDBOXED
+                 #ENDENABLE
+               #ENDTAB
+               #TAB('Edit')
+                 #PROMPT('Enable Edit Menu',CHECK),%CusFrameMenuEditEnable,DEFAULT(%True),AT(15)
+                 #ENABLE(%CusFrameMenuEditEnable)
+                    #PROMPT('Edit Menu Text:',@s255),%CusFrameMenuEditText,DEFAULT('&Edit')
+                    #BOXED('Cut item')
+                      #PROMPT('Text:',@s255),%CusFrameMenuEditCutText,DEFAULT('Cu&t')
+                      #PROMPT('Message:',@s255),%CusFrameMenuEditCutMsg,DEFAULT('Cut Selection To Clipboard')
+                    #ENDBOXED
+                    #BOXED('Copy item')
+                      #PROMPT('Text:',@s255),%CusFrameMenuEditCopyText,DEFAULT('&Copy')
+                      #PROMPT('Message:',@s255),%CusFrameMenuEditCopyMsg,DEFAULT('Copy Selection To Clipboard')
+                    #ENDBOXED
+                    #BOXED('Paste item')
+                      #PROMPT('Text:',@s255),%CusFrameMenuEditPasteText,DEFAULT('&Paste')
+                      #PROMPT('Message:',@s255),%CusFrameMenuEditPasteMsg,DEFAULT('Paste From Clipboard')
+                    #ENDBOXED
+                 #ENDENABLE
+               #ENDTAB
+               #TAB('Window')
+                 #PROMPT('Enable Window Menu',CHECK),%CusFrameMenuWindowEnable,DEFAULT(%True),AT(15)
+                 #ENABLE(%CusFrameMenuWindowEnable)
+                    #PROMPT('Window Menu Text:',@s255),%CusFrameMenuWindowText,DEFAULT('&Window')
+                    #BOXED('Tile item')
+                      #PROMPT('Text:',@s255),%CusFrameMenuWindowTileText,DEFAULT('T&ile')
+                      #PROMPT('Message:',@s255),%CusFrameMenuWindowTileMsg,DEFAULT('Arrange multiple opened windows')
+                    #ENDBOXED
+                    #BOXED('Cascade item')
+                      #PROMPT('Text:',@s255),%CusFrameMenuWindowCascadeText,DEFAULT('&Cascade')
+                      #PROMPT('Message:',@s255),%CusFrameMenuWindowCascadeMsg,DEFAULT('Arrange multiple opened windows')
+                    #ENDBOXED
+                    #BOXED('Arrange Icons item')
+                      #PROMPT('Text:',@s255),%CusFrameMenuWindowArrangeText,DEFAULT('&Arrange Icons')
+                      #PROMPT('Message:',@s255),%CusFrameMenuWindowArrangeMsg,DEFAULT('Arrange the icons for minimized windows')
+                    #ENDBOXED
+                 #ENDENABLE
+               #ENDTAB
+               #TAB('Help')
+                 #PROMPT('Enable Help Menu',CHECK),%CusFrameMenuHelpEnable,DEFAULT(%True),AT(15)
+                 #ENABLE(%CusFrameMenuHelpEnable)
+                    #PROMPT('Help Menu Text:',@s255),%CusFrameMenuHelpText,DEFAULT('&Help')
+                    #BOXED('Contents item')
+                      #PROMPT('Text:',@s255),%CusFrameMenuHelpContentsText,DEFAULT('&Contents')
+                      #PROMPT('Message:',@s255),%CusFrameMenuHelpContentsMsg,DEFAULT('View the contents of the help file')
+                    #ENDBOXED
+                    #BOXED('Search item')
+                      #PROMPT('Text:',@s255),%CusFrameMenuHelpSearchText,DEFAULT('&Search for Help On...')
+                      #PROMPT('Message:',@s255),%CusFrameMenuHelpSearchMsg,DEFAULT('Search for help on a subject')
+                    #ENDBOXED
+                    #BOXED('How item')
+                      #PROMPT('Text:',@s255),%CusFrameMenuHelpHowText,DEFAULT('&How to Use Help')
+                      #PROMPT('Message:',@s255),%CusFrameMenuHelpHowMsg,DEFAULT('Provides general instructions on using help')
+                    #ENDBOXED
+                 #ENDENABLE
+               #ENDTAB
+             #ENDSHEET
+           #ENDBOXED
+         #ENDTAB
+         #TAB('Toolbar'),WHERE(%ControlModel<>'Button')
+           #BOXED
+             #SHEET
+               #TAB('General')
+                  #PROMPT('Background:',OPENDIALOG('Backgrounds','GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarBackGround
+                  #ENABLE(%CusFrameToolbarBackGround<>'')
+                     #PROMPT('Mode:',DROP('Stretched|Tiled|Centered')),%CusFrameToolbarBackGroundMode,DEFAULT('Tiled')
+                  #ENDENABLE
+                  #PROMPT('Height:',SPIN(@n3,0,255)),%CusFrameToolbarHeight,DEFAULT(16),REQ
+               #ENDTAB
+               #TAB('Tip')
+                  #PROMPT('Go to the First Page:',@s255),%CusFrameToolbarTipTop,DEFAULT('Go to the First Page')
+                  #PROMPT('Go to the Prior Page:',@s255),%CusFrameToolbarTipPageUp,DEFAULT('Go to the Prior Page')
+                  #PROMPT('Go to the Prior Record:',@s255),%CusFrameToolbarTipUp,DEFAULT('Go to the Prior Record')
+                  #PROMPT('Locate record:',@s255),%CusFrameToolbarTipLocate,DEFAULT('Locate record')
+                  #PROMPT('Go to the Next Record:',@s255),%CusFrameToolbarTipDown,DEFAULT('Go to the Next Record')
+                  #PROMPT('Go to the Next Page:',@s255),%CusFrameToolbarTipPageDown,DEFAULT('Go to the Next Page')
+                  #PROMPT('Go to the Last Page:',@s255),%CusFrameToolbarTipBottom,DEFAULT('Go to the Last Page')
+                  #PROMPT('Select This Record:',@s255),%CusFrameToolbarTipSelect,DEFAULT('Select This Record')
+                  #PROMPT('Insert a New Record:',@s255),%CusFrameToolbarTipInsert,DEFAULT('Insert a New Record')
+                  #PROMPT('Edit This Record:',@s255),%CusFrameToolbarTipChange,DEFAULT('Edit This Record')
+                  #PROMPT('Delete This Record:',@s255),%CusFrameToolbarTipDelete,DEFAULT('Delete This Record')
+                  #PROMPT('Previous value:',@s255),%CusFrameToolbarTipHistory,DEFAULT('Previous value')
+                  #PROMPT('Get Help:',@s255),%CusFrameToolbarTipHelp,DEFAULT('Get Help')
+               #ENDTAB
+               #TAB('Icon Properties')
+                  #PROMPT('Width:',SPIN(@n3,0,255)),%CusFrameToolbarIconWidth,DEFAULT(14)
+                  #PROMPT('Height:',SPIN(@n3,0,255)),%CusFrameToolbarIconHeight,DEFAULT(14)
+                  #PROMPT('Flat',CHECK),%CusFrameToolbarIconFlat,DEFAULT(1)
+               #ENDTAB
+               #TAB('Icon')
+                  #PROMPT('Go to the First Page:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarIconTop,DEFAULT('WAVCRFIRST.ICO')
+                  #PROMPT('Go to the Prior Page:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarIconPageUp,DEFAULT('WAVCRPRIOR.ICO')
+                  #PROMPT('Go to the Prior Record:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarIconUp,DEFAULT('WAVCRUP.ICO')
+                  #PROMPT('Locate record:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarIconLocate,DEFAULT('WAFIND.ICO')
+                  #PROMPT('Go to the Next Record:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarIconDown,DEFAULT('WAVCRDOWN.ICO')
+                  #PROMPT('Go to the Next Page:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarIconPageDown,DEFAULT('WAVCRNEXT.ICO')
+                  #PROMPT('Go to the Last Page:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarIconBottom,DEFAULT('WAVCRLAST.ICO')
+                  #PROMPT('Select This Record:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarIconSelect,DEFAULT('WAMARK.ICO')
+                  #PROMPT('Insert a New Record:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarIconInsert,DEFAULT('WAINSERT.ICO')
+                  #PROMPT('Edit This Record:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarIconChange,DEFAULT('WACHANGE.ICO')
+                  #PROMPT('Delete This Record:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarIconDelete,DEFAULT('WADELETE.ICO')
+                  #PROMPT('Previous value:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarIconHistory,DEFAULT('WADITTO.ICO')
+                  #PROMPT('Get Help:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFrameToolbarIconHelp,DEFAULT('WAVCRHELP.ICO')
+               #ENDTAB
+             #ENDSHEET
+           #ENDBOXED
+         #ENDTAB
+       #ENDSHEET
+    #ENDBOXED
+  #ENDBUTTON
+#!--------------------------------------------------------------------------
+#GROUP(%CustomizationBrowsePrompts)
+  #BUTTON('Browse Customization'),HLP('~TPLWizardBrowseCustomization.htm')
+    #PROMPT('Procedure Name:',@s255),%CusBrowseProcName,DEFAULT('Browse%FileName'),REQ
+    #VALIDATE(INSTRING(' ',CLIP(%CusBrowseProcName),1,1)=0,'The Procedure name can''t have spaces in it.')
+    #VALIDATE(INSTRING('%FileName',CLIP(%CusBrowseProcName),1,1)>0,'The Procedure name must contain the %FileName.')
+    #PROMPT('Browse message:',@s255),%CusBrowseMessage,DEFAULT('Browsing the %FileName file')
+    #DISPLAY('You can use the %FileName macro.')
+    #BOXED
+       #SHEET
+         #TAB('Window')
+             #PROMPT('Caption:',@s255),%CusBrowseWindowName,DEFAULT('Browse the %FileName file')
+             #DISPLAY('You can use the %FileName macro.')
+             #BOXED('Images')
+               #PROMPT('Background:',OPENDIALOG('Backgrounds','GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusBrowseWindowBackGround
+               #ENABLE(%CusBrowseWindowBackGround<>'')
+                  #PROMPT('Mode:',DROP('Stretched|Tiled|Centered')),%CusBrowseWindowBackGroundMode,DEFAULT('Tiled')
+               #ENDENABLE
+               #PROMPT('Icon:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusBrowseWindowIcon
+             #ENDBOXED
+             #BOXED('HIDDEN'),HIDE
+                #PROMPT('FontName:',@s255),%CusBrowseWindowFontName,DEFAULT('Microsoft Sans Serif')
+                #PROMPT('FontSize:',@s255),%CusBrowseWindowFontSize,DEFAULT(8)
+                #PROMPT('FontColor:',@s255),%CusBrowseWindowFontColor,DEFAULT('')
+                #PROMPT('FontStyle:',@s255),%CusBrowseWindowFontStyle,DEFAULT(400)
+                #PROMPT('FontCharSet:',@s255),%CusBrowseWindowFontCharSet,DEFAULT(1)
+             #ENDBOXED
+             #BOXED('Font')
+               #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusBrowseWindowFontName,%CusBrowseWindowFontSize,%CusBrowseWindowFontColor,%CusBrowseWindowFontStyle,%CusBrowseWindowFontCharSet)),AT(,,30)
+               #ENDBUTTON
+               #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusBrowseWindowFontName),PROP(PROP:FONTColor,%CusBrowseWindowFontColor),PROP(PROP:FONTSize,%CusBrowseWindowFontSize),PROP(PROP:FONTStyle,%CusBrowseWindowFontStyle),PROP(PROP:FONTCharSet,%CusBrowseWindowFontCharSet)
+             #ENDBOXED
+             #BOXED('Options')
+                #PROMPT('Position:',DROP('Default[]|Center[CENTER]')),%CusBrowseWindowPosition,DEFAULT('CENTER')
+                #PROMPT('System Menu',CHECK),%CusBrowseWindowSystemMenu,DEFAULT(%True)
+                #PROMPT('Entry Patterns',CHECK),%CusBrowseWindowEntryPaterns,DEFAULT(%False)
+             #ENDBOXED
+         #ENDTAB
+         #TAB('Tabs')
+             #PROMPT('Tab text:',@s255),%CusBrowseTabs,DEFAULT('&%#) %Key')
+             #DISPLAY('')
+             #DISPLAY('You can use the %# and %Key macro.')
+             #DISPLAY('')
+             #BOXED('Sort Order Selection Style')
+             #BUTTON(' Select Style'),HLP('~TPLWizardBrowseCustomizationSortOrderStyle.htm')
+                 #DISPLAY('Select one of the following Sort Order Models:'),AT(10,8,180)
+                 #DISPLAY('Popup Menu: Sort Orders display on a popup menu'),AT(10,,180,20)
+                 #DISPLAY('Drop List: Sort Orders display in a drop listbox'),AT(10,,180,20)
+                 #DISPLAY('Tabs: Sort Orders display on separate tabs'),AT(10,,180)
+                 #PROMPT('Which selection style?',DROP('Tabs[Tabs]|Drop List[Listbox]|Popup menu[Button]')),%CusBrowseWindowSortOrderModel,DEFAULT('Tabs'),PROMPTAT(10,,,)
+                 #ENABLE(%CusBrowseWindowSortOrderModel<>'Tabs')
+                 #PROMPT('Text:',@S255),%CusBrowseSortOrderButtonText,DEFAULT('&Sort Order')
+                 #ENDENABLE
+                 #ENABLE(%CusBrowseWindowSortOrderModel='Button')
+                   #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusBrowseSortOrderButtonIcon,DEFAULT('WASORT.ICO')
+                   #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusBrowseSortOrderButtonCursor,DEFAULT('')
+                   #PROMPT('HotKey:',KEYCODE),%CusBrowseSortOrderButtonKeyCode,DEFAULT('')
+                   #PROMPT('Message:',@S255),%CusBrowseSortOrderButtonMsg,DEFAULT('Select the Sort Order')
+                   #DISPLAY('Tip:')
+                   #PROMPT('Tip:',TEXT),%CusBrowseSortOrderButtonTip,DEFAULT('Select the Sort Order')
+                   #BOXED('Options')
+                      #PROMPT('Flat',CHECK),%CusBrowseSortOrderButtonFlat,DEFAULT(1)
+                      #PROMPT('Skip',CHECK),%CusBrowseSortOrderButtonSkip,DEFAULT(0)
+                      #PROMPT('Justification:',DROP('Default|Left|Right')),%CusBrowseSortOrderButtonJustification,DEFAULT('Left')
+                   #ENDBOXED
+                 #ENDENABLE
+             #ENDBUTTON
+             #ENDBOXED
+         #ENDTAB
+         #TAB('Buttons')
+             #PROMPT('Width:',SPIN(@n3,0,255)),%CusBrowseButtonsWidth,DEFAULT(49),REQ
+             #PROMPT('Height:',SPIN(@n3,0,255)),%CusBrowseButtonsHeight,DEFAULT(14),REQ
+             #BUTTON('Insert'),HLP('~TPLWizardCustomizationButton.htm')
+                #PROMPT('Text:',@S255),%CusBrowseInsertButtonText,DEFAULT('&Insert')
+                #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusBrowseInsertButtonIcon,DEFAULT('WAINSERT.ICO')
+                #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusBrowseInsertButtonCursor,DEFAULT('')
+                #PROMPT('HotKey:',KEYCODE),%CusBrowseInsertButtonKeyCode,DEFAULT('')
+                #PROMPT('Message:',@S255),%CusBrowseInsertButtonMsg,DEFAULT('Insert a Record')
+                #DISPLAY('Tip:')
+                #PROMPT('Tip:',TEXT),%CusBrowseInsertButtonTip,DEFAULT('Insert a Record')
+                #BOXED('Options')
+                   #PROMPT('Flat',CHECK),%CusBrowseInsertButtonFlat,DEFAULT(1)
+                   #PROMPT('Skip',CHECK),%CusBrowseInsertButtonSkip,DEFAULT(0)
+                   #PROMPT('Justification:',DROP('Default|Left|Right')),%CusBrowseInsertButtonJustification,DEFAULT('Left')
+                #ENDBOXED
+             #ENDBUTTON
+             #BUTTON('Change'),HLP('~TPLWizardCustomizationButton.htm')
+                #PROMPT('Text:',@S255),%CusBrowseChangeButtonText,DEFAULT('&Change')
+                #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusBrowseChangeButtonIcon,DEFAULT('WACHANGE.ICO')
+                #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusBrowseChangeButtonCursor,DEFAULT('')
+                #PROMPT('HotKey:',KEYCODE),%CusBrowseChangeButtonKeyCode,DEFAULT('')
+                #PROMPT('Message:',@S255),%CusBrowseChangeButtonMsg,DEFAULT('Change the Record')
+                #DISPLAY('Tip:')
+                #PROMPT('Tip:',TEXT),%CusBrowseChangeButtonTip,DEFAULT('Change the Record')
+                #BOXED('Options')
+                   #PROMPT('Flat',CHECK),%CusBrowseChangeButtonFlat,DEFAULT(1)
+                   #PROMPT('Skip',CHECK),%CusBrowseChangeButtonSkip,DEFAULT(0)
+                   #PROMPT('Justification:',DROP('Default|Left|Right')),%CusBrowseChangeButtonJustification,DEFAULT('Left')
+                #ENDBOXED
+             #ENDBUTTON
+             #BUTTON('Delete'),HLP('~TPLWizardCustomizationButton.htm')
+                #PROMPT('Text:',@S255),%CusBrowseDeleteButtonText,DEFAULT('&Delete')
+                #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusBrowseDeleteButtonIcon,DEFAULT('WADELETE.ICO')
+                #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusBrowseDeleteButtonCursor,DEFAULT('')
+                #PROMPT('HotKey:',KEYCODE),%CusBrowseDeleteButtonKeyCode,DEFAULT('')
+                #PROMPT('Message:',@S255),%CusBrowseDeleteButtonMsg,DEFAULT('Delete the Record')
+                #DISPLAY('Tip:')
+                #PROMPT('Tip:',TEXT),%CusBrowseDeleteButtonTip,DEFAULT('Delete the Record')
+                #BOXED('Options')
+                   #PROMPT('Flat',CHECK),%CusBrowseDeleteButtonFlat,DEFAULT(1)
+                   #PROMPT('Skip',CHECK),%CusBrowseDeleteButtonSkip,DEFAULT(0)
+                   #PROMPT('Justification:',DROP('Default|Left|Right')),%CusBrowseDeleteButtonJustification,DEFAULT('Left')
+                #ENDBOXED
+             #ENDBUTTON
+             #PROMPT('Enable View Button',CHECK),%CusBrowseViewButtonEnable,DEFAULT(%True),AT(15)
+             #ENABLE(%CusBrowseViewButtonEnable)
+                #BUTTON('View'),HLP('~TPLWizardCustomizationButton.htm')
+                   #PROMPT('Text:',@S255),%CusBrowseViewButtonText,DEFAULT('&View')
+                   #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusBrowseViewButtonIcon,DEFAULT('WAVIEW.ICO')
+                   #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusBrowseViewButtonCursor,DEFAULT('')
+                   #PROMPT('HotKey:',KEYCODE),%CusBrowseViewButtonKeyCode,DEFAULT('')
+                   #PROMPT('Message:',@S255),%CusBrowseViewButtonMsg,DEFAULT('View Record')
+                   #DISPLAY('Tip:')
+                   #PROMPT('Tip:',TEXT),%CusBrowseViewButtonTip,DEFAULT('View Record')
+                   #BOXED('Options')
+                      #PROMPT('Flat',CHECK),%CusBrowseViewButtonFlat,DEFAULT(1)
+                      #PROMPT('Skip',CHECK),%CusBrowseViewButtonSkip,DEFAULT(0)
+                      #PROMPT('Justification:',DROP('Default|Left|Right')),%CusBrowseViewButtonJustification,DEFAULT('Left')
+                   #ENDBOXED
+                #ENDBUTTON
+             #ENDENABLE
+             #BUTTON('Select'),HLP('~TPLWizardCustomizationButton.htm')
+                #PROMPT('Text:',@S255),%CusBrowseSelectButtonText,DEFAULT('&Select')
+                #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusBrowseSelectButtonIcon,DEFAULT('WASELECT.ICO')
+                #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusBrowseSelectButtonCursor,DEFAULT('')
+                #PROMPT('HotKey:',KEYCODE),%CusBrowseSelectButtonKeyCode,DEFAULT('')
+                #PROMPT('Message:',@S255),%CusBrowseSelectButtonMsg,DEFAULT('Select the Record')
+                #DISPLAY('Tip:')
+                #PROMPT('Tip:',TEXT),%CusBrowseSelectButtonTip,DEFAULT('Select the Record')
+                #BOXED('Options')
+                   #PROMPT('Flat',CHECK),%CusBrowseSelectButtonFlat,DEFAULT(1)
+                   #PROMPT('Skip',CHECK),%CusBrowseSelectButtonSkip,DEFAULT(0)
+                   #PROMPT('Justification:',DROP('Default|Left|Right')),%CusBrowseSelectButtonJustification,DEFAULT('Left')
+                #ENDBOXED
+             #ENDBUTTON
+             #BUTTON('Close'),HLP('~TPLWizardCustomizationButton.htm')
+                #PROMPT('Text:',@S255),%CusBrowseCloseButtonText,DEFAULT('&Close')
+                #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusBrowseCloseButtonIcon,DEFAULT('WACLOSE.ICO')
+                #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusBrowseCloseButtonCursor,DEFAULT('')
+                #PROMPT('HotKey:',KEYCODE),%CusBrowseCloseButtonKeyCode,DEFAULT('')
+                #PROMPT('Message:',@S255),%CusBrowseCloseButtonMsg,DEFAULT('Close Window')
+                #DISPLAY('Tip:')
+                #PROMPT('Tip:',TEXT),%CusBrowseCloseButtonTip,DEFAULT('Close Window')
+                #BOXED('Options')
+                   #PROMPT('Flat',CHECK),%CusBrowseCloseButtonFlat,DEFAULT(1)
+                   #PROMPT('Skip',CHECK),%CusBrowseCloseButtonSkip,DEFAULT(0)
+                   #PROMPT('Justification:',DROP('Default|Left|Right')),%CusBrowseCloseButtonJustification,DEFAULT('Left')
+                #ENDBOXED
+             #ENDBUTTON
+             #BUTTON('Parent Select'),HLP('~TPLWizardCustomizationButton.htm')
+                #PROMPT('Procedure Name:',@s255),%CusBrowseParentProcName,DEFAULT('Select%FileName'),REQ
+                #VALIDATE(INSTRING(' ',CLIP(%CusBrowseParentProcName),1,1)=0,'The Procedure name can''t have spaces in it.')
+                #VALIDATE(INSTRING('%FileName',CLIP(%CusBrowseParentProcName),1,1)>0,'The Procedure name must contain the %FileName.')
+                #PROMPT('Window caption:',@s255),%CusBrowseParentProcWindowName,DEFAULT('Select a %FileName Record')
+                #PROMPT('Text:',@S255),%CusBrowseParentSelectButtonText,DEFAULT('Select %FileName')
+                #DISPLAY('You can use the %FileName macro.')
+                #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusBrowseParentSelectButtonIcon,DEFAULT('WAPARENT.ICO')
+                #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusBrowseParentSelectButtonCursor,DEFAULT('')
+                #PROMPT('HotKey:',KEYCODE),%CusBrowseParentSelectButtonKeyCode,DEFAULT('')
+                #PROMPT('Message:',@S255),%CusBrowseParentSelectButtonMsg,DEFAULT('Select Parent Field')
+                #DISPLAY('Tip:')
+                #PROMPT('Tip:',TEXT),%CusBrowseParentSelectButtonTip,DEFAULT('Select Parent Field')
+                #BOXED('Options')
+                   #PROMPT('Flat',CHECK),%CusBrowseParentSelectButtonFlat,DEFAULT(1)
+                   #PROMPT('Skip',CHECK),%CusBrowseParentSelectButtonSkip,DEFAULT(0)
+                   #PROMPT('Justification:',DROP('Default|Left|Right')),%CusBrowseParentSelectButtonJustification,DEFAULT('Left')
+                #ENDBOXED
+             #ENDBUTTON
+             #BUTTON('Child'),HLP('~TPLWizardCustomizationButton.htm')
+                #PROMPT('Child Browse Procedure Name:',@s255),%CusBrowseProcNameSec,DEFAULT('Browse%FileNameBy%Key'),REQ
+                #VALIDATE(INSTRING(' ',CLIP(%CusBrowseProcNameSec),1,1)=0,'The Procedure name can''t have spaces in it.')
+                #VALIDATE(INSTRING('%FileName',CLIP(%CusBrowseProcNameSec),1,1)>0,'The Procedure name must contain the %FileName.')
+                #VALIDATE(INSTRING('%Key',CLIP(%CusBrowseProcNameSec),1,1)>0,'The Procedure name must contain the %Key.')
+                #PROMPT('Window Caption:',@s255),%CusBrowseWindowNameSec,DEFAULT('Browse the %FileName file by %Key')
+                #PROMPT('Text:',@S255),%CusBrowseChildViewButtonText,DEFAULT('View %FileName')
+                #DISPLAY('You can use the %FileName and %Key macro.')
+                #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusBrowseChildViewButtonIcon,DEFAULT('WACHILD.ICO')
+                #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusBrowseChildViewButtonCursor,DEFAULT('')
+                #PROMPT('HotKey:',KEYCODE),%CusBrowseChildViewButtonKeyCode,DEFAULT('')
+                #PROMPT('Message:',@S255),%CusBrowseChildViewButtonMsg,DEFAULT('View Child File')
+                #DISPLAY('Tip:')
+                #PROMPT('Tip:',TEXT),%CusBrowseChildViewButtonTip,DEFAULT('View Child File')
+                #BOXED('Options')
+                   #PROMPT('Flat',CHECK),%CusBrowseChildViewButtonFlat,DEFAULT(1)
+                   #PROMPT('Skip',CHECK),%CusBrowseChildViewButtonSkip,DEFAULT(0)
+                   #PROMPT('Justification:',DROP('Default|Left|Right')),%CusBrowseChildViewButtonJustification,DEFAULT('Left')
+                #ENDBOXED
+             #ENDBUTTON
+             #PROMPT('Enable Help Button',CHECK),%CusBrowseHelpButtonEnable,DEFAULT(%True),AT(15)
+             #ENABLE(%CusBrowseHelpButtonEnable)
+                #BUTTON('Help'),HLP('~TPLWizardCustomizationButton.htm')
+                   #PROMPT('Text:',@S255),%CusBrowseHelpButtonText,DEFAULT('&Help')
+                   #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusBrowseHelpButtonIcon,DEFAULT('WAHELP.ICO')
+                   #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusBrowseHelpButtonCursor,DEFAULT('')
+                   #PROMPT('HotKey:',KEYCODE),%CusBrowseHelpButtonKeyCode,DEFAULT('')
+                   #PROMPT('Message:',@S255),%CusBrowseHelpButtonMsg,DEFAULT('See Help Window')
+                   #DISPLAY('Tip:')
+                   #PROMPT('Tip:',TEXT),%CusBrowseHelpButtonTip,DEFAULT('See Help Window')
+                   #BOXED('Options')
+                      #PROMPT('Flat',CHECK),%CusBrowseHelpButtonFlat,DEFAULT(1)
+                      #PROMPT('Skip',CHECK),%CusBrowseHelpButtonSkip,DEFAULT(0)
+                      #PROMPT('Justification:',DROP('Default|Left|Right')),%CusBrowseHelpButtonJustification,DEFAULT('Left')
+                   #ENDBOXED
+                #ENDBUTTON
+             #ENDENABLE
+         #ENDTAB
+       #ENDSHEET
+    #ENDBOXED
+  #ENDBUTTON
+#!--------------------------------------------------------------------------
+#GROUP(%CustomizationFormPrompts)
+  #BUTTON('Form Customization'),HLP('~TPLWizardFormCustomization')
+    #PROMPT('Procedure Name:',@s255),%CusFormProcName,DEFAULT('Update%FileName'),REQ
+    #VALIDATE(INSTRING(' ',CLIP(%CusFormProcName),1,1)=0,'The Procedure name can''t have spaces in it.')
+    #VALIDATE(INSTRING('%FileName',CLIP(%CusFormProcName),1,1)>0,'The Procedure name must contain the %FileName.')
+    #DISPLAY('You can use the %FileName macro.')
+    #BOXED
+       #SHEET
+         #TAB('Window')
+              #PROMPT('Caption:',@s255),%CusFormWindowName,DEFAULT('Form %FileName')
+              #DISPLAY('You can use the %FileName macro.')
+              #BOXED('Images')
+                #PROMPT('Background:',OPENDIALOG('Backgrounds','GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFormWindowBackGround
+                #ENABLE(%CusFormWindowBackGround<>'')
+                  #PROMPT('Mode:',DROP('Stretched|Tiled|Centered')),%CusFormWindowBackGroundMode,DEFAULT('Tiled')
+                #ENDENABLE
+                #PROMPT('Icon:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFormWindowIcon
+              #ENDBOXED
+              #BOXED('HIDDEN'),HIDE
+                 #PROMPT('FontName:',@s255),%CusFormWindowFontName,DEFAULT('Microsoft Sans Serif')
+                 #PROMPT('FontSize:',@s255),%CusFormWindowFontSize,DEFAULT(8)
+                 #PROMPT('FontColor:',@s255),%CusFormWindowFontColor,DEFAULT('')
+                 #PROMPT('FontStyle:',@s255),%CusFormWindowFontStyle,DEFAULT(400)
+                 #PROMPT('FontCharSet:',@s255),%CusFormWindowFontCharSet,DEFAULT(1)
+              #ENDBOXED
+              #BOXED('Font')
+                #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusFormWindowFontName,%CusFormWindowFontSize,%CusFormWindowFontColor,%CusFormWindowFontStyle,%CusFormWindowFontCharSet)),AT(,,30)
+                #ENDBUTTON
+                #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusFormWindowFontName),PROP(PROP:FONTColor,%CusFormWindowFontColor),PROP(PROP:FONTSize,%CusFormWindowFontSize),PROP(PROP:FONTStyle,%CusFormWindowFontStyle),PROP(PROP:FONTCharSet,%CusFormWindowFontCharSet)
+              #ENDBOXED
+              #BOXED('Options')
+                 #PROMPT('Position:',DROP('Default[]|Center[CENTER]')),%CusFormWindowPosition,DEFAULT('CENTER')
+                 #PROMPT('System Menu',CHECK),%CusFormWindowSystemMenu,DEFAULT(%True)
+                 #PROMPT('Entry Patterns',CHECK),%CusFormWindowEntryPaterns,DEFAULT(%False)
+                 #!ENABLE(%CusFormWindowEntryPaterns)
+                   #PROMPT('Entry Mode:',DROP('Default[]|Insert[INS]|Overwrite[OVR]')),%CusFormWindowEntryMode,DEFAULT('OVR')
+                 #!ENDENABLE
+              #ENDBOXED
+              #BOXED('Prompts')
+                 #PROMPT('Background Color:',COLOR),%CusFormWindowPromptsBkColor,DEFAULT(-1)
+              #ENDBOXED
+         #ENDTAB
+         #TAB('Tabs')
+              #PROMPT('Tab text:',@s255),%CusFormTabs,DEFAULT('&%#) %Text')
+              #DISPLAY('You can use the %# and %Text macro.')
+         #ENDTAB
+         #TAB('Buttons')
+              #PROMPT('Width:',SPIN(@n3,0,255)),%CusFormButtonsWidth,DEFAULT(49),REQ
+              #PROMPT('Height:',SPIN(@n3,0,255)),%CusFormButtonsHeight,DEFAULT(14),REQ
+              #BUTTON('Ok'),HLP('~TPLWizardCustomizationButton.htm')
+                 #PROMPT('Text:',@S255),%CusFormOkButtonText,DEFAULT('&OK')
+                 #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFormOkButtonIcon,DEFAULT('WAOK.ICO')
+                 #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusFormOkButtonCursor,DEFAULT('')
+                 #PROMPT('HotKey:',KEYCODE),%CusFormOkButtonKeyCode,DEFAULT('')
+                 #PROMPT('Message:',@S255),%CusFormOkButtonMsg,DEFAULT('Accept data and close the window')
+                 #DISPLAY('Tip:')
+                 #PROMPT('Tip:',TEXT),%CusFormOkButtonTip,DEFAULT('Accept data and close the window')
+                 #BOXED('Options')
+                    #PROMPT('Flat',CHECK),%CusFormOkButtonFlat,DEFAULT(1)
+                    #PROMPT('Skip',CHECK),%CusFormOkButtonSkip,DEFAULT(0)
+                    #PROMPT('Justification:',DROP('Default|Left|Right')),%CusFormOkButtonJustification,DEFAULT('Left')
+                 #ENDBOXED
+              #ENDBUTTON
+              #BUTTON('Cancel'),HLP('~TPLWizardCustomizationButton.htm')
+                 #PROMPT('Text:',@S255),%CusFormCancelButtonText,DEFAULT('&Cancel')
+                 #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFormCancelButtonIcon,DEFAULT('WACANCEL.ICO')
+                 #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusFormCancelButtonCursor,DEFAULT('')
+                 #PROMPT('HotKey:',KEYCODE),%CusFormCancelButtonKeyCode,DEFAULT('')
+                 #PROMPT('Message:',@S255),%CusFormCancelButtonMsg,DEFAULT('Cancel operation')
+                 #DISPLAY('Tip:')
+                 #PROMPT('Tip:',TEXT),%CusFormCancelButtonTip,DEFAULT('Cancel operation')
+                 #BOXED('Options')
+                    #PROMPT('Flat',CHECK),%CusFormCancelButtonFlat,DEFAULT(1)
+                    #PROMPT('Skip',CHECK),%CusFormCancelButtonSkip,DEFAULT(0)
+                    #PROMPT('Justification:',DROP('Default|Left|Right')),%CusFormCancelButtonJustification,DEFAULT('Left')
+                 #ENDBOXED
+              #ENDBUTTON
+              #BUTTON('Child'),HLP('~TPLWizardCustomizationButton.htm')
+                 #PROMPT('Child Browse Procedure Name:',@s255),%CusBrowseProcNameSec,DEFAULT('Browse%FileNameBy%Key'),REQ
+                 #VALIDATE(INSTRING(' ',CLIP(%CusBrowseProcNameSec),1,1)=0,'The Procedure name can''t have spaces in it.')
+                 #VALIDATE(INSTRING('%FileName',CLIP(%CusBrowseProcNameSec),1,1)>0,'The Secondary Procedure name must contain the %FileName and %Key.')
+                 #VALIDATE(INSTRING('%Key',CLIP(%CusBrowseProcNameSec),1,1)>0,'The Procedure name must contain the %Key.')
+                 #PROMPT('Window caption:',@s255),%CusBrowseWindowNameSec,DEFAULT('Browse the %FileName file by %Key')
+                 #PROMPT('Text:',@S255),%CusBrowseChildButtonTextSec,DEFAULT('View %FileName')
+                 #DISPLAY('You can use the %FileName and %Key macros.')
+                 #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusBrowseChildButtonIcon,DEFAULT('WACHILD.ICO')
+                 #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusBrowseChildButtonCursor,DEFAULT('')
+                 #PROMPT('HotKey:',KEYCODE),%CusBrowseChildButtonKeyCode,DEFAULT('')
+                 #PROMPT('Message:',@S255),%CusBrowseChildButtonMsg,DEFAULT('See related fields')
+                 #DISPLAY('Tip:')
+                 #PROMPT('Tip:',TEXT),%CusBrowseChildButtonTip,DEFAULT('See related fields')
+                 #BOXED('Options')
+                    #PROMPT('Flat',CHECK),%CusBrowseChildButtonFlat,DEFAULT(1)
+                    #PROMPT('Skip',CHECK),%CusBrowseChildButtonSkip,DEFAULT(0)
+                    #PROMPT('Justification:',DROP('Default|Left|Right')),%CusBrowseChildButtonJustification,DEFAULT('Left')
+                 #ENDBOXED
+              #ENDBUTTON
+              #PROMPT('Enable Help Button',CHECK),%CusFormHelpButtonEnable,DEFAULT(%True),AT(15)
+              #ENABLE(%CusFormHelpButtonEnable)
+                 #BUTTON('Help'),HLP('~TPLWizardCustomizationButton.htm')
+                    #PROMPT('Text:',@S255),%CusFormHelpButtonText,DEFAULT('&Help')
+                    #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusFormHelpButtonIcon,DEFAULT('WAHELP.ICO')
+                    #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusFormHelpButtonCursor,DEFAULT('')
+                    #PROMPT('HotKey:',KEYCODE),%CusFormHelpButtonKeyCode,DEFAULT('')
+                    #PROMPT('Message:',@S255),%CusFormHelpButtonMsg,DEFAULT('See Help Window')
+                    #DISPLAY('Tip:')
+                    #PROMPT('Tip:',TEXT),%CusFormHelpButtonTip,DEFAULT('See Help Window')
+                    #BOXED('Options')
+                       #PROMPT('Flat',CHECK),%CusFormHelpButtonFlat,DEFAULT(1)
+                       #PROMPT('Skip',CHECK),%CusFormHelpButtonSkip,DEFAULT(0)
+                       #PROMPT('Justification:',DROP('Default|Left|Right')),%CusFormHelpButtonJustification,DEFAULT('Left')
+                    #ENDBOXED
+                 #ENDBUTTON
+              #ENDENABLE
+         #ENDTAB
+       #ENDSHEET
+    #ENDBOXED
+  #ENDBUTTON
+#!--------------------------------------------------------------------------
+#GROUP(%CustomizationOtherWindowPrompts)
+  #BUTTON('Window Customization'),HLP('~TPLWizardWindowCustomization.htm')
+    #!PROMPT('Procedure Name:',@s255),%CusOtherWindowProcName,DEFAULT('WindowProcedure')
+    #!VALIDATE(INSTRING(' ',CLIP(%CusOtherWindowProcName),1,1)=0,'The Procedure name can''t have spaces in it.')
+    #BOXED
+       #SHEET
+         #TAB('Window')
+           #PROMPT('Name:',@s255),%CusOtherWindowWindowName,DEFAULT('Window')
+           #BOXED('Images')
+             #PROMPT('Background:',OPENDIALOG('Backgrounds','GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusOtherWindowWindowBackGround
+             #ENABLE(%CusOtherWindowWindowBackGround<>'')
+               #PROMPT('Mode:',DROP('Stretched|Tiled|Centered')),%CusOtherWindowWindowBackGroundMode,DEFAULT('Tiled')
+             #ENDENABLE
+             #PROMPT('Icon:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusOtherWindowWindowIcon
+           #ENDBOXED
+           #BOXED('HIDDEN'),HIDE
+              #PROMPT('FontName:',@s255),%CusOtherWindowWindowFontName,DEFAULT('Microsoft Sans Serif')
+              #PROMPT('FontSize:',@s255),%CusOtherWindowWindowFontSize,DEFAULT(8)
+              #PROMPT('FontColor:',@s255),%CusOtherWindowWindowFontColor,DEFAULT('')
+              #PROMPT('FontStyle:',@s255),%CusOtherWindowWindowFontStyle,DEFAULT(400)
+              #PROMPT('FontCharSet:',@s255),%CusOtherWindowWindowFontCharSet,DEFAULT(1)
+           #ENDBOXED
+           #BOXED('Font')
+             #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusOtherWindowWindowFontName,%CusOtherWindowWindowFontSize,%CusOtherWindowWindowFontColor,%CusOtherWindowWindowFontStyle,%CusOtherWindowWindowFontCharSet)),AT(,,30)
+             #ENDBUTTON
+             #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusOtherWindowWindowFontName),PROP(PROP:FONTColor,%CusOtherWindowWindowFontColor),PROP(PROP:FONTSize,%CusOtherWindowWindowFontSize),PROP(PROP:FONTStyle,%CusOtherWindowWindowFontStyle),PROP(PROP:FONTCharSet,%CusOtherWindowWindowFontCharSet)
+           #ENDBOXED
+           #PROMPT('Width:',SPIN(@n3,0,255)),%CusOtherWindowWindowWidth,DEFAULT(260),REQ
+           #PROMPT('Height:',SPIN(@n3,0,255)),%CusOtherWindowWindowHeight,DEFAULT(160),REQ
+           #PROMPT('Position:',DROP('Default[]|Center[CENTER]')),%CusOtherWindowWindowPosition,DEFAULT('CENTER')
+           #BOXED('Options')
+              #PROMPT('System Menu',CHECK),%CusOtherWindowWindowSystemMenu,DEFAULT(%True)
+              #PROMPT('Entry Patterns',CHECK),%CusOtherWindowWindowEntryPaterns,DEFAULT(%False)
+           #ENDBOXED
+         #ENDTAB
+         #TAB('Buttons')
+           #PROMPT('Width:',SPIN(@n3,0,255)),%CusOtherWindowButtonsWidth,DEFAULT(49),REQ
+           #PROMPT('Height:',SPIN(@n3,0,255)),%CusOtherWindowButtonsHeight,DEFAULT(14),REQ
+           #PROMPT('Enable Ok Button',CHECK),%CusOtherWindowOkButtonEnable,DEFAULT(%True),AT(15)
+           #ENABLE(%CusOtherWindowOkButtonEnable)
+              #BUTTON('Ok'),HLP('~TPLWizardCustomizationButton.htm')
+                 #PROMPT('Text:',@S255),%CusOtherWindowOkButtonText,DEFAULT('&OK')
+                 #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusOtherWindowOkButtonIcon,DEFAULT('WAOK.ICO')
+                 #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusOtherWindowOkButtonCursor,DEFAULT('')
+                 #PROMPT('HotKey:',KEYCODE),%CusOtherWindowOkButtonKeyCode,DEFAULT('')
+                 #PROMPT('Message:',@S255),%CusOtherWindowOkButtonMsg,DEFAULT('Accept operation')
+                 #DISPLAY('Tip:')
+                 #PROMPT('Tip:',TEXT),%CusOtherWindowOkButtonTip,DEFAULT('Accept Operation')
+                 #BOXED('Options')
+                    #PROMPT('Flat',CHECK),%CusOtherWindowOkButtonFlat,DEFAULT(1)
+                    #PROMPT('Skip',CHECK),%CusOtherWindowOkButtonSkip,DEFAULT(0)
+                    #PROMPT('Justification:',DROP('Default|Left|Right')),%CusOtherWindowOkButtonJustification,DEFAULT('Left')
+                 #ENDBOXED
+              #ENDBUTTON
+           #ENDENABLE
+           #PROMPT('Enable Cancel Button',CHECK),%CusOtherWindowCancelButtonEnable,DEFAULT(%True),AT(15)
+           #ENABLE(%CusOtherWindowCancelButtonEnable)
+              #BUTTON('Cancel'),HLP('~TPLWizardCustomizationButton.htm')
+                 #PROMPT('Text:',@S255),%CusOtherWindowCancelButtonText,DEFAULT('&Cancel')
+                 #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusOtherWindowCancelButtonIcon,DEFAULT('WACANCEL.ICO')
+                 #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusOtherWindowCancelButtonCursor,DEFAULT('')
+                 #PROMPT('HotKey:',KEYCODE),%CusOtherWindowCancelButtonKeyCode,DEFAULT('')
+                 #PROMPT('Message:',@S255),%CusOtherWindowCancelButtonMsg,DEFAULT('Cancel Operation')
+                 #DISPLAY('Tip:')
+                 #PROMPT('Tip:',TEXT),%CusOtherWindowCancelButtonTip,DEFAULT('Cancel Operation')
+                 #BOXED('Options')
+                    #PROMPT('Flat',CHECK),%CusOtherWindowCancelButtonFlat,DEFAULT(1)
+                    #PROMPT('Skip',CHECK),%CusOtherWindowCancelButtonSkip,DEFAULT(0)
+                    #PROMPT('Justification:',DROP('Default|Left|Right')),%CusOtherWindowCancelButtonJustification,DEFAULT('Left')
+                 #ENDBOXED
+              #ENDBUTTON
+           #ENDENABLE
+           #PROMPT('Enable Help Button',CHECK),%CusOtherWindowHelpButtonEnable,DEFAULT(%True),AT(15)
+           #ENABLE(%CusOtherWindowHelpButtonEnable)
+              #BUTTON('Help'),HLP('~TPLWizardCustomizationButton.htm')
+                 #PROMPT('Text:',@S255),%CusOtherWindowHelpButtonText,DEFAULT('&Help')
+                 #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusOtherWindowHelpButtonIcon,DEFAULT('WAHELP.ICO')
+                 #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusOtherWindowHelpButtonCursor,DEFAULT('')
+                 #PROMPT('HotKey:',KEYCODE),%CusOtherWindowHelpButtonKeyCode,DEFAULT('')
+                 #PROMPT('Message:',@S255),%CusOtherWindowHelpButtonMsg,DEFAULT('See Help Window')
+                 #DISPLAY('Tip:')
+                 #PROMPT('Tip:',TEXT),%CusOtherWindowHelpButtonTip,DEFAULT('See Help Window')
+                 #BOXED('Options')
+                    #PROMPT('Flat',CHECK),%CusOtherWindowHelpButtonFlat,DEFAULT(1)
+                    #PROMPT('Skip',CHECK),%CusOtherWindowHelpButtonSkip,DEFAULT(0)
+                    #PROMPT('Justification:',DROP('Default|Left|Right')),%CusOtherWindowHelpButtonJustification,DEFAULT('Left')
+                 #ENDBOXED
+              #ENDBUTTON
+           #ENDENABLE
+         #ENDTAB
+      #ENDSHEET
+    #ENDBOXED
+  #ENDBUTTON
+#!--------------------------------------------------------------------------
+#GROUP(%CustomizationLabelPrompts)
+  #BUTTON('Label Report Customization'),HLP('~TPLWizardLabelCustomization.htm')
+    #BOXED
+        #SHEET
+           #TAB('Procedure')
+             #PROMPT('Procedure Name:',@s255),%CusLabelReportProcName,DEFAULT('Report%FileName'),REQ
+             #VALIDATE(INSTRING(' ',CLIP(%CusLabelReportProcName),1,1)=0,'The Procedure name can''t have spaces in it.')
+             #VALIDATE(INSTRING('%FileName',CLIP(%CusLabelReportProcName),1,1)>0,'The Procedure name must contain the %FileName.')
+             #PROMPT('Procedure "With Key" Name:',@s255),%CusLabelReportProcNameKey,DEFAULT('Report%FileNameBy%Key'),REQ
+             #VALIDATE(INSTRING(' ',CLIP(%CusLabelReportProcNameKey),1,1)=0,'The Procedure "With Key" name can''t have spaces in it.')
+             #VALIDATE(INSTRING('%FileName',CLIP(%CusLabelReportProcNameKey),1,1)>0 AND INSTRING('%Key',CLIP(%CusLabelReportProcNameKey),1,1)>0,'The Procedure "With Key" name must contain the %FileName and %Key.')
+             #DISPLAY('You can use the %FileName macro.')
+           #ENDTAB
+           #TAB('Progress Window')
+             #PROMPT('Caption:',@s255),%CusLabelReportWindowName,DEFAULT('Report %FileName')
+             #DISPLAY('You can use the %FileName macro.')
+             #BOXED('Images')
+               #PROMPT('Background:',OPENDIALOG('Backgrounds','GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusLabelReportWindowBackGround
+               #ENABLE(%CusLabelReportWindowBackGround<>'')
+                  #PROMPT('Mode:',DROP('Stretched|Tiled|Centered')),%CusLabelReportWindowBackGroundMode,DEFAULT('Tiled')
+               #ENDENABLE
+               #PROMPT('Icon:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusLabelReportWindowIcon
+             #ENDBOXED
+             #BOXED('HIDDEN'),HIDE
+                #PROMPT('FontName:',@s255),%CusLabelReportWindowFontName,DEFAULT('Microsoft Sans Serif')
+                #PROMPT('FontSize:',@s255),%CusLabelReportWindowFontSize,DEFAULT(8)
+                #PROMPT('FontColor:',@s255),%CusLabelReportWindowFontColor,DEFAULT('')
+                #PROMPT('FontStyle:',@s255),%CusLabelReportWindowFontStyle,DEFAULT(400)
+                #PROMPT('FontCharSet:',@s255),%CusLabelReportWindowFontCharSet,DEFAULT(1)
+             #ENDBOXED
+             #BOXED('Font')
+               #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusLabelReportWindowFontName,%CusLabelReportWindowFontSize,%CusLabelReportWindowFontColor,%CusLabelReportWindowFontStyle,%CusLabelReportWindowFontCharSet)),AT(,,30)
+               #ENDBUTTON
+               #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusLabelReportWindowFontName),PROP(PROP:FONTColor,%CusLabelReportWindowFontColor),PROP(PROP:FONTSize,%CusLabelReportWindowFontSize),PROP(PROP:FONTStyle,%CusLabelReportWindowFontStyle),PROP(PROP:FONTCharSet,%CusLabelReportWindowFontCharSet)
+             #ENDBOXED
+             #PROMPT('Width:',SPIN(@n5,0,99999)),%CusLabelReportWindowWidth,DEFAULT(142),REQ
+             #PROMPT('Height:',SPIN(@n5,0,99999)),%CusLabelReportWindowHeight,DEFAULT(59),REQ
+             #PROMPT('Position:',DROP('Default[]|Center[CENTER]')),%CusLabelReportWindowPosition,DEFAULT('CENTER')
+             #BOXED('Controls')
+                #BUTTON('Progress'),HLP('~TPLWizardControlCustomization.htm')
+                   #BOXED('Position'),SECTION
+                      #PROMPT('X:',SPIN(@n5,0,99999)),%CusLabelReportProgressX,DEFAULT(15),AT(35,5,40),PROMPTAT(8,5,25)
+                      #PROMPT('Y:',SPIN(@n5,0,99999)),%CusLabelReportProgressY,DEFAULT(15),AT(115,5,40),PROMPTAT(85,5,25)
+                      #PROMPT('Width:',SPIN(@n5,0,99999)),%CusLabelReportProgressWidth,DEFAULT(111),AT(35,20,40),PROMPTAT(8,20,25)
+                      #PROMPT('Height:',SPIN(@n5,0,99999)),%CusLabelReportProgressHeight,DEFAULT(12),AT(115,20,40),PROMPTAT(85,20,25)
+                   #ENDBOXED
+                #ENDBUTTON
+                #BUTTON('User String'),HLP('~TPLWizardControlCustomization.htm')
+                   #BOXED('Position'),SECTION
+                      #PROMPT('X:',SPIN(@n5,0,99999)),%CusLabelReportUserStringX,DEFAULT(0),AT(35,5,40),PROMPTAT(8,5,25)
+                      #PROMPT('Y:',SPIN(@n5,0,99999)),%CusLabelReportUserStringY,DEFAULT(3),AT(115,5,40),PROMPTAT(85,5,25)
+                      #PROMPT('Width:',SPIN(@n5,0,99999)),%CusLabelReportUserStringWidth,DEFAULT(141),AT(35,20,40),PROMPTAT(8,20,25)
+                      #PROMPT('Height:',SPIN(@n5,0,99999)),%CusLabelReportUserStringHeight,DEFAULT(10),AT(115,20,40),PROMPTAT(85,20,25)
+                   #ENDBOXED
+                   #PROMPT('Justification:',DROP('Left[LEFT]|Right[RIGHT]|Center[CENTER]')),%CusLabelReportUserStringJustification,DEFAULT('CENTER')
+                #ENDBUTTON
+                #BUTTON('Pct Text'),HLP('~TPLWizardControlCustomization.htm')
+                   #BOXED('Position'),SECTION
+                      #PROMPT('X:',SPIN(@n5,0,99999)),%CusLabelReportPctTextX,DEFAULT(0),AT(35,5,40),PROMPTAT(8,5,25)
+                      #PROMPT('Y:',SPIN(@n5,0,99999)),%CusLabelReportPctTextY,DEFAULT(30),AT(115,5,40),PROMPTAT(85,5,25)
+                      #PROMPT('Width:',SPIN(@n5,0,99999)),%CusLabelReportPctTextWidth,DEFAULT(141),AT(35,20,40),PROMPTAT(8,20,25)
+                      #PROMPT('Height:',SPIN(@n5,0,99999)),%CusLabelReportPctTextHeight,DEFAULT(10),AT(115,20,40),PROMPTAT(85,20,25)
+                   #ENDBOXED
+                   #PROMPT('Justification:',DROP('Left[LEFT]|Right[RIGHT]|Center[CENTER]')),%CusLabelReportPctTextJustification,DEFAULT('CENTER')
+                #ENDBUTTON
+                #BUTTON('Cancel Button'),HLP('~TPLWizardCustomizationButton.htm')
+                   #BOXED('Position'),SECTION
+                      #PROMPT('Position:',DROP('Bottom Left[LEFT]|Bottom Right[RIGHT]|Bottom Center[CENTER]|Other[OTHER]')),%CusLabelReportButtonsPos,DEFAULT('CENTER'),PROMPTAT(8,5),AT(,5)
+                      #ENABLE(%CusLabelReportButtonsPos='OTHER')
+                      #PROMPT('X:',SPIN(@n5,0,99999)),%CusLabelReportButtonsX,DEFAULT(45),REQ,AT(35,20,40),PROMPTAT(8,20,25)
+                      #PROMPT('Y:',SPIN(@n5,0,99999)),%CusLabelReportButtonsY,DEFAULT(42),REQ,AT(115,20,40),PROMPTAT(85,20,25)
+                      #ENDENABLE
+                      #PROMPT('Width:',SPIN(@n5,0,99999)),%CusLabelReportButtonsWidth,DEFAULT(49),REQ,AT(35,35,40),PROMPTAT(8,35,25)
+                      #PROMPT('Height:',SPIN(@n5,0,99999)),%CusLabelReportButtonsHeight,DEFAULT(15),REQ,AT(115,35,40),PROMPTAT(85,35,25)
+                   #ENDBOXED
+                   #PROMPT('Text:',@S255),%CusLabelReportCancelButtonText,DEFAULT('Cancel')
+                   #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusLabelReportCancelButtonIcon,DEFAULT('WACANCEL.ICO')
+                   #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusLabelReportCancelButtonCursor,DEFAULT('')
+                   #PROMPT('HotKey:',KEYCODE),%CusLabelReportCancelButtonKeyCode,DEFAULT('')
+                   #PROMPT('Message:',@S255),%CusLabelReportCancelButtonMsg,DEFAULT('Cancel Report')
+                   #DISPLAY('Tip:')
+                   #PROMPT('Tip:',TEXT),%CusLabelReportCancelButtonTip,DEFAULT('Cancel Report')
+                   #BOXED('Options')
+                      #PROMPT('Flat',CHECK),%CusLabelReportCancelButtonFlat,DEFAULT(1)
+                      #PROMPT('Skip',CHECK),%CusLabelReportCancelButtonSkip,DEFAULT(0)
+                   #ENDBOXED
+                   #PROMPT('Justification:',DROP('Default|Left|Right')),%CusLabelReportCancelButtonJustification,DEFAULT('Left')
+                #ENDBUTTON
+             #ENDBOXED
+           #ENDTAB
+           #TAB('Report Layout')
+             #BOXED
+                #SHEET
+                   #TAB('General')
+                       #PROMPT('Job Name:',@s255),%CusLabelReportJobName,DEFAULT('%FileName Report')
+                       #DISPLAY('You can use the %FileName macro.')
+                       #PROMPT('Orientation:',DROP('Portrait[PORTRAIT]|Landscape[LANDSCAPE]')),%CusLabelReportOrientation,DEFAULT('PORTRAIT')
+                       #BOXED('HIDDEN'),HIDE
+                          #PROMPT('FontName:',@s255),%CusLabelReportFontName,DEFAULT('Microsoft Sans Serif')
+                          #PROMPT('FontSize:',@s255),%CusLabelReportFontSize,DEFAULT(8)
+                          #PROMPT('FontColor:',@s255),%CusLabelReportFontColor,DEFAULT('')
+                          #PROMPT('FontStyle:',@s255),%CusLabelReportFontStyle,DEFAULT(400)
+                          #PROMPT('FontCharSet:',@s255),%CusLabelReportFontCharSet,DEFAULT(1)
+                       #ENDBOXED
+                       #BOXED('Font')
+                         #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusLabelReportFontName,%CusLabelReportFontSize,%CusLabelReportFontColor,%CusLabelReportFontStyle,%CusLabelReportFontCharSet)),AT(,,30)
+                         #ENDBUTTON
+                         #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusLabelReportFontName),PROP(PROP:FONTColor,%CusLabelReportFontColor),PROP(PROP:FONTSize,%CusLabelReportFontSize),PROP(PROP:FONTStyle,%CusLabelReportFontStyle),PROP(PROP:FONTCharSet,%CusLabelReportFontCharSet)
+                       #ENDBOXED
+                       #PROMPT('Show Preview?',CHECK),%CusLabelReportShowPreview,DEFAULT(1)
+                       #ENABLE(%CusLabelReportShowPreview)
+                          #PROMPT('Preview Maximized?',CHECK),%CusLabelReportPreviewMaximized,DEFAULT(1)
+                          #PROMPT('Initial Zoom Setting:',DROP('No Zoom|Page Width|50%|75%|100%|200%|300%')),%CusLabelReportPreviewDefaultZoom,DEFAULT('No Zoom')
+                       #ENDENABLE
+                       #DISPLAY
+                       #BOXED('Label')
+                         #PROMPT('Background Color:',COLOR),%CusLabelReportDetailColor,DEFAULT(-1)
+                         #BOXED('HIDDEN'),HIDE
+                           #PROMPT('FontName:',@s255),%CusLabelReportDetailFontName,DEFAULT('Microsoft Sans Serif')
+                           #PROMPT('FontSize:',@s255),%CusLabelReportDetailFontSize,DEFAULT(8)
+                           #PROMPT('FontColor:',@s255),%CusLabelReportDetailFontColor,DEFAULT('')
+                           #PROMPT('FontStyle:',@s255),%CusLabelReportDetailFontStyle,DEFAULT(400)
+                           #PROMPT('FontCharSet:',@s255),%CusLabelReportDetailFontCharSet,DEFAULT(1)
+                         #ENDBOXED
+                         #BOXED('Font')
+                           #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusLabelReportDetailFontName,%CusLabelReportDetailFontSize,%CusLabelReportDetailFontColor,%CusLabelReportDetailFontStyle,%CusLabelReportDetailFontCharSet)),AT(,,30)
+                           #ENDBUTTON
+                           #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusLabelReportDetailFontName),PROP(PROP:FONTColor,%CusLabelReportDetailFontColor),PROP(PROP:FONTSize,%CusLabelReportDetailFontSize),PROP(PROP:FONTStyle,%CusLabelReportDetailFontStyle),PROP(PROP:FONTCharSet,%CusLabelReportDetailFontCharSet)
+                         #ENDBOXED
+                       #ENDBOXED
+                   #ENDTAB
+                   #TAB('Label Size')
+                        #BOXED(''),AT(,,180,111),SECTION
+                          #IMAGE(''),PROP(PROP:Text,FULLNAME('WLABEL00.GIF'))
+                          #DISPLAY('Top margin'),AT(12,12),PROP(PROP:FillColor,16777215)
+                          #DISPLAY('Left margin'),AT(40,1),PROP(PROP:FillColor,16777215)
+                          #DISPLAY('Width'),AT(70,45),PROP(PROP:FillColor,16777215)
+                          #DISPLAY('Height'),AT(86,56),PROP(PROP:FillColor,16777215)
+                          #DISPLAY('Number down'),AT(125,47),PROP(PROP:FillColor,16777215)
+                          #DISPLAY('Vertical Pitch'),AT(12,50),PROP(PROP:FillColor,16777215)
+                          #DISPLAY('Number across'),AT(80,84),PROP(PROP:FillColor,16777215)
+                          #DISPLAY('Horizontal Pitch'),AT(90,9),PROP(PROP:FillColor,16777215)
+                        #ENDBOXED
+                        #BOXED(''),AT(,,180),SECTION
+                          #PROMPT('Label Group:',FROM(%LabelReportGroup)),%QuickLabelGroup,AT(60,0,121),PROMPTAT(7,0,50),WHENACCEPTED(%LoadLabelType(%QuickLabelGroup,%QuickLabelType,%CusLabelReportHeight, %CusLabelReportWidth, %CusLabelReportAcross, %CusLabelReportDown, %CusLabelReportTop, %CusLabelReportLeft, %CusLabelReportHPitch, %CusLabelReportVPitch, %CusLabelReportPageWidth, %CusLabelReportPageHeight,%CusLabelReportPaperType))
+                          #ENABLE(%QuickLabelGroup<>'Custom')
+                             #PROMPT('Label Type:',FROM(%LabelReportType)),%QuickLabelType,AT(60,14,121),PROMPTAT(7,14,50),WHENACCEPTED(%SetLabelParametersFromType(%QuickLabelType,%CusLabelReportHeight, %CusLabelReportWidth, %CusLabelReportAcross, %CusLabelReportDown, %CusLabelReportTop, %CusLabelReportLeft, %CusLabelReportHPitch, %CusLabelReportVPitch, %CusLabelReportPageWidth, %CusLabelReportPageHeight,%CusLabelReportPaperType))
+                          #ENDENABLE
+                          #ENABLE(%QuickLabelGroup='Custom')
+                             #PROMPT('Width:',SPIN(@n6,0,99999)),%CusLabelReportWidth, DEFAULT(0),AT(60,28,35),PROMPTAT(7,28,48)
+                             #PROMPT('Height:',SPIN(@n6,0,99999)),%CusLabelReportHeight, DEFAULT(0),AT(146,28,35),PROMPTAT(97,28,48)
+                             #PROMPT('Top margin:',SPIN(@n6,0,99999)),%CusLabelReportTop,DEFAULT(0),AT(60,42,35),PROMPTAT(7,42,48)
+                             #PROMPT('Left margin:',SPIN(@n6,0,99999)),%CusLabelReportLeft, DEFAULT(0),AT(146,42,35),PROMPTAT(97,42,48)
+                             #PROMPT('# across:',SPIN(@n6,0,99999)),%CusLabelReportAcross, DEFAULT(0),AT(60,56,35),PROMPTAT(7,56,48)
+                             #PROMPT('# down:',SPIN(@n6,0,99999)),%CusLabelReportDown, DEFAULT(0),AT(146,56,35),PROMPTAT(97,56,48)
+                             #PROMPT('Hor. Pitch:',SPIN(@n6,0,99999)),%CusLabelReportHPitch, DEFAULT(0),AT(60,70,35),PROMPTAT(7,70,48)
+                             #PROMPT('Vert. Pitch:',SPIN(@n6,0,99999)),%CusLabelReportVPitch, DEFAULT(0),AT(146,70,35),PROMPTAT(97,70,48)
+                          #ENDENABLE
+                          #PROMPT('Paper Type:',DROP('Letter 8 1/2 x 11 in[PAPER:LETTER]|Letter Small 8 1/2 x 11 in[PAPER:LETTERSMALL]|Tabloid 11 x 17 in[PAPER:TABLOID]|Ledger 17 x 11 in[PAPER:LEDGER]|Legal 8 1/2 x 14 in[PAPER:LEGAL]|Statement 5 1/2 x 8 1/2 in[PAPER:STATEMENT]|Executive 7 1/4 x 10 1/2 in[PAPER:EXECUTIVE]|A3 297 x 420 mm[PAPER:A3]|A4 210 x 297 mm[PAPER:A4]|A4 Small 210 x 297 mm[PAPER:A4SMALL]|A5 148 x 210 mm[PAPER:A5]|B4 250 x 354[PAPER:B4]|B5 182 x 257 mm[PAPER:B5]|Folio 8 1/2 x 13 in[PAPER:FOLIO]|Quarto 215 x 275 mm[PAPER:QUARTO]|10x14 in[PAPER:10X14]|11x17 in[PAPER:11X17]|Note 8 1/2 x 11 in[PAPER:NOTE]|Envelope #9 3 7/8 x 8 7/8[PAPER:ENV_9]|Envelope #10 4 1/8 x 9 1/2[PAPER:ENV_10]|Envelope #11 4 1/2 x 10 3/8[PAPER:ENV_11]|Envelope #12 4 \276 x 11[PAPER:ENV_12]|Envelope #14 5 x 11 1/2[PAPER:ENV_14]|C size sheet[PAPER:CSHEET]|D size sheet[PAPER:DSHEET]|E size sheet[PAPER:ESHEET]|Envelope DL 110 x 220mm[PAPER:ENV_DL]|Envelope C5 162 x 229 mm[PAPER:ENV_C5]|Envelope C3  324 x 458 mm[PAPER:ENV_C3]|Envelope C4  229 x 324 mm[PAPER:ENV_C4]|Envelope C6  114 x 162 mm[PAPER:ENV_C6]|Envelope C65 114 x 229 mm[PAPER:ENV_C65]|Envelope B4  250 x 353 mm[PAPER:ENV_B4]|Envelope B5  176 x 250 mm[PAPER:ENV_B5]|Envelope B6  176 x 125 mm[PAPER:ENV_B6]|Envelope 110 x 230 mm[PAPER:ENV_ITALY]|Envelope Monarch 3.875 x 7.5 in[PAPER:ENV_MONARCH]|6 3/4 Envelope 3 5/8 x 6 1/2 in[PAPER:ENV_PERSONAL]|US Std Fanfold 14 7/8 x 11 in[PAPER:FANFOLD_US]|German Std Fanfold 8 1/2 x 12 in[PAPER:FANFOLD_STD_GERMAN]|German Legal Fanfold 8 1/2 x 13 in[PAPER:FANFOLD_LGL_GERMAN]|Other[PAPER:USER]')),%CusLabelReportPaperType,DEFAULT('PAPER:LETTER'),WHENACCEPTED(%SVFGetWidthHeightFromPaper(%CusLabelReportPaperType,%CusLabelReportPageWidth,%CusLabelReportPageHeight)),AT(60,84,121),PROMPTAT(7,84,55)
+                          #ENABLE(%CusLabelReportPaperType='PAPER:USER')
+                             #PROMPT('Paper Width:',SPIN(@n6,0,99999)),%CusLabelReportPageWidth,DEFAULT(8250),AT(60,98,35),PROMPTAT(7,98,48)
+                             #PROMPT('Paper Height:',SPIN(@n6,0,99999)),%CusLabelReportPageHeight,DEFAULT(11688),AT(146,98,35),PROMPTAT(97,98,48)
+                          #ENDENABLE
+                        #ENDBOXED
+                   #ENDTAB
+                #ENDSHEET
+             #ENDBOXED
+           #ENDTAB
+        #ENDSHEET
+    #ENDBOXED
+  #ENDBUTTON
+#!--------------------------------------------------------------------------
+#GROUP(%CustomizationReportPrompts)
+  #BUTTON('Report Customization'),HLP('~TPLWizardReportCustomization')
+    #BOXED('HIDE'),HIDE
+      #PROMPT('LayoutName:',@s255),%QuickLayoutName
+    #ENDBOXED
+    #PREPARE
+      #SET(%QuickLayoutName,%SVGetThemeName(%QuickLayout,%QuickLayoutList))
+    #ENDPREPARE
+    #BOXED
+        #SHEET
+           #TAB('Procedure')
+             #PROMPT('Procedure Name:',@s255),%CusReportProcName,DEFAULT('Report%FileName'),REQ
+             #VALIDATE(INSTRING(' ',CLIP(%CusReportProcName),1,1)=0,'The Procedure name can''t have spaces in it.')
+             #VALIDATE(INSTRING('%FileName',CLIP(%CusReportProcName),1,1)>0,'The Procedure name must contain the %FileName.')
+             #PROMPT('Procedure "With Key" Name:',@s255),%CusReportProcNameKey,DEFAULT('Report%FileNameBy%Key'),REQ
+             #VALIDATE(INSTRING(' ',CLIP(%CusReportProcNameKey),1,1)=0,'The Procedure "With Key" name can''t have spaces in it.')
+             #VALIDATE(INSTRING('%FileName',CLIP(%CusReportProcNameKey),1,1)>0 AND INSTRING('%Key',CLIP(%CusReportProcNameKey),1,1)>0,'The Procedure "With Key" name must contain the %FileName and %Key.')
+             #DISPLAY('You can use the %FileName macro.')
+           #ENDTAB
+           #TAB('Progress Window')
+             #PROMPT('Caption:',@s255),%CusReportWindowName,DEFAULT('Report %FileName')
+             #DISPLAY('You can use the %FileName macro.')
+             #BOXED('Images')
+               #PROMPT('Background:',OPENDIALOG('Backgrounds','GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusReportWindowBackGround
+               #ENABLE(%CusReportWindowBackGround<>'')
+                  #PROMPT('Mode:',DROP('Stretched|Tiled|Centered')),%CusReportWindowBackGroundMode,DEFAULT('Tiled')
+               #ENDENABLE
+               #PROMPT('Icon:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusReportWindowIcon
+             #ENDBOXED
+             #BOXED('HIDDEN'),HIDE
+                #PROMPT('FontName:',@s255),%CusReportWindowFontName,DEFAULT('Microsoft Sans Serif')
+                #PROMPT('FontSize:',@s255),%CusReportWindowFontSize,DEFAULT(8)
+                #PROMPT('FontColor:',@s255),%CusReportWindowFontColor,DEFAULT('')
+                #PROMPT('FontStyle:',@s255),%CusReportWindowFontStyle,DEFAULT(400)
+                #PROMPT('FontCharSet:',@s255),%CusReportWindowFontCharSet,DEFAULT(1)
+             #ENDBOXED
+             #BOXED('Font')
+               #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusReportWindowFontName,%CusReportWindowFontSize,%CusReportWindowFontColor,%CusReportWindowFontStyle,%CusReportWindowFontCharSet)),AT(,,30)
+               #ENDBUTTON
+               #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusReportWindowFontName),PROP(PROP:FONTColor,%CusReportWindowFontColor),PROP(PROP:FONTSize,%CusReportWindowFontSize),PROP(PROP:FONTStyle,%CusReportWindowFontStyle),PROP(PROP:FONTCharSet,%CusReportWindowFontCharSet)
+             #ENDBOXED
+             #PROMPT('Width:',SPIN(@n5,0,99999)),%CusReportWindowWidth,DEFAULT(142),REQ
+             #PROMPT('Height:',SPIN(@n5,0,99999)),%CusReportWindowHeight,DEFAULT(59),REQ
+             #PROMPT('Position:',DROP('Default[]|Center[CENTER]')),%CusReportWindowPosition,DEFAULT('CENTER')
+             #BOXED('Controls')
+                #BUTTON('Progress'),HLP('~TPLWizardControlCustomization.htm')
+                   #BOXED('Position'),SECTION
+                      #PROMPT('X:',SPIN(@n5,0,99999)),%CusReportProgressX,DEFAULT(15),AT(35,5,40),PROMPTAT(8,5,25)
+                      #PROMPT('Y:',SPIN(@n5,0,99999)),%CusReportProgressY,DEFAULT(15),AT(115,5,40),PROMPTAT(85,5,25)
+                      #PROMPT('Width:',SPIN(@n5,0,99999)),%CusReportProgressWidth,DEFAULT(111),AT(35,20,40),PROMPTAT(8,20,25)
+                      #PROMPT('Height:',SPIN(@n5,0,99999)),%CusReportProgressHeight,DEFAULT(12),AT(115,20,40),PROMPTAT(85,20,25)
+                   #ENDBOXED
+                   #BOXED('Options')
+                      #PROMPT('Vertical',CHECK),%CusReportProgressVertical,DEFAULT(0)
+                      #PROMPT('Smooth',CHECK),%CusReportProgressSmooth,DEFAULT(0)
+                   #ENDBOXED
+                #ENDBUTTON
+                #BUTTON('User String'),HLP('~TPLWizardControlCustomization.htm')
+                   #BOXED('Position'),SECTION
+                      #PROMPT('X:',SPIN(@n5,0,99999)),%CusReportUserStringX,DEFAULT(0),AT(35,5,40),PROMPTAT(8,5,25)
+                      #PROMPT('Y:',SPIN(@n5,0,99999)),%CusReportUserStringY,DEFAULT(3),AT(115,5,40),PROMPTAT(85,5,25)
+                      #PROMPT('Width:',SPIN(@n5,0,99999)),%CusReportUserStringWidth,DEFAULT(141),AT(35,20,40),PROMPTAT(8,20,25)
+                      #PROMPT('Height:',SPIN(@n5,0,99999)),%CusReportUserStringHeight,DEFAULT(10),AT(115,20,40),PROMPTAT(85,20,25)
+                   #ENDBOXED
+                   #PROMPT('Justification:',DROP('Left[LEFT]|Right[RIGHT]|Center[CENTER]')),%CusReportUserStringJustification,DEFAULT('CENTER')
+                #ENDBUTTON
+                #BUTTON('Pct Text'),HLP('~TPLWizardControlCustomization.htm')
+                   #BOXED('Position'),SECTION
+                      #PROMPT('X:',SPIN(@n5,0,99999)),%CusReportPctTextX,DEFAULT(0),AT(35,5,40),PROMPTAT(8,5,25)
+                      #PROMPT('Y:',SPIN(@n5,0,99999)),%CusReportPctTextY,DEFAULT(30),AT(115,5,40),PROMPTAT(85,5,25)
+                      #PROMPT('Width:',SPIN(@n5,0,99999)),%CusReportPctTextWidth,DEFAULT(141),AT(35,20,40),PROMPTAT(8,20,25)
+                      #PROMPT('Height:',SPIN(@n5,0,99999)),%CusReportPctTextHeight,DEFAULT(10),AT(115,20,40),PROMPTAT(85,20,25)
+                   #ENDBOXED
+                   #PROMPT('Justification:',DROP('Left[LEFT]|Right[RIGHT]|Center[CENTER]')),%CusReportPctTextJustification,DEFAULT('CENTER')
+                #ENDBUTTON
+                #BUTTON('Cancel Button'),HLP('~TPLWizardCustomizationButton.htm')
+                   #BOXED('Position'),SECTION
+                      #PROMPT('Position:',DROP('Bottom Left[LEFT]|Bottom Right[RIGHT]|Bottom Center[CENTER]|Other[OTHER]')),%CusReportButtonsPos,DEFAULT('CENTER'),PROMPTAT(8,5),AT(,5)
+                      #ENABLE(%CusReportButtonsPos='OTHER')
+                        #PROMPT('X:',SPIN(@n5,0,99999)),%CusReportButtonsX,DEFAULT(45),REQ,AT(35,20,40),PROMPTAT(8,20,25)
+                        #PROMPT('Y:',SPIN(@n5,0,99999)),%CusReportButtonsY,DEFAULT(42),REQ,AT(115,20,40),PROMPTAT(85,20,25)
+                      #ENDENABLE
+                      #PROMPT('Width:',SPIN(@n5,0,99999)),%CusReportButtonsWidth,DEFAULT(49),REQ,AT(35,35,40),PROMPTAT(8,35,25)
+                      #PROMPT('Height:',SPIN(@n5,0,99999)),%CusReportButtonsHeight,DEFAULT(15),REQ,AT(115,35,40),PROMPTAT(85,35,25)
+                   #ENDBOXED
+                   #PROMPT('Text:',@S255),%CusReportCancelButtonText,DEFAULT('Cancel')
+                   #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusReportCancelButtonIcon,DEFAULT('WACANCEL.ICO')
+                   #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusReportCancelButtonCursor,DEFAULT('')
+                   #PROMPT('HotKey:',KEYCODE),%CusReportCancelButtonKeyCode,DEFAULT('')
+                   #PROMPT('Message:',@S255),%CusReportCancelButtonMsg,DEFAULT('Cancel Report')
+                   #DISPLAY('Tip:')
+                   #PROMPT('Tip:',TEXT),%CusReportCancelButtonTip,DEFAULT('Cancel Report')
+                   #BOXED('Options')
+                      #PROMPT('Flat',CHECK),%CusReportCancelButtonFlat,DEFAULT(1)
+                      #PROMPT('Skip',CHECK),%CusReportCancelButtonSkip,DEFAULT(0)
+                   #ENDBOXED
+                   #PROMPT('Justification:',DROP('Default|Left|Right')),%CusReportCancelButtonJustification,DEFAULT('Left')
+                #ENDBUTTON
+             #ENDBOXED
+           #ENDTAB
+           #TAB('Report Layout')
+             #BOXED
+                #DISPLAY('You are  using the Layout: '&%QuickLayoutName)
+                #!DISPLAY('Bands')
+                #SHEET
+                   #TAB('General')
+                       #PREPARE
+                           #IF(%CusReportAutoAdjustDetailSize)
+                              #CALL(%ReportAdjustDetailSize,%CusReportMarginTop,%CusReportMarginBottom,%CusReportAddHeader,%CusReportHeaderMarginTop,%CusReportHeaderPosHeight,%CusReportAddFooter,%CusReportFooterMarginBottom,%CusReportFooterPosHeight)
+                           #ENDIF
+                       #ENDPREPARE
+                       #PROMPT('Job Name:',@s255),%CusReportJobName,DEFAULT('%FileName Report')
+                       #DISPLAY('You can use the %FileName macro.')
+                       #PROMPT('Paper Type:',DROP('Letter 8 1/2 x 11 in[PAPER:LETTER]|Letter Small 8 1/2 x 11 in[PAPER:LETTERSMALL]|Tabloid 11 x 17 in[PAPER:TABLOID]|Ledger 17 x 11 in[PAPER:LEDGER]|Legal 8 1/2 x 14 in[PAPER:LEGAL]|Statement 5 1/2 x 8 1/2 in[PAPER:STATEMENT]|Executive 7 1/4 x 10 1/2 in[PAPER:EXECUTIVE]|A3 297 x 420 mm[PAPER:A3]|A4 210 x 297 mm[PAPER:A4]|A4 Small 210 x 297 mm[PAPER:A4SMALL]|A5 148 x 210 mm[PAPER:A5]|B4 250 x 354[PAPER:B4]|B5 182 x 257 mm[PAPER:B5]|Folio 8 1/2 x 13 in[PAPER:FOLIO]|Quarto 215 x 275 mm[PAPER:QUARTO]|10x14 in[PAPER:10X14]|11x17 in[PAPER:11X17]|Note 8 1/2 x 11 in[PAPER:NOTE]|Envelope #9 3 7/8 x 8 7/8[PAPER:ENV_9]|Envelope #10 4 1/8 x 9 1/2[PAPER:ENV_10]|Envelope #11 4 1/2 x 10 3/8[PAPER:ENV_11]|Envelope #12 4 \276 x 11[PAPER:ENV_12]|Envelope #14 5 x 11 1/2[PAPER:ENV_14]|C size sheet[PAPER:CSHEET]|D size sheet[PAPER:DSHEET]|E size sheet[PAPER:ESHEET]|Envelope DL 110 x 220mm[PAPER:ENV_DL]|Envelope C5 162 x 229 mm[PAPER:ENV_C5]|Envelope C3  324 x 458 mm[PAPER:ENV_C3]|Envelope C4  229 x 324 mm[PAPER:ENV_C4]|Envelope C6  114 x 162 mm[PAPER:ENV_C6]|Envelope C65 114 x 229 mm[PAPER:ENV_C65]|Envelope B4  250 x 353 mm[PAPER:ENV_B4]|Envelope B5  176 x 250 mm[PAPER:ENV_B5]|Envelope B6  176 x 125 mm[PAPER:ENV_B6]|Envelope 110 x 230 mm[PAPER:ENV_ITALY]|Envelope Monarch 3.875 x 7.5 in[PAPER:ENV_MONARCH]|6 3/4 Envelope 3 5/8 x 6 1/2 in[PAPER:ENV_PERSONAL]|US Std Fanfold 14 7/8 x 11 in[PAPER:FANFOLD_US]|German Std Fanfold 8 1/2 x 12 in[PAPER:FANFOLD_STD_GERMAN]|German Legal Fanfold 8 1/2 x 13 in[PAPER:FANFOLD_LGL_GERMAN]|Other[PAPER:USER]')),%CusReportPaperType,DEFAULT('PAPER:LETTER'),WHENACCEPTED(%SVFGetWidthHeightFromPaper(%CusReportPaperType,%CusReportWidth,%CusReportHeight))
+                       #ENABLE(%CusReportPaperType='PAPER:USER')
+                          #PROMPT('Paper Width:',SPIN(@n5,0,99999)),%CusReportWidth,DEFAULT(8500)
+                          #PROMPT('Paper Height:',SPIN(@n5,0,99999)),%CusReportHeight,DEFAULT(11000)
+                       #ENDENABLE
+                       #BOXED('Margins'),SECTION
+                           #PROMPT('Left:',SPIN(@n5,0,99999)),%CusReportMarginLeft,DEFAULT(250),AT(35,5,40),PROMPTAT(8,5,25)
+                           #PROMPT('Right:',SPIN(@n5,0,99999)),%CusReportMarginRight,DEFAULT(250),AT(115,5,40),PROMPTAT(85,5,25)
+                           #ENABLE(NOT %CusReportAutoAdjustDetailSize)
+                             #PROMPT('Top:',SPIN(@n5,0,99999)),%CusReportMarginTop,DEFAULT(850),AT(35,20,40),PROMPTAT(8,20,25)
+                             #PROMPT('Bottom:',SPIN(@n5,0,99999)),%CusReportMarginBottom,DEFAULT(500),AT(115,20,40),PROMPTAT(85,20,25)
+                           #ENDENABLE
+                           #PROMPT('Automatic Adjust Top and Bottom?',CHECK),%CusReportAutoAdjustDetailSize,DEFAULT(%True),AT(35)
+                           #ENABLE(NOT %CusReportAutoAdjustDetailSize)
+                             #BUTTON('Adjust using Header and Footer size'),WHENACCEPTED(%ReportAdjustDetailSize(%CusReportMarginTop,%CusReportMarginBottom,%CusReportAddHeader,%CusReportHeaderMarginTop,%CusReportHeaderPosHeight,%CusReportAddFooter,%CusReportFooterMarginBottom,%CusReportFooterPosHeight)),AT(,,140)
+                             #ENDBUTTON
+                           #ENDENABLE
+                       #ENDBOXED
+                       #PROMPT('Orientation:',DROP('Portrait[PORTRAIT]|Landscape[LANDSCAPE]')),%CusReportOrientation,DEFAULT('PORTRAIT')
+                       #BOXED('HIDDEN'),HIDE
+                          #PROMPT('FontName:',@s255),%CusReportFontName,DEFAULT('Microsoft Sans Serif')
+                          #PROMPT('FontSize:',@s255),%CusReportFontSize,DEFAULT(8)
+                          #PROMPT('FontColor:',@s255),%CusReportFontColor,DEFAULT('')
+                          #PROMPT('FontStyle:',@s255),%CusReportFontStyle,DEFAULT(400)
+                          #PROMPT('FontCharSet:',@s255),%CusReportFontCharSet,DEFAULT(1)
+                       #ENDBOXED
+                       #BOXED('Font')
+                         #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusReportFontName,%CusReportFontSize,%CusReportFontColor,%CusReportFontStyle,%CusReportFontCharSet)),AT(,,30)
+                         #ENDBUTTON
+                         #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusReportFontName),PROP(PROP:FONTColor,%CusReportFontColor),PROP(PROP:FONTSize,%CusReportFontSize),PROP(PROP:FONTStyle,%CusReportFontStyle),PROP(PROP:FONTCharSet,%CusReportFontCharSet)
+                       #ENDBOXED
+                       #PROMPT('Show Preview?',CHECK),%CusReportShowPreview,DEFAULT(1)
+                       #ENABLE(%CusReportShowPreview)
+                          #PROMPT('Preview Maximized?',CHECK),%CusReportPreviewMaximized,DEFAULT(1)
+                          #PROMPT('Initial Zoom Setting:',DROP('No Zoom|Page Width|50%|75%|100%|200%|300%')),%CusReportPreviewDefaultZoom,DEFAULT('No Zoom')
+                       #ENDENABLE
+                   #ENDTAB
+                   #TAB('Header')
+                       #PROMPT('Add Header?',CHECK),%CusReportAddHeader,DEFAULT(1)
+                          #ENABLE(%CusReportAddHeader)
+                             #PROMPT('Background Color:',COLOR),%CusReportHeaderColor,DEFAULT(-1)
+                          #PROMPT('Report Title:',@s255),%CusReportTitleName,DEFAULT('Report %FileName file')
+                          #DISPLAY('You can use the %FileName macro.')
+                          #PROMPT('Position Y:',SPIN(@n5,0,99999)),%CusReportTitlePosY,DEFAULT(20)
+                          #PROMPT('Justification:',DROP('Center[CENTER]|Left[LEFT]|Right[RIGHT]')),%CusReportTitleJust,DEFAULT('CENTER')
+                          #BOXED('HIDDEN'),HIDE
+                             #PROMPT('FontName:',@s255),%CusReportTitleFontName,DEFAULT('Microsoft Sans Serif')
+                             #PROMPT('FontSize:',@s255),%CusReportTitleFontSize,DEFAULT(8)
+                             #PROMPT('FontColor:',@s255),%CusReportTitleFontColor,DEFAULT('')
+                             #PROMPT('FontStyle:',@s255),%CusReportTitleFontStyle,DEFAULT(400)
+                             #PROMPT('FontCharSet:',@s255),%CusReportTitleFontCharSet,DEFAULT(1)
+                          #ENDBOXED
+                          #BOXED('Title font')
+                            #BUTTON('Title Font...'),WHENACCEPTED(%SVFSelectFont(%CusReportTitleFontName,%CusReportTitleFontSize,%CusReportTitleFontColor,%CusReportTitleFontStyle,%CusReportTitleFontCharSet)),AT(,,65)
+                            #ENDBUTTON
+                            #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusReportTitleFontName),PROP(PROP:FONTColor,%CusReportTitleFontColor),PROP(PROP:FONTSize,%CusReportTitleFontSize),PROP(PROP:FONTStyle,%CusReportTitleFontStyle),PROP(PROP:FONTCharSet,%CusReportTitleFontCharSet)
+                          #ENDBOXED
+                          #BOXED('Position'),SECTION
+                              #PROMPT('Left:',SPIN(@n5,0,99999)),%CusReportHeaderMarginLeft,DEFAULT(250),AT(35,5,40),PROMPTAT(8,5,25)
+                              #PROMPT('Top:',SPIN(@n5,0,99999)),%CusReportHeaderMarginTop,DEFAULT(250),AT(115,5,40),PROMPTAT(85,5,25)
+                              #PROMPT('Right:',SPIN(@n5,0,99999)),%CusReportHeaderMarginRight,DEFAULT(250),AT(35,20,40),PROMPTAT(8,20,25)
+                              #PROMPT('Height:',SPIN(@n5,0,99999)),%CusReportHeaderPosHeight,DEFAULT(600),AT(115,20,40),PROMPTAT(85,20,25)
+                          #ENDBOXED
+                          #BOXED('HIDDEN'),HIDE
+                             #PROMPT('FontName:',@s255),%CusReportHeaderFontName,DEFAULT('Microsoft Sans Serif')
+                             #PROMPT('FontSize:',@s255),%CusReportHeaderFontSize,DEFAULT(8)
+                             #PROMPT('FontColor:',@s255),%CusReportHeaderFontColor,DEFAULT('')
+                             #PROMPT('FontStyle:',@s255),%CusReportHeaderFontStyle,DEFAULT(400)
+                             #PROMPT('FontCharSet:',@s255),%CusReportHeaderFontCharSet,DEFAULT(1)
+                          #ENDBOXED
+                          #BOXED('Font')
+                            #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusReportHeaderFontName,%CusReportHeaderFontSize,%CusReportHeaderFontColor,%CusReportHeaderFontStyle,%CusReportHeaderFontCharSet)),AT(,,30)
+                            #ENDBUTTON
+                            #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusReportHeaderFontName),PROP(PROP:FONTColor,%CusReportHeaderFontColor),PROP(PROP:FONTSize,%CusReportHeaderFontSize),PROP(PROP:FONTStyle,%CusReportHeaderFontStyle),PROP(PROP:FONTCharSet,%CusReportHeaderFontCharSet)
+                          #ENDBOXED
+                          #BOXED('Header Box'),SECTION
+                             #PROMPT('Add Header Box?',CHECK),%CusReportAddHeaderBox,DEFAULT(1)
+                             #ENABLE(%CusReportAddHeaderBox)
+                                #PROMPT('Header Box Color:',COLOR),%CusReportHeaderBoxColor,DEFAULT('COLOR:Silver')
+                                #PROMPT('Top:',SPIN(@n5,0,99999)),%CusReportHeaderBoxPosY,DEFAULT(350),AT(35,25,40),PROMPTAT(8,25,25)
+                                #PROMPT('Height:',SPIN(@n5,0,99999)),%CusReportHeaderBoxPosHeight,DEFAULT(250),AT(115,25,40),PROMPTAT(85,25,25)
+                             #ENDENABLE
+                          #ENDBOXED
+                       #ENDENABLE
+                   #ENDTAB
+                   #TAB('Detail')
+                       #PROMPT('Background Color:',COLOR),%CusReportDetailColor,DEFAULT(-1)
+                       #BOXED('Position'),SECTION
+                           #PROMPT('X:',SPIN(@n5,0,99999)),%CusReportDetailPosX,DEFAULT(0),AT(35,5,40),PROMPTAT(8,5,25)
+                           #PROMPT('Y:',SPIN(@n5,0,99999)),%CusReportDetailPosY,DEFAULT(0),AT(115,5,40),PROMPTAT(85,5,25)
+                           #PROMPT('Width:',SPIN(@n5,0,99999)),%CusReportDetailPosWidth,DEFAULT(0),AT(35,20,40),PROMPTAT(8,20,25)
+                           #PROMPT('Height:',SPIN(@n5,0,99999)),%CusReportDetailPosHeight,DEFAULT(250),AT(115,20,40),PROMPTAT(85,20,25)
+                           #DISPLAY('IF Width is 0 it take the Report size')
+                       #ENDBOXED
+                       #BOXED('HIDDEN'),HIDE
+                          #PROMPT('FontName:',@s255),%CusReportDetailFontName,DEFAULT('Microsoft Sans Serif')
+                          #PROMPT('FontSize:',@s255),%CusReportDetailFontSize,DEFAULT(8)
+                          #PROMPT('FontColor:',@s255),%CusReportDetailFontColor,DEFAULT('')
+                          #PROMPT('FontStyle:',@s255),%CusReportDetailFontStyle,DEFAULT(400)
+                          #PROMPT('FontCharSet:',@s255),%CusReportDetailFontCharSet,DEFAULT(1)
+                       #ENDBOXED
+                       #BOXED('Font')
+                         #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusReportDetailFontName,%CusReportDetailFontSize,%CusReportDetailFontColor,%CusReportDetailFontStyle,%CusReportDetailFontCharSet)),AT(,,30)
+                         #ENDBUTTON
+                         #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusReportDetailFontName),PROP(PROP:FONTColor,%CusReportDetailFontColor),PROP(PROP:FONTSize,%CusReportDetailFontSize),PROP(PROP:FONTStyle,%CusReportDetailFontStyle),PROP(PROP:FONTCharSet,%CusReportDetailFontCharSet)
+                       #ENDBOXED
+                       #DISPLAY
+                       #PROMPT('Add Detail Lines?',CHECK),%CusReportAddDetailLines,DEFAULT(1),AT(8)
+                       #PROMPT('Automatic adjust Band Height with Row Number?',CHECK),%CusReportDetailAutoAdjustHeightWithRowCount,DEFAULT(1),AT(8)
+                   #ENDTAB
+                   #TAB('Footer')
+                       #PROMPT('Add Footer?',CHECK),%CusReportAddFooter,DEFAULT(1)
+                       #ENABLE(%CusReportAddFooter)
+                          #PROMPT('Background Color:',COLOR),%CusReportFooterColor,DEFAULT(-1)
+                          #BOXED('Position'),SECTION
+                              #PROMPT('Left:',SPIN(@n5,0,99999)),%CusReportFooterMarginLeft,DEFAULT(250),AT(35,5,40),PROMPTAT(8,5,25)
+                              #PROMPT('Bottom:',SPIN(@n5,0,99999)),%CusReportFooterMarginBottom,DEFAULT(250),AT(115,5,40),PROMPTAT(85,5,25)
+                              #PROMPT('Right:',SPIN(@n5,0,99999)),%CusReportFooterMarginRight,DEFAULT(250),AT(35,20,40),PROMPTAT(8,20,25)
+                              #PROMPT('Height:',SPIN(@n5,0,99999)),%CusReportFooterPosHeight,DEFAULT(250),AT(115,20,40),PROMPTAT(85,20,25)
+                          #ENDBOXED
+                          #BOXED('HIDDEN'),HIDE
+                             #PROMPT('FontName:',@s255),%CusReportFooterFontName,DEFAULT('Microsoft Sans Serif')
+                             #PROMPT('FontSize:',@s255),%CusReportFooterFontSize,DEFAULT(8)
+                             #PROMPT('FontColor:',@s255),%CusReportFooterFontColor,DEFAULT('')
+                             #PROMPT('FontStyle:',@s255),%CusReportFooterFontStyle,DEFAULT(400)
+                             #PROMPT('FontCharSet:',@s255),%CusReportFooterFontCharSet,DEFAULT(1)
+                          #ENDBOXED
+                          #BOXED('Font')
+                            #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusReportFooterFontName,%CusReportFooterFontSize,%CusReportFooterFontColor,%CusReportFooterFontStyle,%CusReportFooterFontCharSet)),AT(,,30)
+                            #ENDBUTTON
+                            #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusReportFooterFontName),PROP(PROP:FONTColor,%CusReportFooterFontColor),PROP(PROP:FONTSize,%CusReportFooterFontSize),PROP(PROP:FONTStyle,%CusReportFooterFontStyle),PROP(PROP:FONTCharSet,%CusReportFooterFontCharSet)
+                          #ENDBOXED
+                       #ENDENABLE
+                   #ENDTAB
+                   #TAB('Form')
+                       #PROMPT('Add Form?',CHECK),%CusReportAddForm,DEFAULT(1)
+                       #ENABLE(%CusReportAddForm)
+                          #PROMPT('Background Color:',COLOR),%CusReportFormColor,DEFAULT(-1)
+                          #BOXED('Margins'),SECTION
+                              #PROMPT('Left:',SPIN(@n5,0,99999)),%CusReportFormMarginLeft,DEFAULT(250),AT(35,5,40),PROMPTAT(8,5,25)
+                              #PROMPT('Right:',SPIN(@n5,0,99999)),%CusReportFormMarginRight,DEFAULT(250),AT(115,5,40),PROMPTAT(85,5,25)
+                              #PROMPT('Top:',SPIN(@n5,0,99999)),%CusReportFormMarginTop,DEFAULT(250),AT(35,20,40),PROMPTAT(8,20,25)
+                              #PROMPT('Bottom:',SPIN(@n5,0,99999)),%CusReportFormMarginBottom,DEFAULT(250),AT(115,20,40),PROMPTAT(85,20,25)
+                          #ENDBOXED
+                          #BOXED('HIDDEN'),HIDE
+                             #PROMPT('FontName:',@s255),%CusReportFormFontName,DEFAULT('Microsoft Sans Serif')
+                             #PROMPT('FontSize:',@s255),%CusReportFormFontSize,DEFAULT(8)
+                             #PROMPT('FontColor:',@s255),%CusReportFormFontColor,DEFAULT('')
+                             #PROMPT('FontStyle:',@s255),%CusReportFormFontStyle,DEFAULT(400)
+                             #PROMPT('FontCharSet:',@s255),%CusReportFormFontCharSet,DEFAULT(1)
+                          #ENDBOXED
+                          #BOXED('Font')
+                            #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusReportFormFontName,%CusReportFormFontSize,%CusReportFormFontColor,%CusReportFormFontStyle,%CusReportFormFontCharSet)),AT(,,30)
+                            #ENDBUTTON
+                            #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusReportFormFontName),PROP(PROP:FONTColor,%CusReportFormFontColor),PROP(PROP:FONTSize,%CusReportFormFontSize),PROP(PROP:FONTStyle,%CusReportFormFontStyle),PROP(PROP:FONTCharSet,%CusReportFormFontCharSet)
+                          #ENDBOXED
+                          #BOXED('Image'),SECTION
+                              #PROMPT('Add Image?',CHECK),%CusReportFormAddImage,DEFAULT(1)
+                              #ENABLE(%CusReportFormAddImage)
+                                 #PROMPT('Image File:',OPENDIALOG('Form Image','GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusReportFormImage
+                                 #ENABLE(%CusReportFormImage<>'')
+                                    #PROMPT('Mode:',DROP('Stretched|Tiled|Centered')),%CusReportFormImageMode,DEFAULT('Tiled')
+                                 #ENDENABLE
+                                 #DISPLAY('Position')
+                                     #PROMPT('X:',SPIN(@n5,0,99999)),%CusReportFormImagePosX,DEFAULT(0),AT(35,35,40),PROMPTAT(8,35,25)
+                                     #PROMPT('Y:',SPIN(@n5,0,99999)),%CusReportFormImagePosY,DEFAULT(0),AT(115,35,40),PROMPTAT(85,35,25)
+                                     #PROMPT('Width:',SPIN(@n5,0,99999)),%CusReportFormImagePosWidth,DEFAULT(0),AT(35,50,40),PROMPTAT(8,50,25)
+                                     #PROMPT('Height:',SPIN(@n5,0,99999)),%CusReportFormImagePosHeight,DEFAULT(0),AT(115,50,40),PROMPTAT(85,50,25)
+                                 #DISPLAY('if Width or Height are 0')
+                                 #DISPLAY('its take the same size of the Form.')
+                              #ENDENABLE
+                          #ENDBOXED
+                       #ENDENABLE
+                   #ENDTAB
+                #ENDSHEET
+             #ENDBOXED
+           #ENDTAB
+           #TAB('Additions')
+             #ENABLE(%CusReportAddFooter OR %CusReportAddHeader OR %CusReportAddForm)
+                #BUTTON('Page Number'),HLP('~TPLWizardControlPageNumber.htm')
+                   #PROMPT('Add Page Number?',CHECK),%CusReportPageNum,DEFAULT(%True)
+                   #ENABLE(%CusReportPageNum AND (%CusReportAddFooter OR %CusReportAddHeader))
+                      #PROMPT('Position:',DROP('On Header[HEADER]|On Footer[FOOTER]|On Header and Footer[HEADERFOOTER]|On Form[FORM]')),%CusReportPageNumPosition,DEFAULT('FOOTER')
+                      #PROMPT('Page Picture:',PICTURE),%CusReportPageNumPic,DEFAULT('@pPage <<<#p')
+                      #PROMPT('Pos X:',SPIN(@n5,0,99999)),%CusReportPageNumPosX,DEFAULT(6950)
+                      #PROMPT('Pos Y:',SPIN(@n5,0,99999)),%CusReportPageNumPosY,DEFAULT(52)
+                   #ENDENABLE
+                #ENDBUTTON
+                #BUTTON('Date and Time'),HLP('~TPLWizardControlDateTime.htm')
+                   #PROMPT('Add Date and Time?',CHECK),%CusReportDateTime,DEFAULT(%True)
+                   #ENABLE(%CusReportDateTime AND (%CusReportAddFooter OR %CusReportAddHeader))
+                      #PROMPT('Position:',DROP('On Header[HEADER]|On Footer[FOOTER]|On Header and Footer[HEADERFOOTER]|On Form[FORM]')),%CusReportDateTimePosition,DEFAULT('FOOTER')
+                      #PROMPT('Date Text:',@S20),%CusReportDateText,DEFAULT('Date:')
+                      #PROMPT('Date Picture:',PICTURE),%CusReportDatePic,DEFAULT('@D17')
+                      #PROMPT('Time Text:',@S20),%CusReportTimeText,DEFAULT('Time:')
+                      #PROMPT('Time Picture:',PICTURE),%CusReportTimePic,DEFAULT('@T7')
+                      #PROMPT('Date Prompt Pos X:',SPIN(@n5,0,99999)),%CusReportDatePromptPosX,DEFAULT(115)
+                      #PROMPT('Date Prompt Pos Y:',SPIN(@n5,0,99999)),%CusReportDatePromptPosY,DEFAULT(52)
+                      #PROMPT('Date Pos X:',SPIN(@n5,0,99999)),%CusReportDatePosX,DEFAULT(490)
+                      #PROMPT('Date Pos Y:',SPIN(@n5,0,99999)),%CusReportDatePosY,DEFAULT(52)
+                      #PROMPT('Time Prompt Pos X:',SPIN(@n5,0,99999)),%CusReportTimePromptPosX,DEFAULT(1625)
+                      #PROMPT('Time Prompt Pos Y:',SPIN(@n5,0,99999)),%CusReportTimePromptPosY,DEFAULT(52)
+                      #PROMPT('Time Pos X:',SPIN(@n5,0,99999)),%CusReportTimePosX,DEFAULT(1927)
+                      #PROMPT('Time Pos Y:',SPIN(@n5,0,99999)),%CusReportTimePosY,DEFAULT(52)
+                   #ENDENABLE
+                #ENDBUTTON
+             #ENDENABLE
+           #ENDTAB
+        #ENDSHEET
+    #ENDBOXED
+  #ENDBUTTON
+#!--------------------------------------------------------------------------
+#GROUP(%CustomizationProcessPrompts)
+  #BUTTON('Process Customization'),HLP('~TPLWizardProcessCustomization.htm')
+    #PROMPT('Procedure Name:',@s255),%CusProcessProcName,DEFAULT('Process%FileName'),REQ
+    #VALIDATE(INSTRING(' ',CLIP(%CusProcessProcName),1,1)=0,'The Procedure name can''t have spaces in it.')
+    #VALIDATE(INSTRING('%FileName',CLIP(%CusProcessProcName),1,1)>0,'The Procedure name must contain the %FileName.')
+    #PROMPT('Proc."With Key" Name:',@s255),%CusProcessProcNameKey,DEFAULT('Process%FileNameBy%Key'),REQ
+    #VALIDATE(INSTRING(' ',CLIP(%CusProcessProcNameKey),1,1)=0,'The Procedure "With Key" name can''t have spaces in it.')
+    #VALIDATE(INSTRING('%FileName',CLIP(%CusProcessProcNameKey),1,1)>0 AND INSTRING('%Key',CLIP(%CusProcessProcNameKey),1,1)>0,'The Procedure "With Key" name must contain the %FileName and %Key.')
+    #DISPLAY('You can use the %FileName macro.')
+    #BOXED
+        #SHEET
+           #TAB('Progress Window')
+             #PROMPT('Caption:',@s255),%CusProcessWindowName,DEFAULT('Process %FileName')
+             #DISPLAY('You can use the %FileName macro.')
+             #BOXED('Images')
+               #PROMPT('Background:',OPENDIALOG('Backgrounds','GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusProcessWindowBackGround
+               #ENABLE(%CusProcessWindowBackGround<>'')
+                  #PROMPT('Mode:',DROP('Stretched|Tiled|Centered')),%CusProcessWindowBackGroundMode,DEFAULT('Tiled')
+               #ENDENABLE
+               #PROMPT('Icon:',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusProcessWindowIcon
+             #ENDBOXED
+             #BOXED('HIDDEN'),HIDE
+                #PROMPT('FontName:',@s255),%CusProcessWindowFontName,DEFAULT('Microsoft Sans Serif')
+                #PROMPT('FontSize:',@s255),%CusProcessWindowFontSize,DEFAULT(8)
+                #PROMPT('FontColor:',@s255),%CusProcessWindowFontColor,DEFAULT('')
+                #PROMPT('FontStyle:',@s255),%CusProcessWindowFontStyle,DEFAULT(400)
+                #PROMPT('FontCharSet:',@s255),%CusProcessWindowFontCharSet,DEFAULT(1)
+             #ENDBOXED
+             #BOXED('Font')
+               #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%CusProcessWindowFontName,%CusProcessWindowFontSize,%CusProcessWindowFontColor,%CusProcessWindowFontStyle,%CusProcessWindowFontCharSet)),AT(,,30)
+               #ENDBUTTON
+               #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%CusProcessWindowFontName),PROP(PROP:FONTColor,%CusProcessWindowFontColor),PROP(PROP:FONTSize,%CusProcessWindowFontSize),PROP(PROP:FONTStyle,%CusProcessWindowFontStyle),PROP(PROP:FONTCharSet,%CusProcessWindowFontCharSet)
+             #ENDBOXED
+             #PROMPT('Width:',SPIN(@n3,0,255)),%CusProcessWindowWidth,DEFAULT(142),REQ
+             #PROMPT('Height:',SPIN(@n3,0,255)),%CusProcessWindowHeight,DEFAULT(59),REQ
+             #PROMPT('Position:',DROP('Default[]|Center[CENTER]')),%CusProcessWindowPosition,DEFAULT('CENTER')
+             #BOXED('Controls')
+                #BUTTON('Progress'),HLP('~TPLWizardControlCustomization.htm')
+                   #BOXED('Position'),SECTION
+                      #PROMPT('X:',SPIN(@n5,0,99999)),%CusProcessProgressX,DEFAULT(15),AT(35,5,40),PROMPTAT(8,5,25)
+                      #PROMPT('Y:',SPIN(@n5,0,99999)),%CusProcessProgressY,DEFAULT(15),AT(115,5,40),PROMPTAT(85,5,25)
+                      #PROMPT('Width:',SPIN(@n5,0,99999)),%CusProcessProgressWidth,DEFAULT(111),AT(35,20,40),PROMPTAT(8,20,25)
+                      #PROMPT('Height:',SPIN(@n5,0,99999)),%CusProcessProgressHeight,DEFAULT(12),AT(115,20,40),PROMPTAT(85,20,25)
+                   #ENDBOXED
+                   #BOXED('Options')
+                      #PROMPT('Vertical',CHECK),%CusProcessProgressVertical,DEFAULT(0)
+                      #PROMPT('Smooth',CHECK),%CusProcessProgressSmooth,DEFAULT(0)
+                   #ENDBOXED
+                #ENDBUTTON
+                #BUTTON('User String'),HLP('~TPLWizardControlCustomization.htm')
+                   #BOXED('Position'),SECTION
+                      #PROMPT('X:',SPIN(@n5,0,99999)),%CusProcessUserStringX,DEFAULT(0),AT(35,5,40),PROMPTAT(8,5,25)
+                      #PROMPT('Y:',SPIN(@n5,0,99999)),%CusProcessUserStringY,DEFAULT(3),AT(115,5,40),PROMPTAT(85,5,25)
+                      #PROMPT('Width:',SPIN(@n5,0,99999)),%CusProcessUserStringWidth,DEFAULT(141),AT(35,20,40),PROMPTAT(8,20,25)
+                      #PROMPT('Height:',SPIN(@n5,0,99999)),%CusProcessUserStringHeight,DEFAULT(10),AT(115,20,40),PROMPTAT(85,20,25)
+                   #ENDBOXED
+                   #PROMPT('Justification:',DROP('Left[LEFT]|Right[RIGHT]|Center[CENTER]')),%CusProcessUserStringJustification,DEFAULT('CENTER')
+                #ENDBUTTON
+                #BUTTON('Pct Text'),HLP('~TPLWizardControlCustomization.htm')
+                   #BOXED('Position'),SECTION
+                      #PROMPT('X:',SPIN(@n5,0,99999)),%CusProcessPctTextX,DEFAULT(0),AT(35,5,40),PROMPTAT(8,5,25)
+                      #PROMPT('Y:',SPIN(@n5,0,99999)),%CusProcessPctTextY,DEFAULT(30),AT(115,5,40),PROMPTAT(85,5,25)
+                      #PROMPT('Width:',SPIN(@n5,0,99999)),%CusProcessPctTextWidth,DEFAULT(141),AT(35,20,40),PROMPTAT(8,20,25)
+                      #PROMPT('Height:',SPIN(@n5,0,99999)),%CusProcessPctTextHeight,DEFAULT(10),AT(115,20,40),PROMPTAT(85,20,25)
+                   #ENDBOXED
+                   #PROMPT('Justification:',DROP('Left[LEFT]|Right[RIGHT]|Center[CENTER]')),%CusProcessPctTextJustification,DEFAULT('CENTER')
+                #ENDBUTTON
+                #BUTTON('Cancel Button'),HLP('~TPLWizardControlCustomization.htm')
+                   #BOXED('Position'),SECTION
+                      #PROMPT('Position:',DROP('Bottom Left[LEFT]|Bottom Right[RIGHT]|Bottom Center[CENTER]|Other[OTHER]')),%CusProcessButtonsPos,DEFAULT('CENTER'),PROMPTAT(8,5),AT(,5)
+                      #ENABLE(%CusProcessButtonsPos='OTHER')
+                      #PROMPT('X:',SPIN(@n5,0,99999)),%CusProcessButtonsX,DEFAULT(45),REQ,AT(35,20,40),PROMPTAT(8,20,25)
+                      #PROMPT('Y:',SPIN(@n5,0,99999)),%CusProcessButtonsY,DEFAULT(42),REQ,AT(115,20,40),PROMPTAT(85,20,25)
+                      #ENDENABLE
+                      #PROMPT('Width:',SPIN(@n5,0,99999)),%CusProcessButtonsWidth,DEFAULT(49),REQ,AT(35,35,40),PROMPTAT(8,35,25)
+                      #PROMPT('Height:',SPIN(@n5,0,99999)),%CusProcessButtonsHeight,DEFAULT(15),REQ,AT(115,35,40),PROMPTAT(85,35,25)
+                   #ENDBOXED
+                   #PROMPT('Text:',@S255),%CusProcessCancelButtonText,DEFAULT('Cancel')
+                   #PROMPT('Icon:',ICON('Button Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%CusProcessCancelButtonIcon,DEFAULT('WACANCEL.ICO')
+                   #PROMPT('Cursor:',OPENDIALOG('Button Cursor','Cursors|*.CUR|All|*.*')),%CusProcessCancelButtonCursor,DEFAULT('')
+                   #PROMPT('HotKey:',KEYCODE),%CusProcessCancelButtonKeyCode,DEFAULT('')
+                   #PROMPT('Message:',@S255),%CusProcessCancelButtonMsg,DEFAULT('Cancel Process')
+                   #DISPLAY('Tip:')
+                   #PROMPT('Tip:',TEXT),%CusProcessCancelButtonTip,DEFAULT('Cancel Process')
+                   #BOXED('Options')
+                      #PROMPT('Flat',CHECK),%CusProcessCancelButtonFlat,DEFAULT(1)
+                      #PROMPT('Skip',CHECK),%CusProcessCancelButtonSkip,DEFAULT(0)
+                   #ENDBOXED
+                   #PROMPT('Justification:',DROP('Default|Left|Right')),%CusProcessCancelButtonJustification,DEFAULT('Left')
+                #ENDBUTTON
+             #ENDBOXED
+           #ENDTAB
+        #ENDSHEET
+    #ENDBOXED
+  #ENDBUTTON
+#!--------------------------------------------------------------------------
+#GROUP(%CustomizationWindow,*%pParameters,%pBackGround,%pBackGroundMode,%pIcon,%pFont,%pSystemMenu,%pEntryPaterns,%pPosition)
+#SET(%pParameters,'')
+#IF(%pBackGround)
+   #SET(%pParameters,%pParameters&',WALLPAPER('''&%pBackGround&''')')
+   #CASE(%pBackGroundMode)
+   #OF('Tiled')
+      #SET(%pParameters,%pParameters&',TILED')
+   #OF('Centered')
+      #SET(%pParameters,%pParameters&',CENTERED')
+   #ELSE
+   #ENDCASE
+#ENDIF
+#IF(%pIcon)
+   #SET(%pParameters,%pParameters&',ICON('''&%pIcon&''')')
+#ENDIF
+#IF(%pFont)
+   #SET(%pParameters,%pParameters&',FONT('&%pFont&')')
+#ENDIF
+#IF(UPPER(%pPosition)='DEFAULT' OR UPPER(%pPosition)='CENTER' OR CLIP(%pPosition)='')
+   #IF(UPPER(%pPosition)='DEFAULT' OR CLIP(%pPosition)='')
+   #ELSE
+   #SET(%pParameters,%pParameters&','&UPPER(%pPosition))
+   #END
+#END
+#IF(%pSystemMenu)
+   #SET(%pParameters,%pParameters&',SYSTEM')
+#ENDIF
+#IF(%pEntryPaterns)
+   #SET(%pParameters,%pParameters&',MASK')
+#ENDIF
+#!--------------------------------------------------------------------------
+#GROUP(%CustomizationButtons,*%pDefaultControlText,*%pParameters,%pText,%pIcon,%pHotKey,%pFlat,%pJustification,%pCursor,%pMsg,%pTip,%pSkip)
+#SET(%pDefaultControlText,%pText)
+#SET(%pParameters,'')
+#IF(%pIcon)
+   #IF(UPPER(LEFT(%pIcon,5))='ICON:' OR LEFT(%pIcon,1)='!')
+      #SET(%pParameters,%pParameters&',ICON('&%pIcon&')')
+   #ELSE
+      #SET(%pParameters,%pParameters&',ICON('''&%pIcon&''')')
+   #ENDIF
+#ENDIF
+#IF(%pHotKey)
+   #SET(%pParameters,%pParameters&',KEY('&%pHotKey&')')
+#ENDIF
+#IF(%pFlat)
+   #SET(%pParameters,%pParameters&',FLAT')
+#ENDIF
+#IF(%pCursor)
+   #IF(UPPER(LEFT(%pCursor,7))='CURSOR:' OR LEFT(%pCursor,1)='!')
+      #SET(%pParameters,%pParameters&',CURSOR('&%pCursor&')')
+   #ELSE
+      #SET(%pParameters,%pParameters&',CURSOR('''&%pCursor&''')')
+   #ENDIF
+#ENDIF
+#IF(%pMsg)
+   #SET(%pParameters,%pParameters&',MSG('''&%pMsg&''')')
+#ENDIF
+#IF(%pTip)
+   #CALL(%ReplaceSubString,%pTip,CHR(13)&CHR(10),'<<13,10>')
+   #SET(%pParameters,%pParameters&',TIP('''&%pTip&''')')
+#ENDIF
+#IF(%pSkip)
+   #SET(%pParameters,%pParameters&',SKIP')
+#ENDIF
+#CASE(%pJustification)
+#OF('Left')
+   #SET(%pParameters,%pParameters&',LEFT')
+#OF('Right')
+   #SET(%pParameters,%pParameters&',RIGHT')
+#ELSE
+#ENDCASE
+#!--------------------------------------------------------------------------
+#GROUP(%CustomizationToolbar,*%pParameters,%pBackGround,%pBackGroundMode)
+#SET(%pParameters,'')
+#IF(%pBackGround)
+   #SET(%pParameters,%pParameters&',WALLPAPER('''&%pBackGround&''')')
+   #CASE(%pBackGroundMode)
+   #OF('Tiled')
+      #SET(%pParameters,%pParameters&',TILED')
+   #OF('Centered')
+      #SET(%pParameters,%pParameters&',CENTERED')
+   #ELSE
+   #ENDCASE
+#ENDIF
+#!-------------------------------------------------------
+#GROUP(%ReportAdjustDetailSize,*%pTopMargin,*%pBottomMargin,%pAddHeader,%pHeaderTop,%pHeaderHeight,%pAddFooter,%pFooterBottom,%pFooterHeight)
+#IF(%pAddHeader)
+  #SET(%pTopMargin,%pHeaderTop+%pHeaderHeight)
+#ENDIF
+#IF(%pAddFooter)
+  #SET(%pBottomMargin,%pFooterBottom+%pFooterHeight)
+#ENDIF
+#!*****************************************************************************
+#GROUP(%QuickReportDeclareLabelsType)
+#DECLARE(%LabelReportGroup),MULTI,UNIQUE
+#DECLARE(%LabelReportType,%LabelReportGroup),MULTI,UNIQUE
+#DECLARE(%LabelReportHeight,%LabelReportType)
+#DECLARE(%LabelReportWidth,%LabelReportType)
+#DECLARE(%LabelReportAcross,%LabelReportType)
+#DECLARE(%LabelReportDown,%LabelReportType)
+#DECLARE(%LabelReportTop,%LabelReportType)
+#DECLARE(%LabelReportLeft,%LabelReportType)
+#DECLARE(%LabelReportHPitch,%LabelReportType)
+#DECLARE(%LabelReportVPitch,%LabelReportType)
+#DECLARE(%LabelReportPageWidth,%LabelReportType)
+#DECLARE(%LabelReportPageHeight,%LabelReportType)
+#CALL(%QuickReportLoadLabelsType)
+#!*****************************************************************************
+#GROUP(%QuickReportLoadLabelsType)
+#ADD(%LabelReportGroup,'Avery Address Labels')
+#ADD(%LabelReportType, '5160 - Address')
+#SET(%LabelReportHeight, 1000)
+#SET(%LabelReportWidth,  2625)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown,  10)
+#SET(%LabelReportTop,  500)
+#SET(%LabelReportLeft,  188)
+#SET(%LabelReportHPitch, 2750)
+#SET(%LabelReportVPitch, 1000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5161 - Address')
+#SET(%LabelReportHeight, 1000)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown,  10)
+#SET(%LabelReportTop,  500)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 1000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5162 - Address')
+#SET(%LabelReportHeight, 1333)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown,  7)
+#SET(%LabelReportTop,   833)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 1333)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5163 - Address/shipping')
+#SET(%LabelReportHeight, 2000)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown,  5)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 2000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5164 - Address/shipping')
+#SET(%LabelReportHeight, 3333)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown,  3)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 3333)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5260 - Address')
+#SET(%LabelReportHeight, 1000)
+#SET(%LabelReportWidth,  2625)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown,  10)
+#SET(%LabelReportTop,  500)
+#SET(%LabelReportLeft,  188)
+#SET(%LabelReportHPitch, 2750)
+#SET(%LabelReportVPitch, 1000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5261 - Address')
+#SET(%LabelReportHeight, 1000)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown,  10)
+#SET(%LabelReportTop,  500)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 1000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5262 - Address')
+#SET(%LabelReportHeight, 1333)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown,  7)
+#SET(%LabelReportTop,   833)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 1333)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5267 - Return address')
+#SET(%LabelReportHeight, 500)
+#SET(%LabelReportWidth,  1750)
+#SET(%LabelReportAcross, 4)
+#SET(%LabelReportDown,  20)
+#SET(%LabelReportTop,  500)
+#SET(%LabelReportLeft,  281)
+#SET(%LabelReportHPitch, 2063)
+#SET(%LabelReportVPitch,  500)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5660 - Clear address')
+#SET(%LabelReportHeight, 1000)
+#SET(%LabelReportWidth,  2833)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown,  10)
+#SET(%LabelReportTop,  500)
+#SET(%LabelReportLeft,    0)
+#SET(%LabelReportHPitch, 2833)
+#SET(%LabelReportVPitch, 1000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5661 - Address')
+#SET(%LabelReportHeight, 1000)
+#SET(%LabelReportWidth,  4250)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown,  10)
+#SET(%LabelReportTop,  500)
+#SET(%LabelReportLeft,    0)
+#SET(%LabelReportHPitch, 4250)
+#SET(%LabelReportVPitch, 1000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5662 - Clear address')
+#SET(%LabelReportHeight, 1333)
+#SET(%LabelReportWidth,  4250)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown,  7)
+#SET(%LabelReportTop,   835)
+#SET(%LabelReportLeft,    0)
+#SET(%LabelReportHPitch, 4250)
+#SET(%LabelReportVPitch, 1333)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5663 - Clear address')
+#SET(%LabelReportHeight, 2000)
+#SET(%LabelReportWidth,  4250)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown,  5)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,    0)
+#SET(%LabelReportHPitch, 4250)
+#SET(%LabelReportVPitch, 2000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5664 - Shipping')
+#SET(%LabelReportHeight, 3333)
+#SET(%LabelReportWidth,  4250)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown,  3)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,    0)
+#SET(%LabelReportHPitch, 4250)
+#SET(%LabelReportVPitch, 3333)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5667 - Return address')
+#SET(%LabelReportHeight, 500)
+#SET(%LabelReportWidth,  1750)
+#SET(%LabelReportAcross, 4)
+#SET(%LabelReportDown,  20)
+#SET(%LabelReportTop,  500)
+#SET(%LabelReportLeft,  300)
+#SET(%LabelReportHPitch, 2050)
+#SET(%LabelReportVPitch,  500)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportGroup,'Avery Specialty Labels')
+#ADD(%LabelReportType, '5095 - Name badge')
+#SET(%LabelReportHeight, 2333)
+#SET(%LabelReportWidth,  3375)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 4)
+#SET(%LabelReportTop,    583)
+#SET(%LabelReportLeft,  688)
+#SET(%LabelReportHPitch, 3750)
+#SET(%LabelReportVPitch, 2500)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5096 - 3.5-inch disk')
+#SET(%LabelReportHeight, 2750)
+#SET(%LabelReportWidth,  2750)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown, 3)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  125)
+#SET(%LabelReportHPitch, 2750)
+#SET(%LabelReportVPitch, 3000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight,  9750)
+#!
+#ADD(%LabelReportType, '5097 - 5.25-inch disk')
+#SET(%LabelReportHeight, 1500)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 6)
+#SET(%LabelReportTop,   1000)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 1500)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5165 - Full-sheet')
+#SET(%LabelReportHeight, 11000)
+#SET(%LabelReportWidth, 8500)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 1)
+#SET(%LabelReportTop,      0)
+#SET(%LabelReportLeft,    0)
+#SET(%LabelReportHPitch,    0)
+#SET(%LabelReportVPitch,    0)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5196 - 3.5-inch disk')
+#SET(%LabelReportHeight, 2750)
+#SET(%LabelReportWidth,  2750)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown, 3)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  125)
+#SET(%LabelReportHPitch, 2750)
+#SET(%LabelReportVPitch, 3000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight,  9750)
+#!
+#ADD(%LabelReportType, '5197 - 5.25-inch disk')
+#SET(%LabelReportHeight, 1500)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 6)
+#SET(%LabelReportTop,   1000)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 1500)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5198 - Audio cassette')
+#SET(%LabelReportHeight, 1667)
+#SET(%LabelReportWidth,  3500)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 6)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  500)
+#SET(%LabelReportHPitch, 4000)
+#SET(%LabelReportVPitch, 1667)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5199 - Video cassette')
+#SET(%LabelReportHeight, 1833)
+#SET(%LabelReportWidth,  3063)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 5)
+#SET(%LabelReportTop,    917)
+#SET(%LabelReportLeft, 1069)
+#SET(%LabelReportHPitch, 3300)
+#SET(%LabelReportVPitch, 1833)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5266 - File folder')
+#SET(%LabelReportHeight, 667)
+#SET(%LabelReportWidth,  3438)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 15)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,  531)
+#SET(%LabelReportHPitch, 4000)
+#SET(%LabelReportVPitch,  667)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5395 - Name badge')
+#SET(%LabelReportHeight, 2333)
+#SET(%LabelReportWidth,  3375)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 4)
+#SET(%LabelReportTop,    583)
+#SET(%LabelReportLeft,  688)
+#SET(%LabelReportHPitch, 3750)
+#SET(%LabelReportVPitch, 2500)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5895 - Name badge')
+#SET(%LabelReportHeight, 2333)
+#SET(%LabelReportWidth,  3375)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 4)
+#SET(%LabelReportTop,    583)
+#SET(%LabelReportLeft,  688)
+#SET(%LabelReportHPitch, 3750)
+#SET(%LabelReportVPitch, 2500)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5896 - 3.5-inch disk')
+#SET(%LabelReportHeight, 2750)
+#SET(%LabelReportWidth,  2750)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown, 3)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  125)
+#SET(%LabelReportHPitch, 2750)
+#SET(%LabelReportVPitch, 3000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight,  9750)
+#!
+#ADD(%LabelReportType, '5897 - 5.25-inch disk')
+#SET(%LabelReportHeight, 1500)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 6)
+#SET(%LabelReportTop,   1000)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 1500)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportGroup,'Card Products')
+#ADD(%LabelReportType, '12-294')
+#SET(%LabelReportHeight, 2500)
+#SET(%LabelReportWidth,  4125)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 4)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  250)
+#SET(%LabelReportHPitch, 4125)
+#SET(%LabelReportVPitch, 2500)
+#SET(%LabelReportPageWidth, 8750)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '12-295')
+#SET(%LabelReportHeight, 2500)
+#SET(%LabelReportWidth,  4125)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 4)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  250)
+#SET(%LabelReportHPitch, 4125)
+#SET(%LabelReportVPitch, 2500)
+#SET(%LabelReportPageWidth, 8750)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '12-296')
+#SET(%LabelReportHeight, 3000)
+#SET(%LabelReportWidth,  6250)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 3)
+#SET(%LabelReportTop,   1000)
+#SET(%LabelReportLeft,  750)
+#SET(%LabelReportHPitch, 6250)
+#SET(%LabelReportVPitch, 3000)
+#SET(%LabelReportPageWidth, 7750)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '12-297')
+#SET(%LabelReportHeight, 3000)
+#SET(%LabelReportWidth,  6250)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 3)
+#SET(%LabelReportTop,   1000)
+#SET(%LabelReportLeft,  750)
+#SET(%LabelReportHPitch, 6250)
+#SET(%LabelReportVPitch, 3000)
+#SET(%LabelReportPageWidth, 7750)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5305 - Tent card')
+#SET(%LabelReportHeight, 5000)
+#SET(%LabelReportWidth,  8500)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 2)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,    0)
+#SET(%LabelReportHPitch, 8500)
+#SET(%LabelReportVPitch, 5000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5309')
+#SET(%LabelReportHeight, 7000)
+#SET(%LabelReportWidth, 11000)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 1)
+#SET(%LabelReportTop,    750)
+#SET(%LabelReportLeft,    0)
+#SET(%LabelReportHPitch,11000)
+#SET(%LabelReportVPitch, 7000)
+#SET(%LabelReportPageWidth,11000)
+#SET(%LabelReportPageHeight,  8500)
+#!
+#ADD(%LabelReportType, '5315')
+#SET(%LabelReportHeight, 8500)
+#SET(%LabelReportWidth,  5500)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 1)
+#SET(%LabelReportTop,      0)
+#SET(%LabelReportLeft,    0)
+#SET(%LabelReportHPitch, 5500)
+#SET(%LabelReportVPitch,    0)
+#SET(%LabelReportPageWidth,11000)
+#SET(%LabelReportPageHeight,  8500)
+#!
+#ADD(%LabelReportType, '5371 - Business card')
+#SET(%LabelReportHeight, 2000)
+#SET(%LabelReportWidth,  3500)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 5)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  750)
+#SET(%LabelReportHPitch, 3500)
+#SET(%LabelReportVPitch, 2000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5383 - Name tag')
+#SET(%LabelReportHeight, 2167)
+#SET(%LabelReportWidth,  3500)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 4)
+#SET(%LabelReportTop,   1167)
+#SET(%LabelReportLeft,  750)
+#SET(%LabelReportHPitch, 3500)
+#SET(%LabelReportVPitch, 2167)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5384 - Name tag')
+#SET(%LabelReportHeight, 3000)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 3)
+#SET(%LabelReportTop,   1125)
+#SET(%LabelReportLeft,  250)
+#SET(%LabelReportHPitch, 4000)
+#SET(%LabelReportVPitch, 3000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11250)
+#!
+#ADD(%LabelReportType, '5385 - Rotary index card')
+#SET(%LabelReportHeight, 2167)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 4)
+#SET(%LabelReportTop,   1167)
+#SET(%LabelReportLeft,  250)
+#SET(%LabelReportHPitch, 4000)
+#SET(%LabelReportVPitch, 2167)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5386 - Rotary index and card')
+#SET(%LabelReportHeight, 3000)
+#SET(%LabelReportWidth,  5000)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 3)
+#SET(%LabelReportTop,   1000)
+#SET(%LabelReportLeft, 1750)
+#SET(%LabelReportHPitch, 5000)
+#SET(%LabelReportVPitch, 3000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5388 - Rotary index and card')
+#SET(%LabelReportHeight, 3000)
+#SET(%LabelReportWidth,  5000)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 3)
+#SET(%LabelReportTop,   1000)
+#SET(%LabelReportLeft, 1750)
+#SET(%LabelReportHPitch, 5000)
+#SET(%LabelReportVPitch, 3000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5389 - Index/post card')
+#SET(%LabelReportHeight, 4000)
+#SET(%LabelReportWidth,  6000)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 2)
+#SET(%LabelReportTop,   1500)
+#SET(%LabelReportLeft, 1250)
+#SET(%LabelReportHPitch, 6000)
+#SET(%LabelReportVPitch, 4000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '5883 - Name tag')
+#SET(%LabelReportHeight, 2167)
+#SET(%LabelReportWidth,  3500)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 4)
+#SET(%LabelReportTop,   1167)
+#SET(%LabelReportLeft,  750)
+#SET(%LabelReportHPitch, 3500)
+#SET(%LabelReportVPitch, 2167)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportGroup,'Ink Jet Products')
+#ADD(%LabelReportType, '8160 - Address')
+#SET(%LabelReportHeight, 1000)
+#SET(%LabelReportWidth,  2625)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown, 10)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,  188)
+#SET(%LabelReportHPitch, 2750)
+#SET(%LabelReportVPitch, 1000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '8161 - Address')
+#SET(%LabelReportHeight, 1000)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 10)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 1000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '8162 - Address')
+#SET(%LabelReportHeight, 1333)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 7)
+#SET(%LabelReportTop,    833)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 1333)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '8163 - Shipping')
+#SET(%LabelReportHeight, 2000)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 5)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 2000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '8164 - Shipping')
+#SET(%LabelReportHeight, 3333)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 3)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 3333)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '8165 - Full sheet')
+#SET(%LabelReportHeight, 11000)
+#SET(%LabelReportWidth,  8500)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 1)
+#SET(%LabelReportTop,      0)
+#SET(%LabelReportLeft,    0)
+#SET(%LabelReportHPitch,    0)
+#SET(%LabelReportVPitch,    0)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '8166 - File folder')
+#SET(%LabelReportHeight, 667)
+#SET(%LabelReportWidth,  3438)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 15)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,  531)
+#SET(%LabelReportHPitch, 4000)
+#SET(%LabelReportVPitch,  667)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '8167 - Return Address')
+#SET(%LabelReportHeight, 500)
+#SET(%LabelReportWidth,  1750)
+#SET(%LabelReportAcross, 4)
+#SET(%LabelReportDown, 20)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,  281)
+#SET(%LabelReportHPitch, 2063)
+#SET(%LabelReportVPitch,  500)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '8196 - 3.5-inch disk')
+#SET(%LabelReportHeight, 2750)
+#SET(%LabelReportWidth,  2750)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown, 3)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  125)
+#SET(%LabelReportHPitch, 2750)
+#SET(%LabelReportVPitch, 3000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight,  9750)
+#!
+#ADD(%LabelReportType, '8371 - Business card')
+#SET(%LabelReportHeight, 2000)
+#SET(%LabelReportWidth,  3500)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 5)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  750)
+#SET(%LabelReportHPitch, 3500)
+#SET(%LabelReportVPitch, 2000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '8660 - Address')
+#SET(%LabelReportHeight, 1000)
+#SET(%LabelReportWidth,  2625)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown, 10)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,  188)
+#SET(%LabelReportHPitch, 2750)
+#SET(%LabelReportVPitch, 1000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '8662 - Address')
+#SET(%LabelReportHeight, 1333)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 7)
+#SET(%LabelReportTop,    833)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 1333)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '8663 - Address')
+#SET(%LabelReportHeight, 2000)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 5)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 2000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportGroup,'Mini-Sheets')
+#ADD(%LabelReportType, '2160 - Address')
+#SET(%LabelReportHeight, 1000)
+#SET(%LabelReportWidth,  2630)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 8)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  810)
+#SET(%LabelReportHPitch, 2630)
+#SET(%LabelReportVPitch, 1000)
+#SET(%LabelReportPageWidth, 4250)
+#SET(%LabelReportPageHeight, 9000)
+#!
+#ADD(%LabelReportType, '2162 - Address')
+#SET(%LabelReportHeight, 1330)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 6)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  120)
+#SET(%LabelReportHPitch, 4000)
+#SET(%LabelReportVPitch, 1330)
+#SET(%LabelReportPageWidth, 4240)
+#SET(%LabelReportPageHeight, 8980)
+#!
+#ADD(%LabelReportType, '2163 - Shipping')
+#SET(%LabelReportHeight, 2000)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 4)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  120)
+#SET(%LabelReportHPitch, 4000)
+#SET(%LabelReportVPitch, 2000)
+#SET(%LabelReportPageWidth, 4240)
+#SET(%LabelReportPageHeight, 9000)
+#!
+#ADD(%LabelReportType, '2180 - File folder')
+#SET(%LabelReportHeight, 660)
+#SET(%LabelReportWidth,  3440)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 12)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,  405)
+#SET(%LabelReportHPitch, 3440)
+#SET(%LabelReportVPitch,  660)
+#SET(%LabelReportPageWidth, 4250)
+#SET(%LabelReportPageHeight, 8920)
+#!
+#ADD(%LabelReportType, '2181 - File Folder')
+#SET(%LabelReportHeight, 660)
+#SET(%LabelReportWidth,  3440)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 12)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,  405)
+#SET(%LabelReportHPitch, 3440)
+#SET(%LabelReportVPitch,  660)
+#SET(%LabelReportPageWidth, 4250)
+#SET(%LabelReportPageHeight, 8920)
+#!
+#ADD(%LabelReportType, '2186 - 3.5-inch disk')
+#SET(%LabelReportHeight, 2000)
+#SET(%LabelReportWidth,  2750)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 4)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  750)
+#SET(%LabelReportHPitch, 2750)
+#SET(%LabelReportVPitch, 2000)
+#SET(%LabelReportPageWidth, 4250)
+#SET(%LabelReportPageHeight, 9000)
+#!
+#ADD(%LabelReportType, '2660 - Address')
+#SET(%LabelReportHeight, 1000)
+#SET(%LabelReportWidth,  2630)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 8)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  810)
+#SET(%LabelReportHPitch, 2630)
+#SET(%LabelReportVPitch, 1000)
+#SET(%LabelReportPageWidth, 4250)
+#SET(%LabelReportPageHeight, 9000)
+#!
+#ADD(%LabelReportType, '2662 - Address')
+#SET(%LabelReportHeight, 1330)
+#SET(%LabelReportWidth,  4250)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 6)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,    0)
+#SET(%LabelReportHPitch, 4250)
+#SET(%LabelReportVPitch, 1330)
+#SET(%LabelReportPageWidth, 4250)
+#SET(%LabelReportPageHeight, 8980)
+#!
+#ADD(%LabelReportType, '2663 - Shipping')
+#SET(%LabelReportHeight, 2000)
+#SET(%LabelReportWidth,  4250)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 4)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,    0)
+#SET(%LabelReportHPitch, 4250)
+#SET(%LabelReportVPitch, 2000)
+#SET(%LabelReportPageWidth, 4250)
+#SET(%LabelReportPageHeight, 9000)
+#!
+#ADD(%LabelReportGroup,'Avery A4 Labels')
+#ADD(%LabelReportType, 'L7159 - Address')
+#SET(%LabelReportHeight, 1330)
+#SET(%LabelReportWidth, 2520)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown, 8)
+#SET(%LabelReportTop, 540)
+#SET(%LabelReportLeft, 250)
+#SET(%LabelReportHPitch, 2630)
+#SET(%LabelReportVPitch, 1330)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7160 - Address')
+#SET(%LabelReportHeight, 1500)
+#SET(%LabelReportWidth, 2500)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown, 7)
+#SET(%LabelReportTop, 630)
+#SET(%LabelReportLeft, 280)
+#SET(%LabelReportHPitch, 2600)
+#SET(%LabelReportVPitch, 1500)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7161 - Address')
+#SET(%LabelReportHeight, 1830)
+#SET(%LabelReportWidth, 2500)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown, 6)
+#SET(%LabelReportTop, 380)
+#SET(%LabelReportLeft, 280)
+#SET(%LabelReportHPitch, 2600)
+#SET(%LabelReportVPitch, 1830)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7162 - Address')
+#SET(%LabelReportHeight, 1330)
+#SET(%LabelReportWidth, 3900)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 8)
+#SET(%LabelReportTop, 540)
+#SET(%LabelReportLeft, 180)
+#SET(%LabelReportHPitch, 4000)
+#SET(%LabelReportVPitch, 1330)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7163 - Address')
+#SET(%LabelReportHeight, 1500)
+#SET(%LabelReportWidth, 3900)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 7)
+#SET(%LabelReportTop, 630)
+#SET(%LabelReportLeft, 180)
+#SET(%LabelReportHPitch, 4000)
+#SET(%LabelReportVPitch, 1500)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7164 - Address')
+#SET(%LabelReportHeight, 2830)
+#SET(%LabelReportWidth, 2500)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown, 4)
+#SET(%LabelReportTop, 210)
+#SET(%LabelReportLeft, 280)
+#SET(%LabelReportHPitch, 2600)
+#SET(%LabelReportVPitch, 2830)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7551 - Address')
+#SET(%LabelReportHeight, 830)
+#SET(%LabelReportWidth, 1500)
+#SET(%LabelReportAcross, 5)
+#SET(%LabelReportDown, 13)
+#SET(%LabelReportTop, 460)
+#SET(%LabelReportLeft, 180)
+#SET(%LabelReportHPitch, 1600)
+#SET(%LabelReportVPitch, 830)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7560 - Address')
+#SET(%LabelReportHeight, 1500)
+#SET(%LabelReportWidth, 2500)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown, 7)
+#SET(%LabelReportTop, 630)
+#SET(%LabelReportLeft, 280)
+#SET(%LabelReportHPitch, 2600)
+#SET(%LabelReportVPitch, 1500)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7562 - Address')
+#SET(%LabelReportHeight, 1330)
+#SET(%LabelReportWidth, 3900)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 8)
+#SET(%LabelReportTop, 540)
+#SET(%LabelReportLeft, 180)
+#SET(%LabelReportHPitch, 4000)
+#SET(%LabelReportVPitch, 1330)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7563 - Address')
+#SET(%LabelReportHeight, 1500)
+#SET(%LabelReportWidth, 3900)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 7)
+#SET(%LabelReportTop, 630)
+#SET(%LabelReportLeft, 180)
+#SET(%LabelReportHPitch, 4000)
+#SET(%LabelReportVPitch, 1500)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7567 - Address')
+#SET(%LabelReportHeight, 11380)
+#SET(%LabelReportWidth, 7860)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 1)
+#SET(%LabelReportTop, 160)
+#SET(%LabelReportLeft, 200)
+#SET(%LabelReportHPitch, 7860)
+#SET(%LabelReportVPitch, 11380)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7568 - Address')
+#SET(%LabelReportHeight, 5650)
+#SET(%LabelReportWidth, 7860)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 2)
+#SET(%LabelReportTop, 200)
+#SET(%LabelReportLeft, 200)
+#SET(%LabelReportHPitch, 7860)
+#SET(%LabelReportVPitch, 5650)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7651 - Address')
+#SET(%LabelReportHeight, 830)
+#SET(%LabelReportWidth, 1500)
+#SET(%LabelReportAcross, 5)
+#SET(%LabelReportDown, 13)
+#SET(%LabelReportTop, 460)
+#SET(%LabelReportLeft, 180)
+#SET(%LabelReportHPitch, 1600)
+#SET(%LabelReportVPitch, 830)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7680 - Address')
+#SET(%LabelReportHeight, 830)
+#SET(%LabelReportWidth, 1500)
+#SET(%LabelReportAcross, 5)
+#SET(%LabelReportDown, 13)
+#SET(%LabelReportTop, 460)
+#SET(%LabelReportLeft, 180)
+#SET(%LabelReportHPitch, 1600)
+#SET(%LabelReportVPitch, 830)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7167 - Shipping')
+#SET(%LabelReportHeight, 11380)
+#SET(%LabelReportWidth, 7860)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 1)
+#SET(%LabelReportTop, 180)
+#SET(%LabelReportLeft, 200)
+#SET(%LabelReportHPitch, 7860)
+#SET(%LabelReportVPitch, 11380)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7168 - Shipping')
+#SET(%LabelReportHeight, 5650)
+#SET(%LabelReportWidth, 7860)
+#SET(%LabelReportAcross, 1)
+#SET(%LabelReportDown, 2)
+#SET(%LabelReportTop, 220)
+#SET(%LabelReportLeft, 180)
+#SET(%LabelReportHPitch, 7860)
+#SET(%LabelReportVPitch, 5650)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportType, 'L7173 - Shipping')
+#SET(%LabelReportHeight, 2240)
+#SET(%LabelReportWidth, 3900)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 5)
+#SET(%LabelReportTop, 2260)
+#SET(%LabelReportLeft, 180)
+#SET(%LabelReportHPitch, 4000)
+#SET(%LabelReportVPitch, 2240)
+#SET(%LabelReportPageWidth, 8250)
+#SET(%LabelReportPageHeight, 11688)
+#!
+#ADD(%LabelReportGroup,'Others')
+#ADD(%LabelReportType, '6460')
+#SET(%LabelReportHeight, 1000)
+#SET(%LabelReportWidth,  2625)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown, 10)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,  188)
+#SET(%LabelReportHPitch, 2750)
+#SET(%LabelReportVPitch, 1000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '6464')
+#SET(%LabelReportHeight, 3333)
+#SET(%LabelReportWidth,  4000)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 3)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  156)
+#SET(%LabelReportHPitch, 4188)
+#SET(%LabelReportVPitch, 3333)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '6466')
+#SET(%LabelReportHeight, 667)
+#SET(%LabelReportWidth,  3438)
+#SET(%LabelReportAcross, 2)
+#SET(%LabelReportDown, 15)
+#SET(%LabelReportTop,   500)
+#SET(%LabelReportLeft,  531)
+#SET(%LabelReportHPitch, 4000)
+#SET(%LabelReportVPitch,  667)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+#!
+#ADD(%LabelReportType, '6490')
+#SET(%LabelReportHeight, 2000)
+#SET(%LabelReportWidth,  2688)
+#SET(%LabelReportAcross, 3)
+#SET(%LabelReportDown, 5)
+#SET(%LabelReportTop,    500)
+#SET(%LabelReportLeft,  125)
+#SET(%LabelReportHPitch, 2782)
+#SET(%LabelReportVPitch, 2000)
+#SET(%LabelReportPageWidth, 8500)
+#SET(%LabelReportPageHeight, 11000)
+
+#ADD(%LabelReportGroup,'Custom')
+#ADD(%LabelReportType, 'Custom')
+#!SET(%LabelReportHeight, 0)
+#!SET(%LabelReportWidth,  0)
+#!SET(%LabelReportAcross, 0)
+#!SET(%LabelReportDown,  0)
+#!SET(%LabelReportTop,  0)
+#!SET(%LabelReportLeft,  0)
+#!SET(%LabelReportHPitch, 0)
+#!SET(%LabelReportVPitch, 0)
+#!SET(%LabelReportPageWidth, 0)
+#!SET(%LabelReportPageHeight, 0)
+#!
+#!*****************************************************************************
+#GROUP(%LoadLabelType,*%pQuickLabelGroup,*%pQuickLabelType,*%pLabelReportHeight, *%pLabelReportWidth, *%pLabelReportAcross, *%pLabelReportDown, *%pLabelReportTop, *%pLabelReportLeft, *%pLabelReportHPitch, *%pLabelReportVPitch, *%pLabelReportPageWidth, *%pLabelReportPageHeight,*%pCusReportPaperType)
+#IF(NOT %pQuickLabelGroup)
+   #FOR(%LabelReportGroup)
+     #SET(%pQuickLabelGroup,%LabelReportGroup)
+     #BREAK
+   #ENDFOR
+#ELSE
+  #FIX(%LabelReportGroup,%pQuickLabelGroup)
+#ENDIF
+#FOR(%LabelReportType)
+  #SET(%pQuickLabelType,%LabelReportType)
+  #BREAK
+#ENDFOR
+#IF(%pQuickLabelType<>'Custom')
+#CALL(%SetLabelParametersFromType,%pQuickLabelType,%pLabelReportHeight, %pLabelReportWidth, %pLabelReportAcross, %pLabelReportDown, %pLabelReportTop, %pLabelReportLeft, %pLabelReportHPitch, %pLabelReportVPitch, %pLabelReportPageWidth, %pLabelReportPageHeight,%pCusReportPaperType)
+#ENDIF
+#!
+#!*****************************************************************************
+#GROUP(%SetLabelParametersFromType,%pQuickLabelType,*%pLabelReportHeight, *%pLabelReportWidth, *%pLabelReportAcross, *%pLabelReportDown, *%pLabelReportTop, *%pLabelReportLeft, *%pLabelReportHPitch, *%pLabelReportVPitch, *%pLabelReportPageWidth, *%pLabelReportPageHeight,*%pCusReportPaperType)
+#FIND(%LabelReportType,%pQuickLabelType)
+#IF(%LabelReportType AND %LabelReportType<>'Custom')
+   #SET(%pLabelReportHeight, %LabelReportHeight)
+   #SET(%pLabelReportWidth, %LabelReportWidth)
+   #SET(%pLabelReportAcross, %LabelReportAcross)
+   #SET(%pLabelReportDown, %LabelReportDown)
+   #SET(%pLabelReportTop, %LabelReportTop)
+   #SET(%pLabelReportLeft, %LabelReportLeft)
+   #SET(%pLabelReportHPitch, %LabelReportHPitch)
+   #SET(%pLabelReportVPitch, %LabelReportVPitch)
+   #SET(%pLabelReportPageWidth, %LabelReportPageWidth)
+   #SET(%pLabelReportPageHeight, %LabelReportPageHeight)
+   #CALL(%SVFGetPaperFromWidthHeight,%pLabelReportPageWidth, %pLabelReportPageHeight,%pCusReportPaperType)
+#ENDIF
+#!*****************************************************************************
+#GROUP(%SetReportLayourFromLabel),AUTO
+#DECLARE(%lDetailWidth)
+#DECLARE(%lDetailHeight)
+#SET(%lDetailWidth,0)
+#SET(%lDetailHeight,0)
+#!
+#SET(%QuickReportColumnCount,1)
+#SET(%CusReportAddHeader,0)
+#SET(%CusReportHeaderMarginTop,0)
+#SET(%CusReportHeaderPosHeight,0)
+#SET(%CusReportAddFooter,0)
+#SET(%CusReportFooterMarginBottom,0)
+#SET(%CusReportFooterPosHeight,0)
+#SET(%CusReportAddForm,0)
+#!
+#SET(%CusReportPageNum,%False)
+#SET(%CusReportDateTime,%False)
+#SET(%CusReportAddDetailLines,0)
+#SET(%CusReportDetailAutoAdjustHeightWithRowCount,0)
+#!
+#SET(%CusReportProcName,%CusLabelReportProcName)
+#SET(%CusReportProcNameKey,%CusLabelReportProcNameKey)
+#SET(%CusReportWindowName,%CusLabelReportWindowName)
+#SET(%CusReportWindowBackGround,%CusLabelReportWindowBackGround)
+#SET(%CusReportWindowBackGroundMode,%CusLabelReportWindowBackGroundMode)
+#SET(%CusReportWindowIcon,%CusLabelReportWindowIcon)
+#SET(%CusReportWindowFontName,%CusLabelReportWindowFontName)
+#SET(%CusReportWindowFontSize,%CusLabelReportWindowFontSize)
+#SET(%CusReportWindowFontColor,%CusLabelReportWindowFontColor)
+#SET(%CusReportWindowFontStyle,%CusLabelReportWindowFontStyle)
+#SET(%CusReportWindowFontCharSet,%CusLabelReportWindowFontCharSet)
+#SET(%CusReportWindowWidth,%CusLabelReportWindowWidth)
+#SET(%CusReportWindowHeight,%CusLabelReportWindowHeight)
+#SET(%CusReportWindowPosition,%CusLabelReportWindowPosition)
+#SET(%CusReportProgressX,%CusLabelReportProgressX)
+#SET(%CusReportProgressY,%CusLabelReportProgressY)
+#SET(%CusReportProgressWidth,%CusLabelReportProgressWidth)
+#SET(%CusReportProgressHeight,%CusLabelReportProgressHeight)
+#SET(%CusReportUserStringX,%CusLabelReportUserStringX)
+#SET(%CusReportUserStringY,%CusLabelReportUserStringY)
+#SET(%CusReportUserStringWidth,%CusLabelReportUserStringWidth)
+#SET(%CusReportUserStringHeight,%CusLabelReportUserStringHeight)
+#SET(%CusReportUserStringJustification,%CusLabelReportUserStringJustification)
+#SET(%CusReportPctTextX,%CusLabelReportPctTextX)
+#SET(%CusReportPctTextY,%CusLabelReportPctTextY)
+#SET(%CusReportPctTextWidth,%CusLabelReportPctTextWidth)
+#SET(%CusReportPctTextHeight,%CusLabelReportPctTextHeight)
+#SET(%CusReportPctTextJustification,%CusLabelReportPctTextJustification)
+#SET(%CusReportButtonsPos,%CusLabelReportButtonsPos)
+#SET(%CusReportButtonsX,%CusLabelReportButtonsX)
+#SET(%CusReportButtonsY,%CusLabelReportButtonsY)
+#SET(%CusReportButtonsWidth,%CusLabelReportButtonsWidth)
+#SET(%CusReportButtonsHeight,%CusLabelReportButtonsHeight)
+#SET(%CusReportCancelButtonText,%CusLabelReportCancelButtonText)
+#SET(%CusReportCancelButtonIcon,%CusLabelReportCancelButtonIcon)
+#SET(%CusReportCancelButtonCursor,%CusLabelReportCancelButtonCursor)
+#SET(%CusReportCancelButtonKeyCode,%CusLabelReportCancelButtonKeyCode)
+#SET(%CusReportCancelButtonMsg,%CusLabelReportCancelButtonMsg)
+#SET(%CusReportCancelButtonTip,%CusLabelReportCancelButtonTip)
+#SET(%CusReportCancelButtonFlat,%CusLabelReportCancelButtonFlat)
+#SET(%CusReportCancelButtonSkip,%CusLabelReportCancelButtonSkip)
+#SET(%CusReportCancelButtonJustification,%CusLabelReportCancelButtonJustification)
+#SET(%CusReportJobName,%CusLabelReportJobName)
+#SET(%CusReportOrientation,%CusLabelReportOrientation)
+#SET(%CusReportFontName,%CusLabelReportFontName)
+#SET(%CusReportFontSize,%CusLabelReportFontSize)
+#SET(%CusReportFontColor,%CusLabelReportFontColor)
+#SET(%CusReportFontStyle,%CusLabelReportFontStyle)
+#SET(%CusReportFontCharSet,%CusLabelReportFontCharSet)
+#SET(%CusReportShowPreview,%CusLabelReportShowPreview)
+#SET(%CusReportPreviewMaximized,%CusLabelReportPreviewMaximized)
+#SET(%CusReportPreviewDefaultZoom,%CusLabelReportPreviewDefaultZoom)
+#SET(%CusReportDetailColor,%CusLabelReportDetailColor)
+#SET(%CusReportDetailFontName,%CusLabelReportDetailFontName)
+#SET(%CusReportDetailFontSize,%CusLabelReportDetailFontSize)
+#SET(%CusReportDetailFontColor,%CusLabelReportDetailFontColor)
+#SET(%CusReportDetailFontStyle,%CusLabelReportDetailFontStyle)
+#SET(%CusReportDetailFontCharSet,%CusLabelReportDetailFontCharSet)
+#!
+#SET(%CusReportPaperType,%CusLabelReportPaperType)
+#SET(%CusReportWidth,%CusLabelReportPageWidth)
+#SET(%CusReportHeight,%CusLabelReportPageHeight)
+#SET(%CusReportMarginLeft,%CusLabelReportLeft)
+#SET(%CusReportMarginTop,%CusLabelReportTop)
+#!
+#!
+#SET(%lDetailWidth,(%CusLabelReportHPitch*(%CusLabelReportAcross-1))+%CusLabelReportWidth)
+#SET(%lDetailHeight,(%CusLabelReportVPitch*(%CusLabelReportDown-1))+%CusLabelReportHeight)
+#!
+#SET(%CusReportMarginRight,%CusReportWidth-%CusLabelReportLeft-(%CusLabelReportHPitch*%CusLabelReportAcross))
+#IF(%CusReportMarginRight<0)
+   #SET(%CusReportWidth,%CusReportWidth-%CusReportMarginRight)
+#ENDIF
+#!
+#SET(%CusReportMarginBottom,%CusReportHeight-%CusLabelReportTop-%lDetailHeight)
+#IF(%CusReportMarginBottom<0)
+   #SET(%CusReportHeight,%CusReportHeight-%CusReportMarginBottom)
+#ENDIF
+#!
+#SET(%CusReportDetailPosX,0)
+#SET(%CusReportDetailPosY,0)
+#IF(%CusLabelReportHPitch>%CusLabelReportWidth)
+   #SET(%CusReportDetailPosWidth,%CusLabelReportHPitch)
+#ELSE
+   #SET(%CusReportDetailPosWidth,%CusLabelReportWidth)
+#ENDIF
+#IF(%CusLabelReportVPitch>%CusLabelReportHeight)
+    #SET(%CusReportDetailPosHeight,%CusLabelReportVPitch)
+#ELSE
+    #SET(%CusReportDetailPosHeight,%CusLabelReportHeight)
+#ENDIF
+#!

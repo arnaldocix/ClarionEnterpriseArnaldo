@@ -1,0 +1,1029 @@
+[PROCEDURE]
+NAME EVO_RPT_Export
+PROTOTYPE '(*QUEUE,*QUEUE,*QUEUE,Short,STRING,*GROUP)'
+GLOBAL
+[COMMON]
+FROM ABC Window
+MODIFIED '2009/12/22' '12:31:36'
+[DATA]
+[SCREENCONTROLS]
+! PROMPT('Loc : Any:'),USE(?Loc:Any:Prompt)
+! ENTRY(@s20),USE(Loc:Any)
+[REPORTCONTROLS]
+! STRING(@s20),USE(Loc:Any)
+Loc:Any                  ANY
+!!> IDENT(4294967204),PROMPT('Loc : Any:'),HEADER('Loc : Any'),PICTURE(@s20)
+[SCREENCONTROLS]
+! PROMPT('G : Parameters:'),USE(?G:Parameters:Prompt)
+! ENTRY(@s2),USE(G:Parameters)
+[REPORTCONTROLS]
+! STRING(@s2),USE(G:Parameters)
+G:Parameters             GROUP,PRE()
+!!> IDENT(4294967203),PROMPT('G : Parameters:'),HEADER('G : Parameters'),PICTURE(@s2)
+[SCREENCONTROLS]
+! PROMPT('L : Option:'),USE(?L:Option:Prompt)
+! ENTRY(@n-7),USE(L:Option),RIGHT(1)
+[REPORTCONTROLS]
+! STRING(@n-7),USE(L:Option),RIGHT(1)
+L:Option                   SHORT
+!!> IDENT(4294967202),PROMPT('L : Option:'),HEADER('L : Option'),PICTURE(@n-7),JUSTIFY(RIGHT,1)
+                         END
+!!> IDENT(4294967201)
+[SCREENCONTROLS]
+! PROMPT('Files Opened:'),USE(?FilesOpened:Prompt)
+! ENTRY(@n3),USE(FilesOpened)
+[REPORTCONTROLS]
+! STRING(@n3),USE(FilesOpened)
+FilesOpened              BYTE
+!!> IDENT(4294967200),PROMPT('Files Opened:'),HEADER('Files Opened'),PICTURE(@n3)
+[SCREENCONTROLS]
+! PROMPT('L : Lenguaje:'),USE(?L:Lenguaje:Prompt)
+! ENTRY(@s20),USE(L:Lenguaje)
+[REPORTCONTROLS]
+! STRING(@s20),USE(L:Lenguaje)
+L:Lenguaje               STRING(20)
+!!> IDENT(4294967199),PROMPT('L : Lenguaje:'),HEADER('L : Lenguaje'),PICTURE(@s20)
+[SCREENCONTROLS]
+! PROMPT('L : preview:'),USE(?L:preview:Prompt)
+! ENTRY(@n3),USE(L:preview)
+[REPORTCONTROLS]
+! STRING(@n3),USE(L:preview)
+L:preview                BYTE
+!!> IDENT(4294967198),PROMPT('L : preview:'),HEADER('L : preview'),PICTURE(@n3)
+[SCREENCONTROLS]
+! TEXT,USE(Loc:Campos)
+[REPORTCONTROLS]
+! TEXT,USE(Loc:Campos)
+Loc:Campos               STRING(500)
+!!> IDENT(4294967197),PICTURE(@s255)
+[SCREENCONTROLS]
+! ENTRY(@s1),USE(Loc:Separador)
+[REPORTCONTROLS]
+! STRING(@s1),USE(Loc:Separador)
+Loc:Separador            STRING(1)
+!!> IDENT(4294967196),PICTURE(@s1)
+[SCREENCONTROLS]
+! ENTRY(@s100),USE(Loc:DevicePDF)
+[REPORTCONTROLS]
+! STRING(@s100),USE(Loc:DevicePDF)
+Loc:DevicePDF            STRING(100)
+!!> IDENT(4294967195),PICTURE(@s100)
+[SCREENCONTROLS]
+! ENTRY(@n-14),USE(a)
+[REPORTCONTROLS]
+! STRING(@n-14),USE(a)
+a                        LONG,AUTO
+!!> IDENT(4294967194),PICTURE(@n-14)
+[SCREENCONTROLS]
+! ENTRY(@n-14),USE(p)
+[REPORTCONTROLS]
+! STRING(@n-14),USE(p)
+p                        LONG,AUTO
+!!> IDENT(4294967193),PICTURE(@n-14)
+[SCREENCONTROLS]
+! ENTRY(@s3),USE(Read)
+[REPORTCONTROLS]
+! STRING(@s3),USE(Read)
+Read                     STRING(3)
+!!> IDENT(4294967192),PICTURE(@s3)
+[SCREENCONTROLS]
+! ENTRY(@s255),USE(ItemQueueDisp)
+[REPORTCONTROLS]
+! STRING(@s255),USE(ItemQueueDisp)
+ItemQueueDisp            QUEUE,PRE()
+!!> IDENT(4294967191),PICTURE(@s255)
+[SCREENCONTROLS]
+! TEXT,USE(SItem)
+[REPORTCONTROLS]
+! TEXT,USE(SItem)
+SItem                      CSTRING(1024)
+!!> IDENT(4294967190),PICTURE(@s255)
+[SCREENCONTROLS]
+! ENTRY(@n-7),USE(SItem_Id)
+[REPORTCONTROLS]
+! STRING(@n-7),USE(SItem_Id)
+SItem_Id                   SHORT
+!!> IDENT(4294967189),PICTURE(@n-7)
+                         END
+!!> IDENT(4294967188)
+[SCREENCONTROLS]
+! ENTRY(@n-14),USE(Loc:UltimoCampo)
+[REPORTCONTROLS]
+! STRING(@n-14),USE(Loc:UltimoCampo)
+Loc:UltimoCampo          LONG
+!!> IDENT(4294967187),PICTURE(@n-14)
+[SCREENCONTROLS]
+! ENTRY(@n-14),USE(Loc:CantReg)
+[REPORTCONTROLS]
+! STRING(@n-14),USE(Loc:CantReg)
+Loc:CantReg              LONG
+!!> IDENT(4294967186),PICTURE(@n-14)
+[SCREENCONTROLS]
+! ENTRY(@s100),USE(Loc:entry)
+[REPORTCONTROLS]
+! STRING(@s100),USE(Loc:entry)
+Loc:entry                STRING(100)
+!!> IDENT(4294967185),PICTURE(@s100)
+[SCREENCONTROLS]
+! ENTRY(@n-7),USE(Loc:Tot)
+[REPORTCONTROLS]
+! STRING(@n-7),USE(Loc:Tot)
+Loc:Tot                  SHORT
+!!> IDENT(4294967184),PICTURE(@n-7)
+[SCREENCONTROLS]
+! ENTRY(@s30),USE(Loc:SalidaFiles)
+[REPORTCONTROLS]
+! STRING(@s30),USE(Loc:SalidaFiles)
+Loc:SalidaFiles          STRING(30)
+!!> IDENT(4294967183),PICTURE(@s30)
+[SCREENCONTROLS]
+! ENTRY(@s1),USE(Loc:Html)
+[REPORTCONTROLS]
+! STRING(@s1),USE(Loc:Html)
+Loc:Html                 STRING(1)
+!!> IDENT(4294967182),PICTURE(@s1)
+[SCREENCONTROLS]
+! ENTRY(@s1),USE(Loc:Excel)
+[REPORTCONTROLS]
+! STRING(@s1),USE(Loc:Excel)
+Loc:Excel                STRING(1)
+!!> IDENT(4294967181),PICTURE(@s1)
+[SCREENCONTROLS]
+! ENTRY(@s1),USE(Loc:Word)
+[REPORTCONTROLS]
+! STRING(@s1),USE(Loc:Word)
+Loc:Word                 STRING(1)
+!!> IDENT(4294967180),PICTURE(@s1)
+[SCREENCONTROLS]
+! ENTRY(@s1),USE(Loc:Ascii)
+[REPORTCONTROLS]
+! STRING(@s1),USE(Loc:Ascii)
+Loc:Ascii                STRING(1)
+!!> IDENT(4294967179),PICTURE(@s1)
+[SCREENCONTROLS]
+! ENTRY(@s1),USE(Loc:xml)
+[REPORTCONTROLS]
+! STRING(@s1),USE(Loc:xml)
+Loc:xml                  STRING(1)
+!!> IDENT(4294967178),PICTURE(@s1)
+[SCREENCONTROLS]
+! ENTRY(@s1),USE(Loc:Prt)
+[REPORTCONTROLS]
+! STRING(@s1),USE(Loc:Prt)
+Loc:Prt                  STRING(1)
+!!> IDENT(4294967177),PICTURE(@s1)
+[SCREENCONTROLS]
+! ENTRY(@s1),USE(Loc:Selfields)
+[REPORTCONTROLS]
+! STRING(@s1),USE(Loc:Selfields)
+Loc:Selfields            STRING(1)
+!!> IDENT(4294967176),PICTURE(@s1)
+[SCREENCONTROLS]
+! ENTRY(@s15),USE(Loc:Export)
+[REPORTCONTROLS]
+! STRING(@s15),USE(Loc:Export)
+Loc:Export               STRING(15)
+!!> IDENT(4294967175),PICTURE(@s15)
+[SCREENCONTROLS]
+! ENTRY(@n3),USE(L:Yes_Order)
+[REPORTCONTROLS]
+! STRING(@n3),USE(L:Yes_Order)
+L:Yes_Order              BYTE
+!!> IDENT(4294967174),PICTURE(@n3)
+[SCREENCONTROLS]
+! ENTRY(@n3),USE(L:Order)
+[REPORTCONTROLS]
+! STRING(@n3),USE(L:Order)
+L:Order                  BYTE
+!!> IDENT(4294967173),PICTURE(@n3)
+[SCREENCONTROLS]
+! ENTRY(@s30),USE(Ec_AUX:descripcion)
+[REPORTCONTROLS]
+! STRING(@s30),USE(Ec_AUX:descripcion)
+Ec_AUX:descripcion       STRING(30)
+!!> IDENT(4294967172),PICTURE(@s30)
+[SCREENCONTROLS]
+! ENTRY(@s1),USE(Ec_AUX:orden)
+[REPORTCONTROLS]
+! STRING(@s1),USE(Ec_AUX:orden)
+Ec_AUX:orden             STRING(1)
+!!> IDENT(4294967171),PICTURE(@s1)
+[SCREENCONTROLS]
+! ENTRY(@s100),USE(Ec_AUX:campo)
+[REPORTCONTROLS]
+! STRING(@s100),USE(Ec_AUX:campo)
+Ec_AUX:campo             STRING(100)
+!!> IDENT(4294967170),PICTURE(@s100)
+[SCREENCONTROLS]
+! ENTRY(@s30),USE(Ec_AUX2:descripcion)
+[REPORTCONTROLS]
+! STRING(@s30),USE(Ec_AUX2:descripcion)
+Ec_AUX2:descripcion      STRING(30)
+!!> IDENT(4294967169),PICTURE(@s30)
+[SCREENCONTROLS]
+! ENTRY(@s1),USE(Ec_AUX2:orden)
+[REPORTCONTROLS]
+! STRING(@s1),USE(Ec_AUX2:orden)
+Ec_AUX2:orden            STRING(1)
+!!> IDENT(4294967168),PICTURE(@s1)
+[SCREENCONTROLS]
+! ENTRY(@s100),USE(Ec_AUX2:campo)
+[REPORTCONTROLS]
+! STRING(@s100),USE(Ec_AUX2:campo)
+Ec_AUX2:campo            STRING(100)
+!!> IDENT(4294967167),PICTURE(@s100)
+[SCREENCONTROLS]
+! ENTRY(@s240),USE(Ec_AUX:filtro)
+[REPORTCONTROLS]
+! STRING(@s240),USE(Ec_AUX:filtro)
+Ec_AUX:filtro            STRING(240)
+!!> IDENT(4294967166),PICTURE(@s240)
+[SCREENCONTROLS]
+! ENTRY(@n3),USE(Ec_ImpresionCancelada)
+[REPORTCONTROLS]
+! STRING(@n3),USE(Ec_ImpresionCancelada)
+Ec_ImpresionCancelada    BYTE(0)
+!!> IDENT(4294967165),INITIAL('0'),PICTURE(@n3)
+[SCREENCONTROLS]
+! ENTRY(@s255),USE(ItemQueuePapel)
+[REPORTCONTROLS]
+! STRING(@s255),USE(ItemQueuePapel)
+ItemQueuePapel           QUEUE,PRE()
+!!> IDENT(4294967164),PICTURE(@s255)
+[SCREENCONTROLS]
+! TEXT,USE(PItem)
+[REPORTCONTROLS]
+! TEXT,USE(PItem)
+PItem                      CSTRING(1024)
+!!> IDENT(4294967163),PICTURE(@s255)
+[SCREENCONTROLS]
+! ENTRY(@n-14),USE(PItem_Icono)
+[REPORTCONTROLS]
+! STRING(@n-14),USE(PItem_Icono)
+PItem_Icono                LONG
+!!> IDENT(4294967162),PICTURE(@n-14)
+[SCREENCONTROLS]
+! ENTRY(@n-7),USE(PItem_Id)
+[REPORTCONTROLS]
+! STRING(@n-7),USE(PItem_Id)
+PItem_Id                   SHORT
+!!> IDENT(4294967161),PICTURE(@n-7)
+[SCREENCONTROLS]
+! ENTRY(@n-7),USE(HTextColor)
+[REPORTCONTROLS]
+! STRING(@n-7),USE(HTextColor)
+HTextColor                 SHORT
+!!> IDENT(4294967160),PICTURE(@n-7)
+[SCREENCONTROLS]
+! ENTRY(@n-7),USE(HTextBack)
+[REPORTCONTROLS]
+! STRING(@n-7),USE(HTextBack)
+HTextBack                  SHORT
+!!> IDENT(4294967159),PICTURE(@n-7)
+[SCREENCONTROLS]
+! ENTRY(@s20),USE(HTextFont)
+[REPORTCONTROLS]
+! STRING(@s20),USE(HTextFont)
+HTextFont                  STRING(20)
+!!> IDENT(4294967158),PICTURE(@s20)
+[SCREENCONTROLS]
+! ENTRY(@n-7),USE(HTextFontSize)
+[REPORTCONTROLS]
+! STRING(@n-7),USE(HTextFontSize)
+HTextFontSize              SHORT
+!!> IDENT(4294967157),PICTURE(@n-7)
+[SCREENCONTROLS]
+! ENTRY(@n-7),USE(FTextColor)
+[REPORTCONTROLS]
+! STRING(@n-7),USE(FTextColor)
+FTextColor                 SHORT
+!!> IDENT(4294967156),PICTURE(@n-7)
+[SCREENCONTROLS]
+! ENTRY(@n-7),USE(FTextBack)
+[REPORTCONTROLS]
+! STRING(@n-7),USE(FTextBack)
+FTextBack                  SHORT
+!!> IDENT(4294967155),PICTURE(@n-7)
+[SCREENCONTROLS]
+! ENTRY(@s20),USE(FTextFont)
+[REPORTCONTROLS]
+! STRING(@s20),USE(FTextFont)
+FTextFont                  STRING(20)
+!!> IDENT(4294967154),PICTURE(@s20)
+[SCREENCONTROLS]
+! ENTRY(@n-7),USE(FTextFontSize)
+[REPORTCONTROLS]
+! STRING(@n-7),USE(FTextFontSize)
+FTextFontSize              SHORT
+!!> IDENT(4294967153),PICTURE(@n-7)
+                         END
+!!> IDENT(4294967152)
+[SCREENCONTROLS]
+! ENTRY(@s100),USE(G:Titulo)
+[REPORTCONTROLS]
+! STRING(@s100),USE(G:Titulo)
+G:Titulo                 STRING(100)
+!!> IDENT(4294967151),PICTURE(@s100)
+[SCREENCONTROLS]
+! ENTRY(@n3),USE(GLO:Demo)
+[REPORTCONTROLS]
+! STRING(@n3),USE(GLO:Demo)
+GLO:Demo                 BYTE
+!!> IDENT(4294967150),PICTURE(@n3)
+[SCREENCONTROLS]
+! ENTRY(@n-7),USE(GLO:Limite_Demo)
+[REPORTCONTROLS]
+! STRING(@n-7),USE(GLO:Limite_Demo)
+GLO:Limite_Demo          SHORT
+!!> IDENT(4294967149),PICTURE(@n-7)
+[SCREENCONTROLS]
+! ENTRY(@s2),USE(QCons)
+[REPORTCONTROLS]
+! STRING(@s2),USE(QCons)
+QCons                    QUEUE,PRE(QCo)
+!!> IDENT(4294967148),PICTURE(@s2)
+[SCREENCONTROLS]
+! ENTRY(@n-7),USE(QCo:Id)
+[REPORTCONTROLS]
+! STRING(@n-7),USE(QCo:Id)
+Id                         SHORT
+!!> IDENT(4294967147),PICTURE(@n-7)
+                         END
+!!> IDENT(4294967146)
+[SCREENCONTROLS]
+! ENTRY(@s133),USE(Ec_queue)
+[REPORTCONTROLS]
+! STRING(@s133),USE(Ec_queue)
+Ec_queue                 QUEUE,PRE(Ec_Q)
+!!> IDENT(4294967145),PICTURE(@s133)
+[SCREENCONTROLS]
+! ENTRY(@s1),USE(Ec_Q:Ec_orden)
+[REPORTCONTROLS]
+! STRING(@s1),USE(Ec_Q:Ec_orden)
+Ec_orden                   STRING(1)
+!!> IDENT(4294967144),PICTURE(@s1)
+[SCREENCONTROLS]
+! ENTRY(@s30),USE(Ec_Q:Ec_descripcion)
+[REPORTCONTROLS]
+! STRING(@s30),USE(Ec_Q:Ec_descripcion)
+Ec_descripcion             STRING(30)
+!!> IDENT(4294967143),PICTURE(@s30)
+[SCREENCONTROLS]
+! ENTRY(@s100),USE(Ec_Q:Ec_campo)
+[REPORTCONTROLS]
+! STRING(@s100),USE(Ec_Q:Ec_campo)
+Ec_campo                   STRING(100)
+!!> IDENT(4294967142),PICTURE(@s100)
+[SCREENCONTROLS]
+! ENTRY(@n-7),USE(Ec_Q:Ec_Pointer)
+[REPORTCONTROLS]
+! STRING(@n-7),USE(Ec_Q:Ec_Pointer)
+Ec_Pointer                 SHORT
+!!> IDENT(4294967141),PICTURE(@n-7)
+                         END
+!!> IDENT(4294967140)
+[SCREENCONTROLS]
+! PROMPT('L : App:'),USE(?L:App:Prompt)
+! ENTRY(@s50),USE(L:App)
+[REPORTCONTROLS]
+! STRING(@s50),USE(L:App)
+L:App                    STRING(50)
+!!> IDENT(4294967139),PROMPT('L : App:'),HEADER('L : App'),PICTURE(@s50)
+[SCREENCONTROLS]
+! PROMPT('L : Procedure:'),USE(?L:Procedure:Prompt)
+! ENTRY(@s50),USE(L:Procedure)
+[REPORTCONTROLS]
+! STRING(@s50),USE(L:Procedure)
+L:Procedure              STRING(50)
+!!> IDENT(4294967138),PROMPT('L : Procedure:'),HEADER('L : Procedure'),PICTURE(@s50)
+[SCREENCONTROLS]
+! PROMPT('L : Save:'),USE(?L:Save:Prompt)
+! ENTRY(@s50),USE(L:Save)
+[REPORTCONTROLS]
+! STRING(@s50),USE(L:Save)
+L:Save                   STRING(50)
+!!> IDENT(4294967137),PROMPT('L : Save:'),HEADER('L : Save'),PICTURE(@s50)
+[SCREENCONTROLS]
+! PROMPT('L : Save Exp:'),USE(?L:SaveExp:Prompt)
+! ENTRY(@n3),USE(L:SaveExp)
+[REPORTCONTROLS]
+! STRING(@n3),USE(L:SaveExp)
+L:SaveExp                BYTE
+!!> IDENT(4294967136),PROMPT('L : Save Exp:'),HEADER('L : Save Exp'),PICTURE(@n3)
+[PROMPTS]
+%ClassItem UNIQUE DEFAULT  ('Default', 'WindowToolbar')
+%DefaultBaseClassType DEPEND %ClassItem DEFAULT TIMES 2
+WHEN  ('Default') ('WindowManager')
+WHEN  ('WindowToolbar') ('ToolbarClass')
+
+%ActualDefaultBaseClassType DEPEND %ClassItem DEFAULT TIMES 2
+WHEN  ('Default') ('')
+WHEN  ('WindowToolbar') ('')
+
+%ClassLines DEPEND %ClassItem MULTI DEFAULT TIMES 1
+WHEN  ('Default') ('Init {19}PROCEDURE(),BYTE,PROC,DERIVED       ! Method added to host embed code', |
+  'Kill {19}PROCEDURE(),BYTE,PROC,DERIVED       ! Method added to host embed code', |
+  'TakeAccepted {11}PROCEDURE(),BYTE,PROC,DERIVED       ! Method added to host embed code')
+
+%Parameters DEFAULT  ('(QHList,QConsultas,Qparametros,Prt:landscape,TituloG,P:GroupEvo)')
+%ReturnValue FIELD  ()
+%WindowOperationMode DEFAULT  ('Use WINDOW setting')
+%INISaveWindow LONG  (1)
+%ThisObjectName DEPEND %ClassItem DEFAULT TIMES 2
+WHEN  ('Default') ('ThisWindow')
+WHEN  ('WindowToolbar') ('Toolbar')
+
+%UseDefaultABCBaseClass DEPEND %ClassItem LONG TIMES 2
+WHEN  ('Default') (1)
+WHEN  ('WindowToolbar') (1)
+
+%UseABCBaseClass DEPEND %ClassItem LONG TIMES 2
+WHEN  ('Default') (1)
+WHEN  ('WindowToolbar') (1)
+
+%ABCBaseClass DEPEND %ClassItem DEFAULT TIMES 2
+WHEN  ('Default') ('')
+WHEN  ('WindowToolbar') ('')
+
+%ExtBaseClass DEPEND %ClassItem DEFAULT TIMES 0
+
+%BaseClassIncludeFile DEPEND %ClassItem DEFAULT TIMES 0
+
+%DeriveFromBaseClass DEPEND %ClassItem LONG TIMES 2
+WHEN  ('Default') (0)
+WHEN  ('WindowToolbar') (0)
+
+%NewMethods DEPEND %ClassItem MULTI LONG TIMES 0
+
+%NewMethodName DEPEND %NewMethods DEFAULT TIMES 0
+
+%NewMethodPrototype DEPEND %NewMethods DEFAULT TIMES 0
+
+%NewClassPropertyItems DEPEND %ClassItem MULTI LONG TIMES 0
+
+%NewClassProperty DEPEND %NewClassPropertyItems DEFAULT TIMES 0
+
+%NewClassDataType DEPEND %NewClassPropertyItems DEFAULT TIMES 1
+WHEN  ('WindowToolbar')TIMES 0
+
+%NewClassOtherType DEPEND %NewClassPropertyItems DEFAULT TIMES 0
+
+%NewClassDataIsRef DEPEND %NewClassPropertyItems LONG TIMES 0
+
+%NewClassDataSize DEPEND %NewClassPropertyItems DEFAULT TIMES 0
+
+%NewClassDataDim1 DEPEND %NewClassPropertyItems DEFAULT TIMES 0
+
+%NewClassDataDim2 DEPEND %NewClassPropertyItems DEFAULT TIMES 0
+
+%NewClassDataDim3 DEPEND %NewClassPropertyItems DEFAULT TIMES 0
+
+%NewClassDataDim4 DEPEND %NewClassPropertyItems DEFAULT TIMES 0
+
+%ClassMethods DEPEND %ClassItem MULTI LONG TIMES 0
+
+%ClassMethodName DEPEND %ClassMethods DEFAULT TIMES 0
+
+%ClassMethodPrototype DEPEND %ClassMethods DEFAULT TIMES 0
+
+%ClassPropertyItems DEPEND %ClassItem MULTI LONG TIMES 0
+
+%ClassProperty DEPEND %ClassPropertyItems DEFAULT TIMES 0
+
+%ClassDataType DEPEND %ClassPropertyItems DEFAULT TIMES 1
+WHEN  ('WindowToolbar')TIMES 0
+
+%ClassOtherType DEPEND %ClassPropertyItems DEFAULT TIMES 0
+
+%ClassDataIsRef DEPEND %ClassPropertyItems LONG TIMES 0
+
+%ClassDataSize DEPEND %ClassPropertyItems DEFAULT TIMES 0
+
+%ClassDataDim1 DEPEND %ClassPropertyItems DEFAULT TIMES 0
+
+%ClassDataDim2 DEPEND %ClassPropertyItems DEFAULT TIMES 0
+
+%ClassDataDim3 DEPEND %ClassPropertyItems DEFAULT TIMES 0
+
+%ClassDataDim4 DEPEND %ClassPropertyItems DEFAULT TIMES 0
+
+%ButtonAction DEPEND %Control DEFAULT TIMES 8
+WHEN  ('?Ascii') ('No Special Action')
+WHEN  ('?Calc') ('No Special Action')
+WHEN  ('?Html') ('No Special Action')
+WHEN  ('?String1') ('No Special Action')
+WHEN  ('?Word') ('No Special Action')
+WHEN  ('?Xml') ('No Special Action')
+WHEN  ('?excel') ('No Special Action')
+WHEN  ('?salir') ('No Special Action')
+
+%ButtonRunName DEPEND %Control DEFAULT TIMES 1
+WHEN  ('?Xml') ('')
+
+%ButtonRunParameters DEPEND %Control DEFAULT TIMES 1
+WHEN  ('?Xml') ('')
+
+%ButtonProcedure DEPEND %Control PROCEDURE TIMES 1
+WHEN  ('?Xml') ()
+
+%ButtonThread DEPEND %Control LONG TIMES 1
+WHEN  ('?Xml') (0)
+
+%ButtonThreadStack DEPEND %Control DEFAULT TIMES 8
+WHEN  ('?Ascii') ('25000')
+WHEN  ('?Calc') ('25000')
+WHEN  ('?Html') ('25000')
+WHEN  ('?String1') ('25000')
+WHEN  ('?Word') ('25000')
+WHEN  ('?Xml') ('25000')
+WHEN  ('?excel') ('25000')
+WHEN  ('?salir') ('25000')
+
+%ButtonParameters DEPEND %Control DEFAULT TIMES 1
+WHEN  ('?Xml') ('')
+
+%ButtonReturnValueAssignment DEPEND %Control FIELD TIMES 1
+WHEN  ('?Xml') ()
+
+%ButtonReturnValueReferenceAssign DEPEND %Control LONG TIMES 1
+WHEN  ('?Xml') (0)
+
+%ButtonRequest DEPEND %Control DEFAULT TIMES 8
+WHEN  ('?Ascii') ('None')
+WHEN  ('?Calc') ('None')
+WHEN  ('?Html') ('None')
+WHEN  ('?String1') ('None')
+WHEN  ('?Word') ('None')
+WHEN  ('?Xml') ('None')
+WHEN  ('?excel') ('None')
+WHEN  ('?salir') ('None')
+
+%ButtonThreadParameters DEPEND %Control DEFAULT TIMES 1
+WHEN  ('?Xml') ('')
+
+%ButtonThreadReturnValueAssignment DEPEND %Control FIELD TIMES 1
+WHEN  ('?Xml') ()
+
+%PreLookupKey DEPEND %Control KEY TIMES 0
+
+%PreLookupField DEPEND %Control COMPONENT TIMES 0
+
+%PreLookupProcedure DEPEND %Control PROCEDURE TIMES 0
+
+%PostLookupKey DEPEND %Control KEY TIMES 0
+
+%PostLookupField DEPEND %Control COMPONENT TIMES 0
+
+%PostLookupProcedure DEPEND %Control PROCEDURE TIMES 0
+
+%PostLookupDuringValidate DEPEND %Control LONG TIMES 4
+WHEN  ('?Calc') (1)
+WHEN  ('?String1') (1)
+WHEN  ('?Xml') (1)
+WHEN  ('?salir') (1)
+
+%ForceWindowRefresh DEPEND %Control LONG TIMES 0
+
+%LookupAssign DEPEND %Control MULTI LONG TIMES 0
+
+%MoreField DEPEND %LookupAssign DEFAULT TIMES 0
+
+%MoreTarget DEPEND %LookupAssign FIELD TIMES 0
+
+%CheckedAssigns DEPEND %Control MULTI LONG TIMES 0
+
+%CheckedAssignVariable DEPEND %CheckedAssigns FIELD TIMES 0
+
+%CheckedAssignValue DEPEND %CheckedAssigns DEFAULT TIMES 0
+
+%CheckedHides DEPEND %Control MULTI LONG TIMES 0
+
+%CheckedControl DEPEND %CheckedHides DEFAULT TIMES 0
+
+%CheckedControlAction DEPEND %CheckedHides DEFAULT TIMES 4
+WHEN  ('?Calc')TIMES 0
+WHEN  ('?String1')TIMES 0
+WHEN  ('?Xml')TIMES 0
+WHEN  ('?salir')TIMES 0
+
+%CheckedEnables DEPEND %Control MULTI LONG TIMES 0
+
+%CheckedControl1 DEPEND %CheckedEnables DEFAULT TIMES 0
+
+%CheckedControl1Action DEPEND %CheckedEnables DEFAULT TIMES 4
+WHEN  ('?Calc')TIMES 0
+WHEN  ('?String1')TIMES 0
+WHEN  ('?Xml')TIMES 0
+WHEN  ('?salir')TIMES 0
+
+%UncheckedAssigns DEPEND %Control MULTI LONG TIMES 0
+
+%UncheckedAssignVariable DEPEND %UncheckedAssigns FIELD TIMES 0
+
+%UncheckedAssignValue DEPEND %UncheckedAssigns DEFAULT TIMES 0
+
+%UnCheckedHides DEPEND %Control MULTI LONG TIMES 0
+
+%UnCheckedControl DEPEND %UnCheckedHides DEFAULT TIMES 0
+
+%UnCheckedControlAction DEPEND %UnCheckedHides DEFAULT TIMES 4
+WHEN  ('?Calc')TIMES 0
+WHEN  ('?String1')TIMES 0
+WHEN  ('?Xml')TIMES 0
+WHEN  ('?salir')TIMES 0
+
+%UnCheckedEnables DEPEND %Control MULTI LONG TIMES 0
+
+%UnCheckedControl1 DEPEND %UnCheckedEnables DEFAULT TIMES 0
+
+%UnCheckedControl1Action DEPEND %UnCheckedEnables DEFAULT TIMES 4
+WHEN  ('?Calc')TIMES 0
+WHEN  ('?String1')TIMES 0
+WHEN  ('?Xml')TIMES 0
+WHEN  ('?salir')TIMES 0
+
+%GlobalObject DEPEND %ClassItem DEFAULT TIMES 2
+WHEN  ('Default') ('NO')
+WHEN  ('WindowToolbar') ('NO')
+
+%ProcedureParameters MULTI LONG  (1, |
+  2, |
+  3, |
+  4, |
+  5, |
+  6)
+%ProcedureParameterName DEPEND %ProcedureParameters DEFAULT TIMES 6
+WHEN  (1) ('QHList')
+WHEN  (2) ('QConsultas')
+WHEN  (3) ('Qparametros')
+WHEN  (4) ('Prt:landscape')
+WHEN  (5) ('TituloG')
+WHEN  (6) ('P:GroupEvo')
+
+%ProcedureParameterType DEPEND %ProcedureParameters DEFAULT TIMES 6
+WHEN  (1) ('QUEUE')
+WHEN  (2) ('QUEUE')
+WHEN  (3) ('QUEUE')
+WHEN  (4) ('Short')
+WHEN  (5) ('STRING')
+WHEN  (6) ('GROUP')
+
+%ProcedureParameterDefault DEPEND %ProcedureParameters DEFAULT TIMES 6
+WHEN  (1) ('')
+WHEN  (2) ('')
+WHEN  (3) ('')
+WHEN  (4) ('')
+WHEN  (5) ('')
+WHEN  (6) ('')
+
+%ProcedureParameterOmitted DEPEND %ProcedureParameters LONG TIMES 6
+WHEN  (1) (0)
+WHEN  (2) (0)
+WHEN  (3) (0)
+WHEN  (4) (0)
+WHEN  (5) (0)
+WHEN  (6) (0)
+
+%ProcedureParameterByReference DEPEND %ProcedureParameters LONG TIMES 6
+WHEN  (1) (1)
+WHEN  (2) (1)
+WHEN  (3) (1)
+WHEN  (4) (0)
+WHEN  (5) (0)
+WHEN  (6) (1)
+
+%ProcedureDisableEnhanceFocus LONG  (0)
+%ProcedureUseEnterInsteadTabOverride LONG  (0)
+%WindowUseEnterInsteadTab LONG  (1)
+%ProcedureUseEnterInsteadTabExcludeListCombo LONG  (0)
+%ProcedureUseEnterInsteadTabEnableNextTabStop LONG  (0)
+%ProcedureUseEnterInsteadTabExcludeG LONG  (1)
+%WindowUseEnterInsteadTabExclude MULTI DEFAULT  ()
+%WindowStyles MULTI LONG  ()
+%WindowStyleFontName DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStyleFontNameVariable DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStyleFontNameIsVariable DEPEND %WindowStyles LONG TIMES 0
+
+%WindowStyleFontSize DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStyleFontSizeVariable DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStyleFontSizeIsVariable DEPEND %WindowStyles LONG TIMES 0
+
+%WindowStyleFontStyle DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStyleFontStyleVariable DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStyleFontStyleIsVariable DEPEND %WindowStyles LONG TIMES 0
+
+%WindowStyleFontColor DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStyleFontCharSet DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStyleForegroundNormal DEPEND %WindowStyles LONG TIMES 0
+
+%WindowStyleForegroundNormalVariable DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStyleForegroundNormalIsVariable DEPEND %WindowStyles LONG TIMES 0
+
+%WindowStyleBackgroundNormal DEPEND %WindowStyles LONG TIMES 0
+
+%WindowStyleBackgroundNormalVariable DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStyleBackgroundNormalIsVariable DEPEND %WindowStyles LONG TIMES 0
+
+%WindowStyleForegroundSelected DEPEND %WindowStyles LONG TIMES 0
+
+%WindowStyleForegroundSelectedVariable DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStyleForegroundSelectedIsVariable DEPEND %WindowStyles LONG TIMES 0
+
+%WindowStyleBackgroundSelected DEPEND %WindowStyles LONG TIMES 0
+
+%WindowStyleBackgroundSelectedVariable DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStyleBackgroundSelectedIsVariable DEPEND %WindowStyles LONG TIMES 0
+
+%WindowStylePicture DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStylePictureVariable DEPEND %WindowStyles DEFAULT TIMES 0
+
+%WindowStylePictureIsVariable DEPEND %WindowStyles LONG TIMES 0
+
+%WindowStyleOtherListboxes MULTI DEFAULT  ()
+%ProcedureAutoBindFields MULTI LONG  ()
+%ProcedureAutoBindField DEPEND %ProcedureAutoBindFields DEFAULT TIMES 0
+
+%ProcedureAutoBindFieldTPL DEPEND %ProcedureAutoBindFields DEFAULT TIMES 0
+
+%ProcedureAutoBindProcedures MULTI LONG  ()
+%ProcedureAutoBindProcedure DEPEND %ProcedureAutoBindProcedures DEFAULT TIMES 0
+
+%ProcedureAutoBindProcedureTPL DEPEND %ProcedureAutoBindProcedures DEFAULT TIMES 0
+
+%ProcedureAutoBindFieldsIgnored MULTI LONG  ()
+%ProcedureAutoBindFieldIgnored DEPEND %ProcedureAutoBindFieldsIgnored DEFAULT TIMES 0
+
+%ProcedureAutoBindProceduresIgnored MULTI LONG  ()
+%ProcedureAutoBindProcedureIgnored DEPEND %ProcedureAutoBindProceduresIgnored DEFAULT TIMES 0
+
+%ProcedureAutoBindValidToAddField LONG  (0)
+%ProcedureUserBindFields MULTI LONG  ()
+%ProcedureUserBindField DEPEND %ProcedureUserBindFields FIELD TIMES 0
+
+%ProcedureAutoBindFieldIgnore DEPEND %ProcedureAutoBindFields LONG TIMES 0
+
+%ProcedureUserBindProcedures MULTI LONG  ()
+%ProcedureUserBindProcedure DEPEND %ProcedureUserBindProcedures PROCEDURE TIMES 0
+
+%ProcedureAutoBindProcedureIgnore DEPEND %ProcedureAutoBindProcedures LONG TIMES 0
+
+%ProcedureUserBindExpressions MULTI LONG  ()
+%ProcedureUserBindExpressionName DEPEND %ProcedureUserBindExpressions DEFAULT TIMES 0
+
+%ProcedureUserBindExpression DEPEND %ProcedureUserBindExpressions DEFAULT TIMES 0
+
+%ExtUITabIcon DEPEND %Control DEFAULT TIMES 0
+
+%ExtUITabStyleOverrideGlobal DEPEND %Control LONG TIMES 0
+
+%ExtUITabStyle DEPEND %Control DEFAULT TIMES 1
+WHEN  ('?Calc') ('Default')
+
+%PreLookupProcedureParameters DEPEND %Control DEFAULT TIMES 0
+
+%PostLookupProcedureParameters DEPEND %Control DEFAULT TIMES 0
+
+%CheckedDisables DEPEND %Control MULTI LONG TIMES 0
+
+%CheckedDisableControl DEPEND %CheckedDisables DEFAULT TIMES 0
+
+%CheckedDisableControlAction DEPEND %CheckedDisables DEFAULT TIMES 1
+WHEN  ('?Calc')TIMES 0
+
+%UnCheckedDisables DEPEND %Control MULTI LONG TIMES 0
+
+%UnCheckedDisableControl DEPEND %UnCheckedDisables DEFAULT TIMES 0
+
+%UnCheckedDisableControlAction DEPEND %UnCheckedDisables DEFAULT TIMES 1
+WHEN  ('?Calc')TIMES 0
+
+[EMBED]
+EMBED %ControlEventHandling
+[INSTANCES]
+WHEN '?Ascii'
+[INSTANCES]
+WHEN 'Accepted'
+[DEFINITION]
+[SOURCE]
+PROPERTY:BEGIN
+PRIORITY 5000
+PROPERTY:END
+        L:Option = 2
+        ExportarRptII(QHList,QConsultas,Qparametros,Prt:landscape,TituloG,G:Parameters,ItemQueuePapel)
+[END]
+[END]
+WHEN '?Calc'
+[INSTANCES]
+WHEN 'Accepted'
+[DEFINITION]
+[SOURCE]
+PROPERTY:BEGIN
+PRIORITY 5000
+PROPERTY:END
+        L:Option = 1
+        ExportarRptII(QHList,QConsultas,Qparametros,Prt:landscape,TituloG,G:Parameters,ItemQueuePapel)
+[SOURCE]
+PROPERTY:BEGIN
+PRIORITY 4499
+PROPERTY:END
+GET(Qparametros,24)
+IF not Errorcode()
+   Loc:Any &= WHAT(Qparametros,1)
+   Loc:Any  = true
+  PUT(Qparametros)   ! 24 Use Open Office
+end
+[END]
+[END]
+WHEN '?excel'
+[INSTANCES]
+WHEN 'Accepted'
+[DEFINITION]
+[SOURCE]
+PROPERTY:BEGIN
+PRIORITY 5000
+PROPERTY:END
+        L:Option = 1
+        ExportarRptII(QHList,QConsultas,Qparametros,Prt:landscape,TituloG,G:Parameters,ItemQueuePapel)
+[SOURCE]
+PROPERTY:BEGIN
+PRIORITY 4499
+PROPERTY:END
+GET(Qparametros,24)
+IF not Errorcode()
+   Loc:Any &= WHAT(Qparametros,1)
+   Loc:Any  = false
+  PUT(Qparametros)   ! 24 Use Open Office
+end
+[END]
+[END]
+WHEN '?Html'
+[INSTANCES]
+WHEN 'Accepted'
+[DEFINITION]
+[SOURCE]
+PROPERTY:BEGIN
+PRIORITY 5000
+PROPERTY:END
+        L:Option = 3
+        ExportarRptII(QHList,QConsultas,Qparametros,Prt:landscape,TituloG,G:Parameters,ItemQueuePapel)
+[END]
+[END]
+WHEN '?salir'
+[INSTANCES]
+WHEN 'Accepted'
+[DEFINITION]
+[GROUP]
+PRIORITY 5000
+INSTANCE 1
+[END]
+[END]
+WHEN '?Word'
+[INSTANCES]
+WHEN 'Accepted'
+[DEFINITION]
+[SOURCE]
+PROPERTY:BEGIN
+PRIORITY 5000
+PROPERTY:END
+        L:Option = 5
+        ExportarRptII(QHList,QConsultas,Qparametros,Prt:landscape,TituloG,G:Parameters,ItemQueuePapel)
+[END]
+[END]
+WHEN '?Xml'
+[INSTANCES]
+WHEN 'Accepted'
+[DEFINITION]
+[SOURCE]
+PROPERTY:BEGIN
+PRIORITY 5000
+PROPERTY:END
+        L:Option = 4
+        ExportarRptII(QHList,QConsultas,Qparametros,Prt:landscape,TituloG,G:Parameters,ItemQueuePapel)
+[END]
+[END]
+[END]
+EMBED %WindowManagerMethodCodeSection
+[INSTANCES]
+WHEN 'Init'
+[INSTANCES]
+WHEN '(),BYTE'
+[DEFINITION]
+[SOURCE]
+PROPERTY:BEGIN
+PRIORITY 8001
+PROPERTY:END
+  !!!!! --------------------------------------------------------------------------------------------------------------
+  !!!!! Habilita Botones
+  IF Loc:Excel = '0' Then HIDE(?excel).
+  IF Loc:Word  = '0' then HIDE(?Word).
+  IF Loc:Ascii = '0' then HIDE(?Ascii).
+  IF Loc:Html  = '0' then HIDE(?Html).
+  IF Loc:Xml   = '0' then HIDE(?Xml).
+  ALERT(EnterKey)
+  0{prop:text}          = TituloG
+[SOURCE]
+PROPERTY:BEGIN
+PRIORITY 7501
+PROPERTY:END
+    GET(Qparametros,1)
+    Loc:Campos       = WHAT(Qparametros,1) !1
+    GET(Qparametros,9)
+    Loc:Export       = WHAT(Qparametros,1) !9
+    GET(Qparametros,10)
+    L:Order          = WHAT(Qparametros,1) !10
+
+  L:App         = What(P:GroupEvo,1)
+  L:Procedure   = What(P:GroupEvo,2)
+  !!!! ---------------------------------------------------------------------------------------------------------------
+  !!!   Exports Opcion
+  Loc:Html         = What(P:GroupEvo,3)
+  Loc:Excel        = What(P:GroupEvo,4)
+  Loc:Word         = What(P:GroupEvo,5)
+  Loc:Ascii        = What(P:GroupEvo,6)
+  Loc:xml          = What(P:GroupEvo,7)
+  Loc:prt          = What(P:GroupEvo,8)
+
+  !!! ---------------------------------------------------------------------------------------------------------------
+  loop id# = 1 TO  800
+    IF NOt Loc:Campos[id#]   then break.
+    IF Loc:Campos[id#] = ','
+     QCons.Id   = Read
+     ADD(QCons)
+     Loc:UltimoCampo = Read                                                 !!!! Modificacion 6 Julio\04
+     CLEAR(read)
+     cycle
+    END
+    IF INLIST(Loc:Campos[id#],'0','1','2','3','4','5','6','7','8','9')
+      read = clip(read) & Loc:Campos[id#]
+    END
+  END !!! Loop
+
+
+
+  !!! ---------------------------------------------------------------------------------------------------------------
+  !!! Queue de Seleccion
+  FREE(ItemQueueDisp)
+  FREE(ItemQueuePapel)
+  LOOP Loc:Tot = 1 to Loc:UltimoCampo
+    QCons.Id  = Loc:Tot
+    GET(QCons,QCons.Id)
+    IF Not errorcode()
+        QHL# += 1
+        GET(QHList,QHL#)
+        IF Not ERrorcode()
+             IF Not CLIP(WHAT(QHList,2)) = 'ECNOEXPORT'
+                 ItemQueuePapel.PItem          = WHAT(QHList,2)
+                 ItemQueuePapel.PItem_Icono    = WHAT(QHList,5) + 1
+                 ItemQueuePapel.PItem_Id       = Loc:Tot
+                 ItemQueuePapel.HTextColor     = WHAT(QHList,5)
+                 ItemQueuePapel.HTextBack      = WHAT(QHList,6)
+                 ItemQueuePapel.HTextFont      = WHAT(QHList,7)
+                 ItemQueuePapel.FTextFontSize  = WHAT(QHList,8)
+                 ItemQueuePapel.FTextColor     = WHAT(QHList,9)
+                 ItemQueuePapel.FTextBack      = WHAT(QHList,10)
+                 ItemQueuePapel.FTextFont      = WHAT(QHList,11)
+                 ItemQueuePapel.FTextFontSize  = WHAT(QHList,12)
+                 ADD(ItemQueuePapel)           
+             END
+        END
+    END
+  END                                                     
+[END]
+[END]
+[END]
+[END]
+[ADDITION]
+NAME ABC CloseCurrentWindow
+[INSTANCE]
+INSTANCE 1
+[WINDOW]
+window WINDOW('Evolution Report Export'),AT(,,355,83),FONT('MS Sans Serif',9,,),CENTER,GRAY,DOUBLE
+       STRING('EVOLUTION REPORT EXPORT.'),AT(27,14),USE(?String1),FONT(,18,,FONT:bold),#ORIG(?String1)
+       GROUP,AT(1,37,352,45),USE(?Group5),BOXED,BEVEL(-2)
+         BUTTON,AT(1,42,49,39),USE(?excel),SKIP,FLAT,LEFT,TIP('Exportar a Excel'),CURSOR('MANO.CUR'), |
+             ICON('ec_Excel.ico')
+         BUTTON,AT(99,42,49,39),USE(?Word),SKIP,FLAT,LEFT,TIP('Exportar a Word'),CURSOR('MANO.CUR'),ICON('ec_word.ico')
+         BUTTON,AT(147,42,49,39),USE(?Ascii),SKIP,FLAT,LEFT,TIP('Exportar a ASCII (Texto)'),CURSOR('MANO.CUR'), |
+             ICON('XPAscii.ico')
+         BUTTON,AT(245,42,49,39),USE(?Html),SKIP,FLAT,LEFT,TIP('Exportar a HTML'),CURSOR('MANO.CUR'), |
+             ICON('xpexplorer.ico')
+         BUTTON,AT(197,42,49,39),USE(?Xml),SKIP,FLAT,LEFT,TIP('Exportar a XML'),CURSOR('MANO.CUR'),ICON('XML.ico')
+         BUTTON,AT(297,42,49,39),USE(?salir),SKIP,FLAT,LEFT,TIP('Salir'),CURSOR('MANO.CUR'),ICON('salir.ico')
+         BUTTON,AT(49,42,49,39),USE(?Calc),SKIP,FLAT,LEFT,TIP('Exportar a Calc'),CURSOR('MANO.CUR'),ICON('ec_calc.ico'), |
+             #ORIG(?excel)
+       END
+     END
+

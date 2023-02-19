@@ -1,0 +1,25 @@
+<AddIn name        = "DataDictionaryImportExport"
+       author      = "SoftVelocity"
+       copyright   = "Copyright SoftVelocity 1986-2006"
+       url         = "http://www.SoftVelocity.com"
+       description = "Data Dictionary Auto Import Export Support">
+
+	<Manifest>
+		<Identity name = "SoftVelocity.DataDictionary.ImportExport"/>
+		<Dependency addin = "SoftVelocity.DataDictionary"/>
+		<Dependency addin = "SoftVelocity.BinaryToText"/>
+	</Manifest>
+
+	<Runtime>
+		<Import assembly = "DataDictionaryEditor.dll"/>
+	</Runtime>
+	<Path name = "/Workspace/Autostart">
+		<Class id    = "StartDctWatcher"
+		       class = "SoftVelocity.DataDictionary.StartDctWatcher"/>
+	</Path> <!-- /Workspace/Autostart -->
+
+	<Path name ="/SoftVelocity/BinaryWatcher">
+		<BinaryFileWatcher id     = "Dictionary"
+		                   class  = "SoftVelocity.DataDictionary.DctWatcherDetails"/>
+	</Path>
+</AddIn>

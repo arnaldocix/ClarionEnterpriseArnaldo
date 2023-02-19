@@ -1,0 +1,324 @@
+#!
+#! The RTF control was deprecated. Use a regular TEXT control instead.
+#! -------------------------------------------------------------------------
+#EXTENSION (cwRTFGlobal, 'Include RTF for Clarion Global Definitions'), DESCRIPTION(%DeprecatedRTFControlDescription()&'RTF Global Definitions'), APPLICATION, HLP('~TPLRTGlobal.htm')
+#! -------------------------------------------------------------------------
+#DISPLAY
+#DISPLAY
+#DISPLAY('No longer needed')
+#DISPLAY
+#! -------------------------------------------------------------------------
+#!  VERSION 1.0
+#! -------------------------------------------------------------------------
+#CONTROL(RTFControl,'RTF Control'),DESCRIPTION(%DeprecatedRTFControlDescription()&'RTF Control(' & INSTANCE(%ActiveTemplateInstance) & ')'),MULTI,WINDOW,HLP('~TPLRTControl.htm')
+  CONTROLS
+    TEXT,USE(?RTFTextBox),VSCROLL
+  END
+#DISPLAY('** Remove this template **')  
+#DISPLAY('The values were preserved only')  
+#DISPLAY('for your reference.')  
+#BOXED('RTF Control')
+  #PROMPT('Load from File: ', @s255 ), %RTFLoadFile
+  #PROMPT('RTF Size limit: ', @n6 ), %RTFLimitFileSize
+  #ENABLE(%RTFLoadFile = '')
+    #PROMPT('Load From Field: ', FIELD ), %RTFLoadField
+    #PROMPT('Limit RTF Size to match field', CHECK ), %RTFLimitSize,AT(80)
+  #ENDENABLE
+  #PROMPT('Check status on window close', CHECK ), %RTFCheckOnClose,AT(10)
+  #PROMPT('Display Ruler Bar', CHECK ), %RTFRulerOn,AT(10),DEFAULT(1)
+  #PROMPT('Display Tool Bar', CHECK ), %RTFTBOn,AT(10),DEFAULT(1)
+  #PROMPT('Display Format Bar', CHECK ), %RTFFBOn,AT(10),DEFAULT(1)
+#ENDBOXED
+#AT(%DataSection)
+#CALL(%DeprecatedRTFControlMessage)
+#ENDAT
+#! -------------------------------------------------------------------------
+#CODE (HideUnhideRTF, 'Hide or Unhide the RTF Control'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Hide or Unhide the RTF Control'),HLP('~TPLHideUnhideRTF.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#PROMPT('UnHide (show) Control', CHECK ), %RTFHide 
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (LimitTextSize, 'Limit the amount of text an RTF control will accept'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Limit the amount of text an RTF control will accept'),HLP('~TPLLimitTextSize.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('Amount of text in' )
+#PROMPT( ' characters (bytes): ', @n6 ), %RTFTextSize, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (NewRTFFile, 'Start a new RTF File'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Start a new RTF File'),HLP('TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (LoadRTFFile, 'Load an existing RTF File'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Load an existing RTF File'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('File name or ')
+#PROMPT( ' variable (prefixed with !): ', @s128 ), %RTFFile
+#! -------------------------------------------------------------------------
+#CODE (LoadRTFField, 'Load the RTF Control from a field'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Load an the RTF Control from a field'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#PROMPT('Field Name: ', FIELD ), %RTFField
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (SaveRTFFile, 'Save the contents of the RTF control to a file'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Save the contents of the RTF control to a file'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('File name or ')
+#PROMPT( ' variable (prefixed with !): ', @s128 ), %RTFFile
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (SaveRTFField, 'Save the contents of the RTF control to a field'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Save the contents of the RTF control to a field'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#PROMPT('Field Name: ', FIELD ), %RTFField
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (PrintRTF, 'Print the contents of the RTF Control'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Print the contents of the RTF Control'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#PROMPT('Show Print Setup', CHECK ), %RTFShowPrintSetup
+#ENABLE( %RTFShowPrintSetup )
+#PROMPT( 'Status Variable: ', FIELD ), %RTFPrintStatus
+#ENDENABLE
+#DISPLAY('Job name or')
+#PROMPT( ' variable (prefixed with !): ', @s128 ), %RTFJobName
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (PageSetupRTF, 'Show the Page Setup Dialog'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Show the Page Setup Dialog'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (FontRTF, 'Change the font in the RTF control'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Change the font of the higlighted text in the RTF control'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('Font name or ')
+#PROMPT( ' variable (prefixed with !): ', @s128 ), %RTFFont
+#DISPLAY('Font size or ')
+#PROMPT( ' variable (prefixed with !): ', @s128 ), %RTFFontSize
+#DISPLAY('Font color or ')
+#PROMPT( ' variable (prefixed with !): ', @s128 ), %RTFFontColor
+#DISPLAY('Font style or ')
+#PROMPT( ' variable (prefixed with !): ', @s128 ), %RTFFontStyle
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (ColorRTF, 'Show the Color Dialog'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Show the Color Dialog'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (CopyRTF, 'Copy the highlighted text'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Copy the highlighted text'),HLP('~TTPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (CutRTF, 'Cut the highlighted text'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Cut the highlighted text'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (PasteRTF, 'Paste clipboard contents'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Paste clipboard contents at the cursor location'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (FontStyleRTF, 'Change the font Style in the RTF control'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Change the font style of the higlighted text in the RTF control'),HLP('~TPLFontStyleRTF')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('Font style or ')
+#PROMPT( ' variable (prefixed with !): ', @s128 ), %RTFFontStyle
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (AlignLeftRTF, 'Align the current paragraph left'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Align the current paragraph left'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (AlignRightRTF, 'Align the current paragraph right'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Align the current paragraph right'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (AlignCenterRTF, 'Align the current paragraph Center'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Align the current paragraph Center'),HLP('~TPLAlignCenterRTF')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (ParagraphBulletsOnRTF, 'Change paragraph bullets'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Change paragraph bullets'),HLP('~TTPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#PROMPT('Bullet Style', DROP('Bullets:On|Bullets:Arabic|Bullets:LowerLetters|Bullets:UpperLetters|Bullets:LowerRoman|Bullets:UpperRoman')),%BulletStyle,DEFAULT('Bullets:On')
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (ParagraphBulletsOffRTF, 'Turn paragraph bullets off'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Turn paragraph bullets off'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (ParagraphLeftIndentRTF, 'Change paragraph left indent'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Change paragraph left indent'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('Paragraph indent ')
+#PROMPT( ' from left', @n-7.3 ), %LeftIndent
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (ParagraphRightIndentRTF, 'Change paragraph right indent'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Change paragraph right indent'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('Paragraph indent ')
+#PROMPT( ' from right', @n-7.3 ), %RightIndent
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (ParagraphOffsetRTF, 'Change paragraph offset'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Change paragraph offset'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#PROMPT('Paragraph offset', @n-7.3 ), %Offset
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (UndoRTF, 'Undo Changes'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Undo Changes'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (RedoRTF, 'Redo Changes'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Redo Changes'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (FindRTF, 'Find text in the RTF control'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Find text in the RTF control, returns the starting position of the text'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('Find string or ')
+#PROMPT( ' variable (prefixed with !): ', @s128 ), %RTFFindText
+#DISPLAY('Variable to recieve ')
+#PROMPT( ' starting postion: ', FIELD ), %RTFTargetField
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (ReplaceRTF, 'Find and replace text in the RTF control'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Find and replace text in the RTF control'),HLP('~TPLReplaceRTF')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('Find string or')
+#PROMPT( ' variable (prefixed with !): ', @s128 ), %RTFFindText
+#DISPLAY('Replace string or')
+#PROMPT( ' variable (prefixed with !): ', @s128 ), %RTFReplaceText
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (SelectRTF, 'Set the RTF control active (SELECT())'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Set the RTF control active (SELECT())'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (CanUndoRTF, 'Check the RTF control to see if there is data in the undo buffer'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Check the RTF control to see if there is data in the undo buffer'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('Variable to receive')
+#PROMPT( ' Undo Status: ', FIELD ), %RTFUndoStatus, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (CanRedoRTF, 'Check the RTF control to see if there is data in the Redo buffer'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Check the RTF control to see if there is data in the Redo buffer'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('Variable to receive ')
+#PROMPT( ' Redo Status: ', FIELD ), %RTFRedoStatus, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (IsDirtyRTF, 'Check the RTF control to see if the document has been modified'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Check the RTF control to see if the document has been modified'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('Variable to receive ' )
+#PROMPT( ' document status: ', FIELD ), %RTFDirtyStatus, REQ
+#PROMPT('Prompt to save if modified: ', CHECK ), %RTFPromptSave, DEFAULT( 1 )
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (SelectTextRTF, 'Select text in the RTF control'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Select text in the RTF control'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('Starting Position')
+#PROMPT( ' or variable (prefixed with !): ', @s128 ), %RTFSelStart, REQ
+#DISPLAY('Ending Position' )
+#PROMPT(' or variable (prefixed with !): ', @s128 ), %RTFSelEnd, REQ
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (GetTextRTF, 'Get Select text in the RTF control'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Get Select text in the RTF control'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#PROMPT('Variable to Receive text: ', FIELD ), %RTFTargetString, REQ
+#DISPLAY('Starting Position or')
+#PROMPT (' variable (prefixed with !): ', @s128 ), %RTFSelStart
+#DISPLAY('Ending Position or')
+#PROMPT(' variable (prefixed with !): ', @s128 ), %RTFSelEnd
+#DISPLAY('Variable to receive')
+#PROMPT(' string length: ', FIELD ), %RTFSelLength
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (SetTextRTF, 'Set Select text in the RTF control'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Set Select text in the RTF control'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#DISPLAY('String or')
+#PROMPT(' variable (prefixed with !): ', @s128 ), %RTFTargetString, REQ
+#PROMPT('Allow undo: ', CHECK ), %RTFAllowUndo, DEFAULT( 0 )
+#DISPLAY('Starting Position')
+#PROMPT(' or variable (prefixed with !): ', @s128 ), %RTFSelStart
+#DISPLAY('Ending Position')
+#PROMPT(' or variable (prefixed with !): ', @s128 ), %RTFSelEnd
+#CALL(%DeprecatedRTFControlMessage)
+#! -------------------------------------------------------------------------
+#CODE (FlatButtonsRTF, 'Toggle Flat Buttons on toolbars'),REQ(RTFControl),DESCRIPTION(%DeprecatedRTFControlDescription()&'Toggle Flat Buttons on toolbars'),HLP('~TPLRTControl.htm')
+#! -------------------------------------------------------------------------
+#INSERT(%DeprecatedRTFControlPrompts)
+#PROMPT('Associated RTF Control', CONTROL ), %RTFParentObject, REQ
+#PROMPT('Flat Buttons: ', CHECK ), %RTFFlatButtons, DEFAULT( 1 )
+#CALL(%DeprecatedRTFControlMessage)
+#!
+#GROUP(%DeprecatedRTFControlMessage)
+#ERROR('Procedure: '&%Procedure&' - The RTF control was deprecated. Use a regular TEXT control instead. Template:'&%ActiveTemplate)
+#!
+#GROUP(%DeprecatedRTFControlDescription)
+#RETURN('*** Remove this template-')
+#!
+#GROUP(%DeprecatedRTFControlPrompts)
+#DISPLAY('**************************************')
+#DISPLAY('** Remove this template')
+#DISPLAY('** The values were preserve only')
+#DISPLAY('** like a reference.')
+#DISPLAY('** The RTF control was deprecated.')
+#DISPLAY('** Use a regular TEXT control instead.')
+#DISPLAY('**************************************')
+#!

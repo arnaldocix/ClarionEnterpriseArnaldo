@@ -1,0 +1,51 @@
+<HTML>
+<head>
+<meta name="ts-control" content="tab">
+<meta name="ts-capabilities" content="showall">
+</head>
+<BODY>
+<FORM>
+<TSSCRIPT value="EmbedBeforeControl" type=html>
+</TSSCRIPT>
+<table>
+  <TSSCRIPT tag=tr attr=bgcolor value="BorderColor">
+    <tr>
+      <TSSCRIPT tag=a attr=name value="Name">
+        <a name='NAME'></a>
+      </TSSCRIPT>
+      <TSSCRIPT repeat times="Container.NumTabs" name=curTab>
+        <TSSCRIPT include="Container.Children[curTab-1].Name==Name">
+          <td><b>              
+            <TSSCRIPT value="Container.Children[curTab-1].DisplayText">
+              TABTEXT
+            </TSSCRIPT>
+          </b></td>
+        </TSSCRIPT>
+        <TSSCRIPT omit="Container.Children[curTab-1].Name==Name">
+          <td>
+            <TSSCRIPT tag=a attr=href replace="NAME" value="Container.Children[curTab-1].Name">
+              <a href="#NAME">
+                <TSSCRIPT value="Container.Children[curTab-1].DisplayText">
+                  TABTEXT
+                </TSSCRIPT>
+              </a>
+            </TSSCRIPT>
+          </td>
+        </TSSCRIPT>
+      </TSSCRIPT>
+    </tr>
+  </TSSCRIPT>
+  <TSSCRIPT tag="<tr name=tabAll>" attr=bgcolor value="CellColor">
+    <tr name=tabAll>
+      <TSSCRIPT tag="<td name=tabAll>" attr=colspan value="Container.NumTabs">                                                   
+        <td name=tabAll>
+           <IMG width=500 height=261 name="ZONE:Contents" alt="Wizatrons will place controls in here">
+         </td>
+      </TSSCRIPT>
+    </tr>
+  </TSSCRIPT>
+</table>
+<TSSCRIPT value="EmbedAfterControl" type=html>
+</TSSCRIPT>
+</FORM>
+</BODY>

@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<Template originator   = "SoftVelocity">
+
+	<!-- Template Header -->
+	<TemplateConfiguration>
+		<Name>${res:Clarion.Templates.Project.Win32Exe.Name}</Name>
+		<Category>Clarion for Windows</Category>
+		<Icon>CW.Project.EmptyProject</Icon>
+		<Description>${res:Clarion.Templates.Project.Win32Exe.Description}</Description>
+	</TemplateConfiguration>
+
+	<Actions>
+		<Open filename = "${ProjectName}.clw"/>
+	</Actions>
+
+	<Project name = "${ProjectName}" directory = "." language = "Clarion">
+		<PropertyGroup>
+			<OutputType>Exe</OutputType>
+		</PropertyGroup>
+
+		<Files>
+			<File name="${ProjectName}.clw">
+				<![CDATA[
+  PROGRAM
+
+${StandardHeader.Clarion}
+
+  MAP
+  END
+
+  CODE
+]]>
+			</File>
+		</Files>
+	</Project>
+</Template>
+

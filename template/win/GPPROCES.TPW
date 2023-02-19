@@ -1,0 +1,315 @@
+#!--------------------------------------------
+#GROUP(%ProcessDeclarations)
+#EMBED(%DeclarationSection,'Declaration Section'),DATA
+  #FOR(%LocalData)
+%[20]LocalData %LocalDataStatement #<!%LocalDataDescription
+  #ENDFOR
+!-----------------------------------------------------------------------------
+#GROUP(%ProcessEndOfProcedure)
+  #IF(%EnableQuickScan)
+  #EMBED(%BeforeTurnQuickScanOff,'Before Turning QuickScan Off'),WHERE(%EnableQuickScan)
+IF SEND(%Primary,'QUICKSCAN=off').
+  #FOR(%Secondary),WHERE(%SecondaryType = '1:MANY')
+IF SEND(%Secondary,'QUICKSCAN=off').
+  #ENDFOR
+  #EMBED(%AfterTurnQuickScanOff,'After Turning QuickScan Off'),WHERE(%EnableQuickScan)
+  #ENDIF
+  #SUSPEND
+IF LocalResponse = RequestCompleted
+  #EMBED(%ProcessCompleted,'Process Completed')
+  #SUSPEND
+#?ELSE
+  #EMBED(%ProcessCancelled,'Process Cancelled')
+  #RESUME
+END
+  #RESUME
+#!---------------------------------------------------
+#GROUP(%ProcessSaveLimits),AUTO
+  #EMBED(%WindowEventOpenWindowBefore,'Window Event: Open Window, before setting up for reading')
+  DO GetFirstRecord
+  IF LocalResponse = RequestCancelled
+    POST(EVENT:CloseWindow)
+    CYCLE
+  END
+  #EMBED(%AfterInitialGet,'After first record retrieval')
+  #EMBED(%WindowEventOpenWindowAfter,'Window Event: Open Window, after setting up for read')
+#!-------------------------------------------------------------------------
+#GROUP(%ProcessWriteViewOrder)
+#DECLARE(%ConstructedKeyOrder)
+#EMBED(%BeforeWriteViewOrder,'Before write View Order')
+#SET(%ConstructedKeyOrder,'')
+#IF(%PrimaryKey)
+   #FIX(%File,%Primary)
+   #FIX(%Key,%PrimaryKey)
+   #IF(%Key)
+      #FOR(%KeyField)
+        #IF(%ConstructedKeyOrder)
+           #SET(%ConstructedKeyOrder,%ConstructedKeyOrder&',')
+        #ENDIF
+        #IF(UPPER(%KeyFieldSequence)='ASCENDING')
+           #SET(%ConstructedKeyOrder,'+'&%KeyField)
+        #ELSE
+           #SET(%ConstructedKeyOrder,'-'&%KeyField)
+        #ENDIF
+      #ENDFOR
+   #ENDIF
+#ENDIF
+    #IF((%AdditionalSortType='Manual' OR %AdditionalSortType='Assisted') AND %GetAddSortFields())
+       #IF(%PrimaryKey)
+          #IF(%AdditionalSortType='Manual')
+             #IF(SUB(%AddSortFields,1,1)='!')
+IF %(%StripPling(%GetAddSortFields())) THEN
+   %ListView{PROP:Order} = '%'ConstructedKeyOrder,' & %(%StripPling(%GetAddSortFields()))
+ELSE
+   %ListView{PROP:Order} = '%'ConstructedKeyOrder'
+END
+             #ELSE
+%ListView{PROP:Order} = '%'ConstructedKeyOrder,' & %(%StripPling(%GetAddSortFields()))
+             #ENDIF
+          #ELSE
+%ListView{PROP:Order} = '%'ConstructedKeyOrder,' & %(%StripPling(%GetAddSortFields()))
+          #ENDIF
+       #ELSE
+%ListView{PROP:Order} = %(%StripPling(%GetAddSortFields()))
+       #ENDIF
+    #ELSIF(%AdditionalSortType='ConditionalAssisted')
+       #FOR(%AddConditionalSort)
+         #IF(INSTANCE(%AddConditionalSort) = 1)
+IF (%AddConditionalSortCondition)
+         #ELSE
+ELSIF (%AddConditionalSortCondition)
+         #ENDIF
+         #IF(%PrimaryKey)
+   %ListView{PROP:Order} = '%'ConstructedKeyOrder,' & %(%StripPling(%GetAddSortFields(INSTANCE(%AddConditionalSort))))
+         #ELSE
+   %ListView{PROP:Order} = %(%StripPling(%GetAddSortFields(INSTANCE(%AddConditionalSort))))
+         #ENDIF
+       #ENDFOR
+END
+    #ELSIF(%AdditionalSortType='DynamicNamed')
+       #! Before to came here the varaible need to be filled with the selected name
+       #FOR(%AddSortDynamicNamed)
+         #IF(INSTANCE(%AddSortDynamicNamed) = 1)
+IF (UPPER(CLIP(ProcessSortSelectionVariable)) = UPPER('%'AddSortFieldDinNameDescription')) THEN
+         #ELSE
+ELSIF (UPPER(CLIP(ProcessSortSelectionVariable)) = UPPER('%'AddSortFieldDinNameDescription')) THEN
+         #ENDIF
+         #IF(%PrimaryKey)
+   %ListView{PROP:Order} = '%'ConstructedKeyOrder,' & %(%StripPling(%GetAddSortFields(INSTANCE(%AddSortDynamicNamed))))
+         #ELSE
+   %ListView{Prop:Order} = %(%StripPling(%GetAddSortFields(INSTANCE(%AddSortDynamicNamed))))
+         #ENDIF
+       #ENDFOR
+END
+    #ELSIF(%AdditionalSortType='DynamicSorting')
+       #! Before to came here the varaible need to be filled with the order
+IF (CLIP(ProcessSortSelectionVariable))
+         #IF(%PrimaryKey)
+   %ListView{PROP:Order} = '%'ConstructedKeyOrder,' & CLIP(ProcessSortSelectionVariable)
+         #ELSE
+   %ListView{PROP:Order} = CLIP(ProcessSortSelectionVariable)
+         #ENDIF
+END
+    #END
+#EMBED(%AfterWriteViewOrder,'After write View Order')
+#!-------------------------------------------------------------------------
+#GROUP(%ProcessGetFirstRecord)
+GetFirstRecord ROUTINE
+!|
+!| This routine open the view, set the range and the filter and also
+!| is used to retrieve the first record from the VIEW.
+!| 
+!| After the record has been retrieved, the PROGRESS control on the
+!| Progress window is updated.
+!|
+#IF(%ReportDataSource='File')
+    #IF(%PrimaryKey AND %RangeField)
+       #IF(UPPER(%ProcedureTemplate) = 'REPORT')
+  #INSERT(%GenerateHigherKeyCodeComponent,'','Report:Save::')
+       #ELSE
+  #INSERT(%GenerateHigherKeyCodeComponent,'','Process:Save::')
+       #ENDIF
+    #ENDIF
+  #INSERT(%ProcessWriteViewOrder)
+  #EMBED(%BeforeKeySet,'Before SET() issued')
+    #IF(%PrimaryKey)
+  SET(%PrimaryKey)
+    #ELSE
+  SET(%Primary)
+    #ENDIF
+  #EMBED(%AfterKeySet,'After SET() issued')
+  #INSERT(%StandardWriteViewFilter,%ProcessFilter)
+  #EMBED(%BeforeOpenListVIew,'Before Open View')
+  OPEN(%ListView)
+  #EMBED(%AfterOpenListVIew,'After Open View')
+  IF ERRORCODE()
+     StandardWarning(Warn:ViewOpenError)
+  END
+  IF CLIP(%ListView{PROP:Order}) THEN
+     SET(%ListView)
+  END
+  #EMBED(%BeforeInitialGet,'Before first record retrieval')
+  LOOP
+     DO GetNextRecord
+     DO ValidateRecord
+     CASE RecordStatus
+        OF Record:Ok
+           BREAK
+        OF Record:OutOfRange
+           LocalResponse = RequestCancelled
+           BREAK
+     END
+  END
+#ELSE
+  #EMBED(%BeforeKeySet,'Before SET() issued')
+  #EMBED(%BeforeInitialGet,'Before first record retrieval')
+  LOOP
+     DO GetNextRecord
+     DO ValidateRecord
+     CASE RecordStatus
+       OF Record:Ok
+         BREAK
+       OF Record:OutOfRange
+         LocalResponse = RequestCancelled
+         BREAK
+     END
+  END
+#ENDIF
+#!---------------------------------------------------
+#GROUP(%ProcessGetRecords)
+GetNextRecord ROUTINE
+!|
+!| This routine is used to retrieve the next record from the VIEW.
+!|
+!| After the record has been retrieved, the PROGRESS control on the
+!| Progress window is updated.
+!|
+  #EMBED(%TopOfGetNextRecord,'Top of GetNextRecord ROUTINE')
+#IF(%ReportDataSource='File')
+  NEXT(%ListView)
+  #EMBED(%GetNextRecordAfterNext,'GetNextRecord ROUTINE, after NEXT')
+  IF ERRORCODE()
+     IF ERRORCODE() <> BadRecErr
+       StandardWarning(Warn:RecordFetchError,'%File')
+     END
+     LocalResponse = RequestCancelled
+     #EMBED(%GetNextRecordNextFails,'GetNextRecord ROUTINE, NEXT failed')
+     EXIT
+  ELSE
+     LocalResponse = RequestCompleted
+     #EMBED(%GetNextRecordNextSucceeds,'GetNextRecord ROUTINE, NEXT succeeds')
+  END
+  #IF(%PrimaryKey)
+  RecordsProcessed += 1
+  RecordsThisCycle += 1
+  #ELSE
+  RecordsProcessed += BYTES(%Primary)
+  RecordsThisCycle += BYTES(%Primary)
+  #ENDIF
+#ELSIF(%ReportDataSource='Queue')
+  GET(%ReportDataSourceQueueName,RecordsProcessed+1)
+  #EMBED(%GetNextRecordAfterNext,'GetNextRecord ROUTINE, after NEXT')
+  IF ERRORCODE()
+     LocalResponse = RequestCancelled
+     #EMBED(%GetNextRecordNextFails,'GetNextRecord ROUTINE, NEXT failed')
+     EXIT
+  ELSE
+     LocalResponse = RequestCompleted
+     #EMBED(%GetNextRecordNextSucceeds,'GetNextRecord ROUTINE, NEXT succeeds')
+  END
+  RecordsProcessed += 1
+  RecordsThisCycle += 1
+#ELSE
+  #EMBED(%GetNextRecordAfterNext,'GetNextRecord ROUTINE, after NEXT')
+  IF ReportMemoryRecords=0 THEN
+     ReportMemoryRecords+=1
+     LocalResponse = RequestCompleted
+     #EMBED(%GetNextRecordNextSucceeds,'GetNextRecord ROUTINE, NEXT succeeds')
+  ELSE
+     LocalResponse = RequestCancelled
+     #EMBED(%GetNextRecordNextFails,'GetNextRecord ROUTINE, NEXT failed')
+     EXIT
+  END
+  RecordsProcessed += 1
+  RecordsThisCycle += 1
+#ENDIF
+  IF PercentProgress < 100
+     PercentProgress = (RecordsProcessed / RecordsToProcess)*100
+     IF PercentProgress > 100
+        PercentProgress = 100
+     END
+     IF PercentProgress <> %ThermometerUseVariable THEN
+        %ThermometerUseVariable = PercentProgress
+        %PctTextControl{Prop:Text} = FORMAT(PercentProgress,@N3) & '% Completed'
+        DISPLAY()
+     END
+  END
+#!---------------------------
+#GROUP(%ProcessValidateRecord)
+!-----------------------------------------------------------------------------
+ValidateRecord       ROUTINE
+#?!|
+#?!| This routine is used to provide for complex record filtering and range limiting. This
+#?!| routine is only generated if you've included your own code in the EMBED points provided in
+#?!| this routine.
+#?!|
+  RecordStatus = Record:OutOfRange
+  IF LocalResponse = RequestCancelled THEN EXIT.
+  #SUSPEND
+  #?RejectRecord = False
+  #INSERT(%StandardFormula,'Before Range Check')
+  #?IF RejectRecord THEN EXIT.
+  #RESUME
+  #EMBED(%RecordOutOfRange,'Validate Record: Range Checking')
+  #SUSPEND
+  #?RecordStatus = Record:Filtered
+    #SUSPEND
+  #?RejectRecord = False
+  #INSERT(%StandardFormula,'Before Filter Check')
+  #?IF RejectRecord THEN EXIT.
+    #RESUME
+    #EMBED(%RecordFilter,'Validate Record: Filter Checking')
+  #RESUME
+  RecordStatus = Record:OK
+  EXIT
+#!---------------------------
+#GROUP(%ProcessEventTimer)
+  #INSERT(%StandardFormula,'Before Lookups')
+  #INSERT(%StandardFormula,'After Lookups')
+  #EMBED(%ProcessActivity,'Activity for each record')
+  #CASE(%ProcessAction)
+  #OF('PUT record')
+    #IF(%RIProcessAction)
+  IF RIUpdate:%Primary()
+    #ELSE
+  PUT(%ListView)
+  IF ERRORCODE()
+    #ENDIF
+    IF StandardWarning(Warn:ProcessActionError,'Put','%ListView')
+      LocalResponse = RequestCompleted
+      BREAK
+    END
+  END
+  #OF('DELETE record')
+    #IF(%RIProcessAction)
+  IF RIDelete:%Primary()
+    #ELSE
+  DELETE(%ListView)
+  IF ERRORCODE()
+    #ENDIF
+    IF StandardWarning(Warn:ProcessActionError,'Delete','%ListView')
+      LocalResponse = RequestCompleted
+      BREAK
+    END
+  END
+  #ENDCASE
+  #EMBED(%ProcessError,'Error checking after record Action')
+#!-------------------------------------------------------------------------
+#GROUP(%StripPling,%Incoming)
+  #IF(SUB(%Incoming,1,1)='!')
+    #RETURN(SUB(%Incoming,2))
+  #ELSIF(SUB(%Incoming,1,1)='=')
+    #RETURN('EVALUATE(' & %StripPling(SUB(%Incoming, 2)) & ')')
+  #ELSE
+    #RETURN( '''' & QUOTE(%Incoming) & '''' )
+  #ENDIF

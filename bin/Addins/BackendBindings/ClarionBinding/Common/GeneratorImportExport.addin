@@ -1,0 +1,24 @@
+<AddIn name        = "ApplicationGeneratorImportExport"
+       author      = "SoftVelocity"
+       copyright   = "Copyright SoftVelocity 1986-2009"
+       url         = "http://www.softvelocity.com"
+       description = "Automated Import and Export of app files">
+
+	<Manifest>
+		<Identity name = "SoftVelocity.Generator.ImportExport"/>
+		<Dependency addin = "SoftVelocity.Generator"/>
+	</Manifest>
+
+	<Runtime>
+		<Import assembly = "Generator.dll"/>
+	</Runtime>
+	<Path name = "/Workspace/Autostart">
+		<Class id    = "StartAppWatcher"
+		       class = "SoftVelocity.Generator.StartAppWatcher"/>
+	</Path> <!-- /Workspace/Terminate -->
+
+	<Path name ="/SoftVelocity/BinaryWatcher">
+		<BinaryFileWatcher id     = "Application"
+		                   class  = "SoftVelocity.Generator.AppWatcherDetails"/>
+	</Path>
+</AddIn>

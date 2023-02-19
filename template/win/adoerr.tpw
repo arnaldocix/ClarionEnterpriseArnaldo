@@ -1,0 +1,65 @@
+#control(ADOErrList, 'ADO Errors Object List'), req(ADOSupport),HLP('~TPLControlADOErrorList')
+  CONTROLS
+    LIST,AT(,,381,173),USE(?List1),TIP('Tips'),FORMAT('70R(2)|M~Error Number~@N-_15@20L(2)|MP~Error Description~@s70@')
+  END
+#sheet
+  #tab('General')
+    #prompt('Connection object', @s50), %svConnObjectWithError, default('pConn')
+  #endtab
+#endsheet
+#atstart
+  #declare(%svAdoErrListCtrl)
+  #for(%Control), where(%ControlOriginal = '?List1')
+    #set(%svAdoErrListCtrl, %Control)
+  #endfor
+#endat
+#LOCALDATA
+ErrorQ          queue
+ErrorID           long
+ErrorDesc         string(70)
+ErrorToolTip      string(512)
+                end
+
+oErrors         &CErrors        ! Reference to the Errors Collection object
+oError          &CError         ! Reference to a single error contained in the Collection
+ErrorCount      long            ! Nbr of error in the collection
+hr              HRESULT         ! HRESULT var returned by methods call
+lErrorID        long            ! Error ID returned by Number method
+cstrDesc        &Cstr           ! cstring class reference returned by CError.Description
+ndx             long
+#ENDLOCALDATA
+#!----------------------------------------------------------------------------
+#AT(%DerivedEmbedAfterStandardWindowOpening)
+#INSERT(%svADOErrorInitCode)
+#ENDAT
+#!----------------------------------------------------------------------------
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'), PRIORITY(8050)
+#INSERT(%svADOErrorInitCode)
+#ENDAT
+#!------------------------------------------------------------------------------------------------------------------
+#GROUP(%svADOErrorInitCode)
+%svAdoErrListCtrl{prop:From} = ErrorQ
+free(ErrorQ)
+oErrors &= %svConnObjectWithError.Errors(hr)                ! Get the Errors collection object from the connection
+if hr = S_OK                                                ! if everything ok
+  hr = oErrors.GetCount(ErrorCount)                         ! Get the count number of errors
+  if hr = S_OK                                              !
+    loop ndx = 0 to ErrorCount - 1                          ! Single error object in the collection are numbered starting with 0
+      oError &= oErrors.Error(ndx, hr)                      ! Get a single error object from the erros collection
+      if hr = S_OK                                          !
+        hr = oError.Number(lErrorID)                        ! Get the error number code
+        if hr = S_OK                                        !
+          ErrorQ.ErrorID = lErrorID                         !
+          cstrDesc &= oError.Description(hr)                ! Get the description
+          if hr = S_OK                                      !
+            ErrorQ.ErrorDesc = cstrDesc.GetCstr()           !
+            ErrorQ.ErrorToolTip = cstrDesc.GetCstr()        ! Update tooltip field in the queue
+            add(ErrorQ)                                     ! Add to the list queue
+          end
+        end
+        dispose(oError)
+      end
+    end
+  end
+  dispose(oErrors)
+end

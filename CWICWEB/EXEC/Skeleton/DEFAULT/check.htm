@@ -1,0 +1,47 @@
+<html>
+<head>
+<meta name="ts-control" content="check">
+</head>
+<body>
+
+<form>
+  <!-- Check.htm -- Start -->
+<TSSCRIPT value="EmbedBeforeControl" type=html>
+</TSSCRIPT>
+<TSSCRIPT include="Disabled">
+  <font FinalColor=DisabledText>
+    <TSSCRIPT include="Checked">
+      [X]
+    </TSSCRIPT>
+    <TSSCRIPT omit="Checked">
+      [ ]
+    </TSSCRIPT>
+    <TSSCRIPT value=DisplayText>
+    Checkbox text
+    </TSSCRIPT>
+  </font>
+</TSSCRIPT>
+<TSSCRIPT omit="Disabled">
+  <TSSCRIPT tag=input attr=name value="Name">
+  <TSSCRIPT tag=input attr=id value="Name">
+  <TSSCRIPT tag=input attr=checked when="Checked">
+  <TSSCRIPT tag=input attr=onClick text="icSubmitForm()" when="SubmitOnChange">
+    <input type="checkbox" value="1">
+    <TSSCRIPT tag=label attr=for value="Name">
+      <label for="above">
+      <TSSCRIPT value=DisplayText>Checkbox text</TSSCRIPT>
+      </label>
+    </TSSCRIPT>
+  </TSSCRIPT>
+  </TSSCRIPT>
+  </TSSCRIPT>
+  </TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT value="EmbedAfterControl" type=html>
+</TSSCRIPT>
+  <!-- Check.htm -- End -->
+</form>
+
+</body>
+
+</html>

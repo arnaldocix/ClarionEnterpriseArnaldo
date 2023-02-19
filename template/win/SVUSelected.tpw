@@ -1,0 +1,180 @@
+#!
+#!***********************************************************************************************
+#EXTENSION(SelectedControl,'Enhance the focus of the selected control'),APPLICATION(SelectedControlProc)
+#!***********************************************************************************************
+#AT(%GlobalData)
+#<!for use by Selected Control extension template
+#!?Caret              EQUATE(501)
+#ENDAT
+#BOXED('Selected Control Extension Options')
+    #DISPLAY('')
+    #DISPLAY('This template will set the fill color of the currently')
+    #DISPLAY('selected control to a specified value and then return')
+    #DISPLAY('the control to it`s original color when a different one')
+    #DISPLAY('is selected.  Optionally a visual marker can be displayed')
+    #DISPLAY('to the left of the selected control.  Required fields')
+    #DISPLAY('may also be treated individually.')
+    #DISPLAY('')
+    #BOXED('Selected field')
+        #PROMPT('Selected Field Color',COLOR),%SelectedColor,DEFAULT(080FFFFH)
+        #PROMPT('Bold text',CHECK),%SelectedStyle,DEFAULT(%True)
+        #DISPLAY('Include these controls')
+        #PROMPT('Radio controls',CHECK),%SelectedRadio,DEFAULT(%True)
+        #PROMPT('Check controls',CHECK),%SelectedCheck,DEFAULT(%True)
+    #ENDBOXED
+    #BOXED('Required field')
+        #PROMPT('Treat different',CHECK),%SelectedRequired,DEFAULT(%False)
+        #ENABLE(%SelectedRequired)
+            #PROMPT('Required Field Color',COLOR),%SelectedRequiredColor,DEFAULT('COLOR:Yellow')
+        #ENDENABLE
+    #ENDBOXED
+    #BOXED('Visual indicator')
+        #PROMPT('Display indicator',CHECK),%SelectedCaret,DEFAULT(%True)
+        #ENABLE(%SelectedCaret)
+            #PROMPT('Indicator Color',COLOR),%SelectedCaretColor,DEFAULT('COLOR:Navy')
+            #PROMPT('Indicator Character',@S1),%SelectedCaretCharacter,DEFAULT('<187>')
+        #ENDENABLE
+    #ENDBOXED
+#ENDBOXED
+#!***********************************************************************************************
+#EXTENSION(SelectedControlProc,'Enhance the focus of the selected control'),PROCEDURE
+#!***********************************************************************************************
+#!
+#<!for use by Selected Control extension template
+#LOCALDATA
+scField             LONG     
+scColor             LONG     
+scStyle             LONG     
+scX                 SHORT    
+scY                 SHORT    
+scW                 SHORT    
+scH                 SHORT
+#ENDLOCALDATA
+#BOXED('Selected Control Extension')
+    #DISPLAY('The options for this extension template')
+    #DISPLAY('are available at the Global level')
+#ENDBOXED
+#RESTRICT
+  #IF(ITEMS(%Report) > 0)
+    #REJECT
+  #ELSE
+    #ACCEPT
+  #ENDIF
+#ENDRESTRICT
+#AT(%DataSection),WHERE(%SelectedCaret)
+LocSelectedCaret    SHORT(0)        #<!for use by Selected Control extension template
+#ENDAT
+#! #AT(%WindowEventHandling,'OpenWindow')
+
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),LAST,WHERE(%SelectedCaret)
+    LocSelectedCaret=CREATE(0,CREATE:STRING)
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'Open','()'),PRIORITY(5001),WHERE(%SelectedCaret)
+    LocSelectedCaret{PROP:TRN}    = TRUE
+    LocSelectedCaret{PROP:RIGHT}  = TRUE
+    LocSelectedCaret{PROP:TEXT}   = '%SelectedCaretCharacter'
+    LocSelectedCaret{PROP:XPos}   = 0
+    LocSelectedCaret{PROP:YPos}   = 0
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'TakeSelected','(),BYTE'),PRIORITY(4000)
+    IF scField
+        scField{Prop:Background} = scColor
+#!
+#! test for style
+#SUSPEND
+        #?scField{Prop:FontStyle}  = scStyle
+#IF(%SelectedStyle)
+    #RELEASE
+#ENDIF
+#RESUME
+#!
+#! test for caret
+#SUSPEND
+        #?HIDE(LocSelectedCaret)
+#IF(%SelectedCaret)
+    #RELEASE
+#ENDIF
+#RESUME
+#!
+    END
+    CASE SELECTED(){PROP:Type}
+    OF      CREATE:ENTRY
+    OROF    CREATE:TEXT
+    OROF    CREATE:COMBO
+    OROF    CREATE:DROPCOMBO
+    OROF    CREATE:SPIN
+#!
+#! test including a checkbox
+#SUSPEND
+    #?OROF    CREATE:CHECK
+#IF(%SelectedCheck)
+    #RELEASE
+#ENDIF
+#RESUME
+#!
+#! test including a radio
+#SUSPEND
+    #?OROF    CREATE:RADIO
+#IF(%SelectedRadio)
+    #RELEASE
+#ENDIF
+#RESUME
+#!
+#! test for style
+#SUSPEND
+        #?scStyle = SELECTED(){Prop:FontStyle}
+#IF(%SelectedStyle)
+    #RELEASE
+#ENDIF
+#RESUME
+        scColor = SELECTED(){Prop:Background}
+        scField = SELECTED()
+#!
+#! test for REQ
+#SUSPEND
+        #?IF (SELECTED(){Prop:REQ} = TRUE) THEN
+            #?SELECTED(){Prop:Background} = %SelectedRequiredColor
+        #?ELSE
+            #?SELECTED(){Prop:Background} = %SelectedColor
+        #?END
+#IF(%SelectedRequired)
+    #RELEASE
+#ELSE
+        #SUSPEND
+        #?SELECTED(){Prop:Background} = %SelectedColor
+        #IF(NOT %SelectedRequired)
+            #RELEASE
+        #ENDIF
+        #RESUME
+#ENDIF
+#RESUME
+#!
+#! bold the text
+#SUSPEND
+        #?SELECTED(){Prop:FontStyle} = FONT:BOLD
+#IF(%SelectedStyle)
+    #RELEASE
+#ENDIF
+#RESUME
+#!
+#! show caret indicater
+#SUSPEND
+        #?GETPOSITION(SELECTED(),scX,scY,scW,scH)
+        #IF(%SelectedRadio)
+        #?IF(SELECTED(){PROP:Type}=CREATE:RADIO)
+        #?SETPOSITION(LocSelectedCaret,(scX - LocSelectedCaret{PROP:Width}) - 6, scY)
+        #?ELSE
+        #?SETPOSITION(LocSelectedCaret,(scX - LocSelectedCaret{PROP:Width}) - 2, scY)
+        #?END
+        #ELSE
+        #?SETPOSITION(LocSelectedCaret,(scX - LocSelectedCaret{PROP:Width}) - 2, scY)
+        #ENDIF
+        #?LocSelectedCaret{PROP:FontColor} = %SelectedCaretColor
+        #?UNHIDE(LocSelectedCaret)
+#IF(%SelectedCaret)
+    #RELEASE
+#ENDIF
+#RESUME
+#!
+    END
+#ENDAT

@@ -1,0 +1,153 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<UsingTask TaskName="Microsoft.Build.Tasks.CW"
+		AssemblyFile="SoftVelocity.CW.Build.Tasks.dll"/>
+	<UsingTask TaskName="Microsoft.Build.Tasks.CWClean"
+		AssemblyFile="SoftVelocity.CW.Build.Tasks.dll"/>
+	<UsingTask TaskName="Microsoft.Build.Tasks.Redirection"
+		AssemblyFile="SoftVelocity.CW.Build.Tasks.dll"/>
+
+	<Target Name="SetOutDir" Condition="'$(OutputPath)'==''">
+		<Redirection
+		    Version="$(clarion_version)"
+		    Sections="$(Configuration)"
+		    File="$(OutputName)"
+		    FileType="$(OutputType)"
+		    ConfigDir="$(ConfigDir)"
+		    ForOpen="false">
+			<Output TaskParameter="OutputPath" PropertyName="OutputPath" />
+		</Redirection>
+	</Target>
+	<Target Name="SetDestination" Condition="'@(DestinationBinary)'==''">
+		<Redirection
+		    Version="$(clarion_version)"
+		    Sections="$(Configuration)"
+		    File="$(OutputPath)\$(OutputName)"
+		    FileType="$(OutputType)"
+		    ConfigDir="$(ConfigDir)"
+		    DirectoryOnly="false"
+		    ForOpen="false">
+			<Output TaskParameter="OutputPath" ItemName="DestinationBinary" />
+		</Redirection>
+		<CreateProperty Value="$(OutputPath)\">
+			<Output TaskParameter="Value" PropertyName="OutputPath" />
+		</CreateProperty>
+		<CreateItem Include="$(OutputPath)">
+			<Output TaskParameter="Include" ItemName="_OutputPathItem" />
+		</CreateItem>
+		<CreateProperty Value="$(OutputPath)">
+			<Output TaskParameter="Value" PropertyName="TargetDir" />
+		</CreateProperty>
+		<CreateProperty Value="@(DestinationBinary)">
+			<Output TaskParameter="Value" PropertyName="TargetPath" />
+		</CreateProperty>
+	</Target>
+
+	<PropertyGroup>
+		<PreBuildEventDependsOn>
+			SetOutDir;SetDestination;$(PreBuildEventDependsOn)
+		</PreBuildEventDependsOn>
+	</PropertyGroup>
+	<Target Name="PreBuildEvent" Condition="'$(PreBuildEvent)'!=''" DependsOnTargets="$(PreBuildEventDependsOn)">
+		<Exec WorkingDirectory="$(OutputPath)" Command="$(PreBuildEvent)" />
+	</Target>
+
+	<Target Name="_TimeStampBeforeCompile" Condition="'$(RunPostBuildEvent)'=='OnOutputUpdated'" DependsOnTargets="SetDestination">
+		<CreateItem Include="%(DestinationBinary.ModifiedTime)">
+			<Output TaskParameter="Include" PropertyName="_BinaryTimestampBeforeCompile"/>
+		</CreateItem>
+	</Target>
+	<Target Name="_TimeStampAfterCompile" Condition="'$(RunPostBuildEvent)'=='OnOutputUpdated'" DependsOnTargets="SetDestination">
+		<CreateItem Include="%(DestinationBinary.ModifiedTime)">
+			<Output TaskParameter="Include" PropertyName="_BinaryTimestampAfterCompile"/>
+		</CreateItem>
+	</Target>
+
+	<!-- The Clarion for Windows compiler Task does not use the Inputs attributes because
+	 the project system available to Clarion has a more advanced comparison system.  If Inputs and Outputs
+	 where specified, then MSBuild may not do a recompile when one was required.  Better to leave it to
+	 the Clarion project system to decide if anything is needed to be done
+	-->
+	<Target Name="CoreCompile">
+		<CW
+		    Version="$(clarion_version)"
+		    Model="$(Model)"
+		    Vid="$(vid)"
+        Warnings="$(warnings)" 
+		    CPU="$(cpu)"
+		    LineNumbers="$(line_numbers)"
+		    MapFile="$(GenerateMap)"
+		    CheckStack="$(check_stack)"
+		    CheckIndex="$(check_index)"
+		    StackSize="$(stack_size)"
+		    Defines="$(DefineConstants)"
+		    Includes="@(Include)"
+		    References="@(Reference);@(ProjectReference)"
+		    Sections="$(Configuration)"
+		    Sources="@(Compile)"
+		    Libraries="@(Library)"
+		    FileDrivers="@(FileDriver)"
+		    Icon="$(ApplicationIcon)"
+		    TargetName="$(OutputName)"
+		    TargetDir="$(OutputPath)"
+		    TargetType="$(OutputType)"
+		    RedirectionFile="$(RedFile)"
+		    CopyCoreFiles="$(CopyCore)"
+		    CopyableFiles="@(None)"
+		    ConfigDir="$(ConfigDir)"
+		    ProjectName="$(MSBuildProjectFile)"
+		    NoDependency="$(NoDependency)"
+		    Signal="$(Signal)"
+		>
+			<Output TaskParameter="RequiredDlls"
+			        ItemName="RequiredDlls" />
+			<Output TaskParameter="LibFile"
+			        PropertyName="LibFile" />
+			<Output TaskParameter="OutputFile"
+			        PropertyName="OutputFile" />
+		</CW>
+	</Target>
+
+	<PropertyGroup>
+		<PostBuildEventDependsOn>
+			SetOutDir;SetDestination;$(PostBuildEventDependsOn)
+		</PostBuildEventDependsOn>
+	</PropertyGroup>
+	<Target Name="PostBuildEvent"
+			Condition=
+			        "
+			            '$(PostBuildEvent)'!=''
+			            and
+			            (
+			                '$(RunPostBuildEvent)'!='OnOutputUpdated'
+			                or 
+			                '$(_BinaryTimestampBeforeCompile)'!='$(_BinaryTimestampAfterCompile)'
+			            )
+			        "
+			DependsOnTargets="$(PostBuildEventDependsOn)">
+		<Exec WorkingDirectory="$(OutputPath)" Command="$(PostBuildEvent)" />
+	</Target>
+
+	<PropertyGroup>
+		<BuildDependsOn>
+			PreBuildEvent;
+			_TimeStampBeforeCompile;
+			CoreCompile;
+			_TimeStampAfterCompile;
+			PostBuildEvent
+		</BuildDependsOn>
+	</PropertyGroup>
+
+	<Target Name="Build" DependsOnTargets="$(BuildDependsOn)" Outputs="$(OutputFile);$(LibFile);@(RequiredDlls)">
+		<OnError ExecuteTargets="_TimeStampAfterCompile;PostBuildEvent" Condition="'$(RunPostBuildEvent)'=='Always' or '$(RunPostBuildEvent)'=='OnOutputUpdated'"/>
+	</Target>
+	<Target Name="Clean" >
+		<CWClean
+		    ProjectName="$(MSBuildProjectFile)"
+		    Sections="$(Configuration)"
+		    Version="$(clarion_version)"
+		    ConfigDir="$(ConfigDir)"
+		/>
+	</Target>
+	<Target Name="Rebuild" DependsOnTargets="Clean;Build" />
+</Project>

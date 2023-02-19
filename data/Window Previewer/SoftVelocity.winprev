@@ -1,0 +1,450 @@
+﻿<windowPreviewer 
+  name        = "Default controls"
+  author      = "SoftVelocity Inc."
+  url         = "www.softvelocity.com"
+  priority    = "0"
+  description = "Default values displayed for controls in the Window Previewer"
+ >
+	<style id="Style1"
+				 fontName="MS Sans Serif"
+				 fontSize="9"
+				 fontStyle="FONT:bold"
+				 backColor="14024703"
+				 textSelected="COLOR:MENUTEXT"/>
+	<style id="Style2"
+				 fontName="MS Serif"
+				 fontSize="9"
+				 fontStyle="FONT:bold"
+				 backColor="15728607"
+				 textSelected="COLOR:Gray"/>
+	<style id="Style3"
+				 fontName="Times New Roman"
+				 fontSize="9"
+				 fontStyle="4496"
+				 backColor="14024703"
+				 textSelected="COLOR:Gray"
+				 backSelected="COLOR:Olive"/>
+	<style id="Style4"
+				 fontName="Courier New"
+				 fontSize="12"
+				 fontStyle="FONT:bold + FONT:italic"/>
+	<column id="GenericColumn">
+		<row text="Some Text"/>
+		<row text="Robert"/>
+		<row text="Canberra"/>
+		<row text="2 Blind Mice"/>
+		<row text="Saxony"/>
+		<row text="William"/>
+		<row text="Brahm"/>
+		<row text="Dr."/>
+		<row text="Pompano Beach"/>
+		<row text="Apple"/>
+		<row text="Orange"/>
+		<row text="Paul"/>
+		<row text="There once was a princess"/>
+		<row text="Motor Industry"/>
+		<row text="Windsor"/>
+		<row text="Computer Hard Disk"/>
+		<row text="Monitor"/>
+		<row text="Video Recorder"/>
+		<row text="Hyperbolic tan"/>
+		<row text="Calabi-Yau manifolds"/>
+		<row text="Pan Gu"/>
+		<row text="Laurence"/>
+		<row text="Lung Meridian"/>
+		<row text="Panbaso is a traditional Mexican sandwich delicacy"/>
+		<row text="The White Bear Forest is an old growth forest, located in Temagami, Ontario, Canada"/>
+		<row text="Naihe-Kukui Kapihe"/>
+		<row text="Herren von Eppstein"/>
+	</column>
+	<column id="Icons">
+		<row icon="check1.ico"/>
+		<row icon="cancel4.ico"/>
+		<row icon="cancel4.ico"/>
+		<row icon="bullets.ico"/>
+		<row icon="cdrom.ico"/>
+		<row icon="cancel4.ico"/>
+		<row icon="bullets.ico"/>
+		<row icon="cdrom.ico"/>
+		<row icon="cdrom.ico"/>
+		<row icon="computer.ico"/>
+		<row icon="help2.ico"/>
+		<row icon="computer.ico"/>
+		<row icon="bullets.ico"/>
+		<row icon="computer.ico"/>
+		<row icon="adr1.ico"/>
+		<row icon="help2.ico"/>
+		<row icon="adr1.ico"/>
+		<row icon="computer.ico"/>
+		<row icon="cdrom.ico"/>
+		<row icon="help2.ico"/>
+		<row icon="bullets.ico"/>
+		<row icon="cancel4.ico"/>
+		<row icon="cancel4.ico"/>
+		<row icon="bullets.ico"/>
+		<row icon="cdrom.ico"/>
+		<row icon="computer.ico"/>
+		<row icon="computer.ico"/>
+	</column>
+	<column id="Styles">
+		<row style="Style1"/>
+		<row style="Style2"/>
+		<row style="Style3"/>
+		<row style="Style4"/>
+		<row style="Style2"/>
+		<row style="Style1"/>
+		<row style="Style3"/>
+		<row style="Style4"/>
+		<row style="Style1"/>
+		<row style="Style2"/>
+		<row style="Style2"/>
+		<row style="Style2"/>
+		<row style="Style3"/>
+		<row style="Style4"/>
+		<row style="Style3"/>
+		<row style="Style1"/>
+		<row style="Style2"/>
+		<row style="Style1"/>
+		<row style="Style1"/>
+		<row style="Style3"/>
+		<row style="Style3"/>
+		<row style="Style4"/>
+		<row style="Style4"/>
+		<row style="Style4"/>
+		<row style="Style1"/>
+		<row style="Style2"/>
+		<row style="Style1"/>
+	</column>
+	<column id="Colors">
+		<row textColor="COLOR:black" backColor="COLOR:green"/>
+		<row textColor="COLOR:black" backColor="COLOR:BACKGROUND" textSelected="COLOR:black" backSelected="COLOR:green"/>
+		<row textColor="COLOR:black" backColor="COLOR:BACKGROUND" textSelected="COLOR:green" backSelected="COLOR:HIGHLIGHTTEXT"/>
+		<row textColor="COLOR:Orange" backColor="COLOR:White"/>
+		<row textSelected="COLOR:green" backSelected="COLOR:HIGHLIGHTTEXT"/>
+		<row textSelected="COLOR:White" backSelected="COLOR:Orange"/>
+		<row textColor="COLOR:blue" backColor="COLOR:Purple"/>
+		<row textColor="COLOR:White" backColor="COLOR:blue" textSelected="COLOR:HIGHLIGHTTEXT" backSelected="COLOR:black"/>
+		<row textSelected="COLOR:Fuchsia" backSelected="COLOR:Silver"/>
+		<row textColor="COLOR:White" backColor="COLOR:Purple" textSelected="COLOR:black" backSelected="COLOR:Silver"/>
+		<row textColor="COLOR:Silver" backColor="COLOR:BACKGROUND"/>
+		<row textColor="COLOR:Orange" backColor="COLOR:green" textSelected="COLOR:White" backSelected="COLOR:Purple"/>
+		<row textColor="COLOR:White" backColor="COLOR:blue" textSelected="COLOR:White" backSelected="COLOR:Purple"/>
+		<row textSelected="COLOR:White" backSelected="COLOR:Purple"/>
+		<row textColor="COLOR:Purple" backColor="COLOR:green"/>
+		<row textColor="COLOR:Orange" backColor="COLOR:BACKGROUND"/>
+		<row textColor="COLOR:Silver" backColor="COLOR:black" textSelected="COLOR:black" backSelected="COLOR:Silver"/>
+		<row textColor="COLOR:Fuchsia" backColor="COLOR:blue"/>
+		<row textColor="COLOR:blue"/>
+		<row />
+		<row textColor="COLOR:Silver" backColor="COLOR:blue" textSelected="COLOR:Fuchsia " backSelected="COLOR:blue"/>
+		<row backColor="COLOR:Olive"/>
+		<row textColor="COLOR:black" backColor="COLOR:HIGHLIGHTTEXT" textSelected="COLOR:green" backSelected="COLOR:Fuchsia "/>
+		<row textColor="COLOR:Olive" backColor="COLOR:Purple"/>
+		<row textColor="COLOR:Olive" backColor="COLOR:Purple" textSelected="COLOR:green" backSelected="COLOR:BACKGROUND"/>
+		<row textSelected="COLOR:Silver" backSelected="COLOR:green"/>
+		<row textColor="COLOR:black" backColor="COLOR:Fuchsia" textSelected="COLOR:blue" backSelected="COLOR:BACKGROUND"/>
+	</column>
+	<column id="Tooltips">
+		<row tooltip="This can be customised"/>
+		<row tooltip="You can add things"/>
+		<row />
+		<row tooltip="Clarion makes you more productive"/>
+		<row tooltip="Clarion# is the language for .NET"/>
+		<row tooltip="The Application Generator is it"/>
+		<row tooltip="Where did these tool tips come from"/>
+		<row />
+		<row tooltip="Who is watching you?"/>
+		<row tooltip="Once there was a little old man"/>
+		<row tooltip="England and the USA are two countries seperated by a common language"/>
+		<row tooltip="Cricket is a sport for all"/>
+		<row />
+		<row />
+		<row tooltip="Subversion is for everyone.  Not just teams of developers"/>
+		<row tooltip="When will IP6 become a reality?"/>
+		<row tooltip="Confucius was born September 28, 551 BC"/>
+		<row tooltip="The square root of -1 is i"/>
+		<row tooltip="Clarion was first released in April 1986"/>
+		<row tooltip="In Tokyo, a bicycle is faster than a car for most trips of less than 50 minutes"/>
+		<row tooltip="Your body is creating and killing 15 million red blood cells per second"/>
+		<row />
+		<row tooltip="Slugs have 4 noses"/>
+		<row tooltip="Most dust particles in your house are made from dead skin"/>
+		<row tooltip="Butterflies taste with their feet"/>
+		<row tooltip="Elephants are the only animals that can't jump"/>
+		<row tooltip="The Main Library at Indiana University sinks over an inch every year because when it was built, engineers failed to take into account the weight of all the books that would occupy the building"/>
+	</column>
+	<column id="LastName">
+		<row text="Accorit" icon="check1.ico"/>
+		<row text="Afonso" icon="cancel4.ico"/>
+		<row text="Ashworth" icon="cancel4.ico"/>
+		<row text="Bennett" icon="bullets.ico"/>
+		<row text="Brown" icon="cdrom.ico"/>
+		<row text="Chang" icon="cancel4.ico"/>
+		<row text="Cramer" icon="bullets.ico"/>
+		<row text="Cruz" icon="cdrom.ico"/>
+		<row text="Devon" icon="cdrom.ico"/>
+		<row text="Dominguess" icon="computer.ico"/>
+		<row text="Franken" icon="help2.ico"/>
+		<row text="Henriot" icon="computer.ico"/>
+		<row text="Hernadez" icon="bullets.ico"/>
+		<row text="Ibsen" icon="computer.ico"/>
+		<row text="Jablonski" icon="adr1.ico"/>
+		<row text="Josephs" icon="help2.ico"/>
+		<row text="Karttunen" icon="adr1.ico"/>
+		<row text="Koskitalo" icon="computer.ico"/>
+		<row text="Labrune" icon="cdrom.ico"/>
+		<row text="Larsson" icon="help2.ico"/>
+		<row text="Latimer" icon="bullets.ico"/>
+		<row text="Lebihan" icon="cancel4.ico"/>
+		<row text="Lincoln" icon="cancel4.ico"/>
+		<row text="McKena" icon="bullets.ico"/>
+		<row text="Mendel" icon="cdrom.ico"/>
+		<row text="Muller" icon="computer.ico"/>
+		<row text="Nagy" icon="computer.ico"/>
+	</column>
+	<column id="FirstName">
+		<row text="Paolo"/>
+		<row text="Pedro"/>
+		<row text="Victoria"/>
+		<row text="Helen"/>
+		<row text="Lesley"/>
+		<row text="Francisco"/>
+		<row text="Philip"/>
+		<row text="Aria"/>
+		<row text="Ann"/>
+		<row text="Anabela"/>
+		<row text="Peter"/>
+		<row text="Paul"/>
+		<row text="Carlos"/>
+		<row text="Palle"/>
+		<row text="Karla"/>
+		<row text="Karin"/>
+		<row text="Matti"/>
+		<row text="Pirkko"/>
+		<row text="Janine"/>
+		<row text="Maria"/>
+		<row text="Yoshi"/>
+		<row text="Laurence"/>
+		<row text="Elizabeth"/>
+		<row text="Patricia"/>
+		<row text="Roland"/>
+		<row text="Rita"/>
+		<row text="Helvetius"/>
+	</column>
+	<column id="USPhone">
+		<row text="9547854555"/>
+		<row text="8777334555"/>
+		<row text="9549461650"/>
+		<row text=""/>
+		<row text=""/>
+		<row text="5555555555"/>
+		<row text="1234567890"/>
+		<row text="0987654321"/>
+		<row text="9876543210"/>
+		<row text="8765432109"/>
+		<row text="2345678901"/>
+		<row text="2233445566"/>
+		<row text="3456789021"/>
+		<row text="4567890123"/>
+		<row text="8765432109"/>
+		<row text="7654321098"/>
+		<row text="6543210987"/>
+		<row text="6666666666"/>
+		<row text="4554554554"/>
+		<row text="3443443443"/>
+		<row text="4343433434"/>
+		<row text="8739839021"/>
+		<row text="9745790211"/>
+		<row text="1111111111"/>
+		<row text="7399013499"/>
+		<row text="7892072351"/>
+		<row text="8093450912"/>
+	</column>
+	<column id="StringDate">
+		<row text="1/1/2009"/>
+		<row text="12/12/1934"/>
+		<row text="9/7/1996"/>
+		<row text="12/5/2010"/>
+		<row text="8/18/1900"/>
+		<row text="11/11/1911"/>
+		<row text="2/9/1968"/>
+		<row text="3/9/1919"/>
+		<row text="2/2/2002"/>
+		<row text="11/6/2011"/>
+		<row text="6/6/2000"/>
+		<row text="7/7/2001"/>
+		<row text="3/8/1999"/>
+		<row text="9/9/2009"/>
+		<row text="3/9/1997"/>
+		<row text="1/6/1984"/>
+		<row text="9/3/1978"/>
+		<row text="7/12/1995"/>
+		<row text="6/12/1995"/>
+		<row text="8/12/1995"/>
+		<row text="9/1/2010"/>
+		<row text="9/1/2010"/>
+		<row text="12/5/2010"/>
+		<row text="1/6/1984"/>
+		<row text="2/9/1968"/>
+		<row text="2/9/1968"/>
+		<row text="2/9/1968"/>
+	</column>
+	<column id="Date">
+		<row text="74563"/>
+		<row text="73563"/>
+		<row text="64563"/>
+		<row text="72563"/>
+		<row text="70000"/>
+		<row text="76045"/>
+		<row text="76000"/>
+		<row text="73456"/>
+		<row text="73577"/>
+		<row text="74379"/>
+		<row text="75383"/>
+		<row text="75244"/>
+		<row text="76344"/>
+		<row text="76892"/>
+		<row text="75031"/>
+		<row text="70999"/>
+		<row text="71983"/>
+		<row text="72769"/>
+		<row text="73248"/>
+		<row text="74149"/>
+		<row text="75272"/>
+		<row text="76372"/>
+		<row text="76772"/>
+		<row text="76921"/>
+		<row text="75457"/>
+		<row text="74483"/>
+		<row text="75218"/>
+	</column>
+	<column id="NumericData">
+		<row text="-12345.6789"/>
+		<row text="0"/>
+		<row text="23"/>
+		<row text="5678.2233313"/>
+		<row text="1987"/>
+		<row text="20784.3"/>
+		<row text="77.77"/>
+		<row text="1293457802.343"/>
+		<row text="2"/>
+		<row text="10"/>
+		<row text="100"/>
+		<row text="9999"/>
+		<row text="99999"/>
+		<row text="999999"/>
+		<row text="999999.9999"/>
+		<row text="99999.9999"/>
+		<row text="9999.9999"/>
+		<row text="999.9999"/>
+		<row text="99.9999"/>
+		<row text="9.9999"/>
+		<row text="0.9999"/>
+		<row text="999999.9"/>
+		<row text="99999.99"/>
+		<row text="9999.999"/>
+		<row text="7"/>
+		<row text="7"/>
+		<row text="7"/>
+	</column>
+	<column id="Tree">
+		<row text="Publishers - Tiltes - Sales" treeLevel="1" icon="computer.ico" style="Style1"/>
+		<row text="New Moon Books" treeLevel="2" style="Style2" icon="shutfold.ico" textColor="32768"/>
+		<row text="TitleID: BU2075, You Can Combat Computer Stress!" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 7896, Order No.: X999,  Order Date: 2/21/93" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: PS2091, Is Anger the Enemy?" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 6380, Order No.: 722a,  Order Date: 9/13/94" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="Store ID: 7066, Order No.: QA7442.3,  Order Date: 9/13/94" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="Store ID: 7067, Order No.: D4482,  Order Date: 9/14/94" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="Store ID: 7131, Order No.: N914008,  Order Date: 9/14/94" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: PS2106, Life Without Fear" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 7131, Order No.: P3087a,  Order Date: 5/29/93" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: PS3333, Prolonged Data Deprivation: Four Case Studies" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 7131, Order No.: P3087a,  Order Date: 5/29/93" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: PS7777, Emotional Security: A New Algorithm" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 7131, Order No.: P3087a,  Order Date: 5/29/93" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="Binnet &amp; Hardley" treeLevel="2" style="Style2" icon="shutfold.ico" textColor="32768"/>
+		<row text="TitleID: MC2222, Silicon Valley Gastronomic Treats" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 7896, Order No.: TQ456,  Order Date: 12/12/93" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: MC3021, The Gourmet Microwave" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 7131, Order No.: N914014,  Order Date: 9/14/93" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="Store ID: 8042, Order No.: 423LL922,  Order Date: 9/14/93" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: MC3026, The Psychology of Computer Cooking" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="TitleID: PS1372, Computer Phobic AND Non-Phobic Individuals: Behavior Variations" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 7131, Order No.: P3087a,  Order Date: 5/29/93" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: TC3218, Onions, Leeks, and Garlic: Cooking Secrets of the Mediterranean" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 7067, Order No.: P2121,  Order Date: 6/15/92" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: TC4203, Fifty Years in Buckingham Palace Kitchens" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 7067, Order No.: P2121,  Order Date: 6/15/92" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: TC7777, Sushi, Anyone?" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 7067, Order No.: P2121,  Order Date: 6/15/92" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="Algodata Infosystems" treeLevel="2" style="Style2" icon="shutfold.ico" textColor="32768"/>
+		<row text="TitleID: BU1032, The Busy Executive's Database Guide" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 6380, Order No.: 6871,  Order Date: 9/19/94" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="Store ID: 8042, Order No.: 423LL930,  Order Date: 9/19/94" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: BU1111, Cooking with Computers: Surreptitious Balance Sheets" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 8042, Order No.: P723,  Order Date: 3/11/93" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: BU7832, Straight Talk About Computers" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 7896, Order No.: QQ2299,  Order Date: 10/28/93" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: PC1035, But Is It User Friendly?" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 8042, Order No.: QA879.1,  Order Date: 5/22/93" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: PC8888, Secrets of Silicon Valley" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Store ID: 7066, Order No.: A2976,  Order Date: 5/24/93" treeLevel="4" style="Style4" icon="clarion.ico" textColor="255"/>
+		<row text="TitleID: PC9999, Net Etiquette" treeLevel="3" style="Style3" icon="openfont.ico" textColor="8388608"/>
+		<row text="Five Lakes Publishing" treeLevel="2" style="Style2" icon="shutfold.ico" textColor="32768"/>
+		<row text="Ramona Publishers" treeLevel="2" style="Style2" icon="shutfold.ico" textColor="32768"/>
+		<row text="GGG&amp;G" treeLevel="2" style="Style2" icon="shutfold.ico" textColor="32768"/>
+		<row text="SV Books" treeLevel="2" style="Style2" icon="shutfold.ico" textColor="32768"/>
+		<row text="Scootney Books" treeLevel="2" style="Style2" icon="shutfold.ico" textColor="32768"/>
+		<row text="Lucerne Publishing" treeLevel="2" style="Style2" icon="shutfold.ico" textColor="32768"/>
+	</column>
+	<control type="Progress">
+		<percentage value="50"/>
+	</control>
+	<control picture="@N.*">
+		<text value="12345.6789"/>
+	</control>
+	<control picture="@T.*">
+		<text value="5117000"/>
+	</control>
+	<control picture="@D.*">
+		<text value="75508"/>
+	</control>
+	<control type="Entry">
+		<text value="The quick brown fox jumped over the lazy dog"/>
+	</control>
+	<control type="String">
+		<text value="The quick brown fox jumped over the lazy dog"/>
+	</control>
+	<control type="Text">
+		<text value="The TEXT control places a multi-line data entry field on the WINDOW (or TOOLBAR) at the position and size specified by its AT attribute. It is valid in Clarion Win32 Windows, and also for REPORT structures in both Clarion Win32 and Clarion#. The variable specified in the USE attribute receives the data entered when the user has completed data entry and moves on to another control. The entered data automatically word-wraps to fit in the text box."/>
+		<text value="TEXT controls populated in the Report Formatter always show a flat or two-dimensional border. In the Window Formatter, these controls will show a three-dimensional border if the window has a GRAY attribute, and the transparent (TRN) and flat (FLAT) attributes for the control are not enabled. The BOXED attribute must be active for any border to be drawn."/>
+		<text value="More Text"/>
+		<text value="More Text"/>
+	</control>
+	<control type="Image">
+		<image location="softvelocity.gif"/>
+	</control>
+	<control type="Combo">
+		<column tree="true" text="Tree" />
+		<column header=".*date.*" text="Date" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column header=".*lastname.*" text="LastName" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column header=".*last name.*" text="LastName" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column header=".*firstname.*" text="FirstName" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column header=".*first name.*" text="FirstName" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column picture="@N.*" text="NumericData" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column picture="@P\(###\) ###-####P.*" text="USPhone" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column column=">0" text="GenericColumn" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+	</control>
+	<control type="List">
+		<column tree="true" text="Tree" />
+		<column header=".*date.*" text="Date" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column header=".*lastname.*" text="LastName" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column header=".*last name.*" text="LastName" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column header=".*firstname.*" text="FirstName" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column header=".*first name.*" text="FirstName" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column picture="@N.*" text="NumericData" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column picture="@P\(###\) ###-####P.*" text="USPhone" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+		<column column=">0" text="GenericColumn" icon="Icons" color="Colors" style="Styles" tooltip="Tooltips"/>
+	</control>
+</windowPreviewer>

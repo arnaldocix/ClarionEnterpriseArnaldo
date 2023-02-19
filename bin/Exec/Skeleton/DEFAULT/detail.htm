@@ -1,0 +1,77 @@
+<HTML>
+<BODY>
+<FORM>
+<table border="0" width="100%" >
+  <tr bgcolor="#dcdcdc">
+    <td>
+      Customer name
+    </td>
+    <td>
+      Product
+    </td>
+    <td>
+      Unit price
+    </td>
+    <td>
+      Quantity
+    </td>
+    <td>
+      Total price
+    </td>
+  </tr>
+  <TSSCRIPT repeat max=10 while="MoreRecords" comment='Outer loop'>
+    <TSSCRIPT local name=Break value='CUSTOMERS.ID'>
+      <TSSCRIPT local name='CustomerTotal' value=0>
+        <TSSCRIPT repeat name=curtab max = 10 while="MoreRecords && Break==CUSTOMERS.ID" comment='Inner loop'>
+          <tr>
+            <td bgcolor="#ccccff">
+              <TSSCRIPT value="CUSTOMERS.FIRSTNAMES">
+              firstname
+              </TSSCRIPT>
+              <TSSCRIPT value="CUSTOMERS.LASTNAMES">
+              lastname
+              </TSSCRIPT>
+            </td>
+            <td>
+              <TSSCRIPT value="PRODUCT.NAME">
+              prodname
+              </TSSCRIPT>
+            </td>
+            <td bgcolor="#ccccff">
+              <TSSCRIPT value="PRODUCT.ALLTIMEPOSITION">
+              lastname
+              </TSSCRIPT>
+            </td>
+            <td>
+              <TSSCRIPT value="INVOICELINE.QUANTITY">
+              lastname
+              </TSSCRIPT>
+            </td>
+            <td bgcolor="#ccccff">
+              <TSSCRIPT value="INVOICELINE.QUANTITY * PRODUCT.ALLTIMEPOSITION">
+              lastname
+              </TSSCRIPT>
+            </td>
+
+            <TSSCRIPT set name='CustomerTotal' value='CustomerTotal + INVOICELINE.QUANTITY * PRODUCT.ALLTIMEPOSITION'></TSSCRIPT>
+          </tr>
+          <TSSCRIPT property="NextRecord" value="1"></TSSCRIPT>
+        </TSSCRIPT><!-- repeat/while -->
+        <TSSCRIPT replace='%total%' value='CustomerTotal'>
+        <TSSCRIPT property="CheckPageBreak" value="1"></TSSCRIPT>
+        <tr><td colspan=3></td>
+          <td>
+            <p align="right">Total =</p>
+          </td>
+          <td>
+            <span style="text-decoration: overline">%total%</span>
+          </td>
+        </tr>
+        </TSSCRIPT>
+      </TSSCRIPT><!-- CustomerTotal -->
+    </TSSCRIPT><!-- BREAK -->
+  </TSSCRIPT><!-- Outer loop -->
+</table>
+</FORM>
+</BODY>
+</HTML>

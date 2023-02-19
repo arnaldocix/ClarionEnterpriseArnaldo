@@ -1,0 +1,96 @@
+<html>
+<head>
+<TSSCRIPT value="EmbedMetaTags" type=html></TSSCRIPT>
+<meta name="ts-control" content="window,application">
+<TSSCRIPT include="TimeOut != 0">
+  <TSSCRIPT tag=meta attr=content replace="DELAY" value="TimeOut">
+    <TSSCRIPT tag=meta attr=content replace="PROGRAM.TARGET" value="ProgramReference">
+<meta HTTP-EQUIV="REFRESH" CONTENT="DELAY;URL=PROGRAM.TARGET">
+    </TSSCRIPT>
+  </TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT value="Text" patch="*" comment="patch title" >
+<title>
+<TSSCRIPT value="EmbedInsideTitle" type=html></TSSCRIPT>
+<TSSCRIPT value="Title">
+Title
+</TSSCRIPT>
+</title>
+</TSSCRIPT>
+<TSSCRIPT value="EmbedBeforeHeadClose" type=html></TSSCRIPT>
+</head>
+<TSINCLUDE name="script.htm">
+<TSSCRIPT value="EmbedBeforeBodyOpen" type=html></TSSCRIPT>
+
+<TSSCRIPT comment="Change the colors in the following lines to change the colors of the generated application"></TSSCRIPT>
+<TSSCRIPT tag="<* FinalColor=Border>"       attr=bgcolor value="'#dcdcdc'" comment="Border Color" phase=*>
+<TSSCRIPT tag="<* FinalColor=Header>"       attr=bgcolor value="'#a0b8c8'" comment="Header Color" phase=*>
+<TSSCRIPT tag="<* FinalColor=HeaderB>"      attr=bgcolor value="'#ccccff'" comment="Header Background Color" phase=*>
+<TSSCRIPT tag="<* FinalColor=Cell>"         attr=bgcolor value="'#ffffcc'" comment="Cell Color" phase=*>
+<TSSCRIPT tag="<* FinalColor=CellB>"        attr=bgcolor value="'#ffffff'" comment="Cell background color" phase=*>
+<TSSCRIPT tag="<* FinalColor=DisabledText>" attr=color   value="'Gray'"    comment="Disabled text color" phase=*>
+<TSSCRIPT tag="<* FinalColor=HiLightCellColor>" attr=bgcolor value="'Yellow'"   comment="Highlight cell color" phase=*>
+<TSSCRIPT tag="<* FinalColor=HiLightTextColor>" attr=color   value="'Black'"    comment="Highlight text color" phase=*>
+
+<TSSCRIPT tag="<* FinalColor=*>" attr=FinalColor remove phase=Runtime comment="Remove pseudo tags from the table entries">
+<TSSCRIPT tag=img attr=src replace="IMAGES" value="Public" allowblank comment="Correct the path to images (the public directory)">
+<TSSCRIPT tag=img attr=src replace="PUBLIC" value="Public" allowblank comment="Correct the path to the public directory">
+
+<body finalcolor="Page" bgcolor="white" onload="onBodyLoad()" onunload="onBodyUnload()">
+<TSSCRIPT value="EmbedBeforeWindow" type=html></TSSCRIPT>
+<TSSCRIPT tag=form attr=action value="ProgramReference">
+<TSSCRIPT tag=form attr=method value="FormMethod">
+<TSSCRIPT tag=form attr=enctype value="FormEncoding">
+  <form name="ClarionForm" method="GET" action="PROGRAM.TARGET" onsubmit="return (submitSuppress-- == 0);">
+    <input type="HIDDEN" name="__Special__" value>
+    <TSSCRIPT value="EmbedTopOfForm" type=html></TSSCRIPT>
+    <table finalcolor="Border" border="0" cellpadding="4" cellspacing="2" width="100%">
+      <tr finalcolor="Header">
+        <td width=99%><b>
+          <TSSCRIPT value=Title>
+            Page Title
+          </TSSCRIPT>
+        </b></td>
+        <td width=1%>
+          <TSSCRIPT tag=a attr=href replace="NAME" value="Name">
+          <a href="javascript:icSubmit('NAME$EventCloseWindow');"><img alt="Close" WIDTH="18" HEIGHT="15" SRC="PUBLIC/x.gif" BORDER=0></a>
+          </TSSCRIPT>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <img name="ZONE:Menubar" alt="Wizatrons will place menus in here">
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <img name="ZONE:Toolbar" alt="Wizatrons will place toolbars in here">
+        </td>
+      </tr>
+      <tr>
+        <td finalcolor="Cell" align="center" colspan="2">
+          <img name="ZONE:Default:Contents[WIDTH=100%]" alt="Wizatrons will place controls in here">
+        </td>
+      </tr>
+    </table>
+    <TSSCRIPT value="EmbedBottomOfForm" type=html></TSSCRIPT>
+  </form>
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT value="EmbedAfterWindow" type=html></TSSCRIPT>
+</body>
+
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT value="EmbedBeforeHtmlClose" type=html></TSSCRIPT>
+</html>
+

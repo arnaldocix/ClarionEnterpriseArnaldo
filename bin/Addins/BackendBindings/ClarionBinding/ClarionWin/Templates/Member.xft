@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<Template author="SoftVelocity" version="1.0">
+	<Config
+		  name        = "${res:Templates.File.Member.Name}"
+		  icon        = "CW.File.EmptyFile"
+		  category    = "Clarion"
+		  defaultname = "Member${Number}.clw"
+		  language    = "Clarion"/>
+	 
+	<Description>${res:Templates.File.Member.Description}</Description>
+	
+	<Files>
+		<File name="${FullName}" language="Clarion">
+			<![CDATA[
+
+  MEMBER('${ProjectName}')
+
+${StandardHeader.Clarion}
+
+  MAP
+  END
+
+
+]]>
+		</File>
+	</Files>
+	<AdditionalOptions/>
+</Template>
+
+

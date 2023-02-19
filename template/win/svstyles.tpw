@@ -1,0 +1,53 @@
+#!
+#!*****************************************************************************
+#EXTENSION(ListStyle,'Create list control Style '),DESCRIPTION('Create list control Style'),PROCEDURE,WINDOW
+#!*****************************************************************************
+  #SHEET
+    #TAB('&Styles')
+      #BUTTON('Styles'),MULTI(%WindowStyles,INSTANCE(%WindowStyles)&'-'&%WindowStyleFontName&','&%WindowStyleFontSize),INLINE,HLP('~TPLListboxStyles.htm')
+         #BOXED('Font')
+            #PROMPT ('Font Name:',@s255), %WindowStyleFontName,DEFAULT('Microsoft Sans Serif')
+            #PROMPT ('Font Size:',SPIN(@n3,1,200)), %WindowStyleFontSize,DEFAULT('10')
+            #PROMPT ('Font Style:',@n11), %WindowStyleFontStyle,DEFAULT('700')
+            #BUTTON('Font...'),AT(,,30,15),WHENACCEPTED(%SVFSelectFont(%WindowStyleFontName,%WindowStyleFontSize,%WindowStyleFontColor,%WindowStyleFontStyle))
+            #ENDBUTTON
+            #ENABLE(%False),HIDE
+            #PROMPT ('Font Color:',@n11), %WindowStyleFontColor,DEFAULT('0')
+            #ENDENABLE
+         #ENDBOXED
+         #BOXED('Color')
+            #PROMPT('&Foreground Normal:',COLOR),%WindowStyleForegroundNormal,DEFAULT(-1)
+            #PROMPT('&Background Normal:',COLOR),%WindowStyleBackgroundNormal,DEFAULT(-1)
+            #PROMPT('&Foreground Selected:',COLOR),%WindowStyleForegroundSelected,DEFAULT(-1)
+            #PROMPT('&Background Selected:',COLOR),%WindowStyleBackgroundSelected,DEFAULT(-1)
+         #ENDBOXED
+      #ENDBUTTON
+      #DISPLAY('These Styles can be shared for all ')
+      #DISPLAY('the list control in the window.')
+      #DISPLAY('Use the style number to refer to each one.')
+    #ENDTAB
+  #ENDSHEET
+#AT(%AfterWindowOpening),WHERE(%AppTemplateFamily='CLARION')
+Do DefineListboxStyle
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8002),WHERE(%AppTemplateFamily='ABC')
+Do DefineListboxStyle
+#ENDAT
+#AT(%ProcedureRoutines)
+DefineListboxStyle ROUTINE
+#FOR(%Control),WHERE(%ControlType='LIST' AND %ControlHasStyle)
+  !------------------------------------
+  !Style for %Control
+  !------------------------------------
+   #FOR(%WindowStyles)
+  %Control{PROPSTYLE:FontName, %WindowStyles}      = '%WindowStyleFontName'
+  %Control{PROPSTYLE:FontSize, %WindowStyles}      = %WindowStyleFontSize
+  %Control{PROPSTYLE:FontStyle, %WindowStyles}     = %WindowStyleFontStyle
+  %Control{PROPSTYLE:TextColor, %WindowStyles}     = %WindowStyleForegroundNormal
+  %Control{PROPSTYLE:BackColor, %WindowStyles}     = %WindowStyleBackgroundNormal
+  %Control{PROPSTYLE:TextSelected, %WindowStyles}  = %WindowStyleForegroundSelected
+  %Control{PROPSTYLE:BackSelected, %WindowStyles}  = %WindowStyleBackgroundSelected
+  !------------------------------------
+   #ENDFOR
+#ENDFOR
+#ENDAT

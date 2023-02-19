@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<Template author="SoftVelocity" version="1.0">
+	<Config
+		  name        = "Empty Template Module"
+		  icon        = "CW.File.EmptyFile"
+		  category    = "Clarion"
+		  subcategory = "Templates"
+		  defaultname = "Template${Number}.tpw"
+		  language    = "Clarion Template"/>
+	 
+	<Description>Empty Clarion Template Module (TPW)</Description>
+
+	<Files>
+		<File name="${FullName}" language="Clarion Template"/>
+	</Files>
+	
+	<AdditionalOptions/>
+</Template>

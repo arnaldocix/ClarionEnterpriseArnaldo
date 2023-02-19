@@ -1,0 +1,153 @@
+#GROUP(%ReportEventOpenWindow)
+#EMBED(%BeforeOpeningReport,'Before Opening Report')
+OPEN(%Report)
+#EMBED(%AfterOpeningReport,'After Opening Report')
+#IF(%EnablePrintPreview)
+   #IF(NOT %GlobalUseABCClasess OR (%GlobalUseABCClasess AND %GlobalReportPreviewMode='Procedure'))
+      #SET(%LocalReportPreviewQueue,'PrintPreviewQueue.Filename')
+   #ELSE
+      #SET(%LocalReportPreviewQueue,'PrintPreviewQueue.Filename')
+   #ENDIF
+%Report{Prop:Preview} = %LocalReportPreviewQueue
+#ENDIF
+#IF(%EnablePrintPreview AND ITEMS(%ReportTargetList))
+LocalAttribute.Init(%Report)
+#ENDIF
+Do SetStaticControlsAttributes
+#!--------------------------------------------
+#GROUP(%ReportEventTimer)
+#DECLARE(%ReportPrefix)
+#SET(%ReportPrefix,EXTRACT(%ReportStatement,'PRE'))
+#IF(%ReportPrefix)
+  #SET(%ReportPrefix,SUB(%ReportPrefix,5,LEN(%ReportPrefix)-5))
+#ENDIF
+#INSERT(%StandardFormula,'Before Print Detail')
+#EMBED(%ReportBeforeLookups,'Before Lookups')
+#INSERT(%StandardFormula,'Before Lookups')
+#INSERT(%StandardSecondaryLookups)
+#INSERT(%StandardFormula,'After Lookups')
+#EMBED(%ReportAfterLookups,'After Lookups')
+Do SetDynamicControlsAttributes
+#EMBED(%BeforePrint,'Before Printing Detail Section')
+PrintSkipDetails = FALSE
+#FOR(%ReportControl), WHERE( ~%ReportControl AND %ReportControlType = 'DETAIL' AND %DetailFilter )
+  #ERROR(%Procedure & ': A filtered report detail section must have a field equate label')
+  #BREAK
+#ENDFOR
+#! Do the filtered detail printing
+#FOR ( %ReportControl ), WHERE( %ReportControlType = 'DETAIL' AND %DetailFilter )
+IF %DetailFilter THEN
+  #IF (%DetailFilterExclusive)
+  PrintSkipDetails = TRUE
+  #ENDIF
+  #IF (%ReportPrefix)
+  PRINT(%ReportPrefix:%ReportControlLabel)
+  #ELSE
+  PRINT(%ReportControlLabel)
+  #ENDIF
+END
+#ENDFOR
+
+#! Print any unfiltered details if allowed
+#SUSPEND
+#?IF ~PrintSkipDetails THEN
+#FOR ( %ReportControl ), WHERE( %ReportControlType = 'DETAIL' AND ~%DetailFilter )
+  #IF (%ReportPrefix)
+  PRINT(%ReportPrefix:%ReportControlLabel)
+  #ELSE
+  PRINT(%ReportControlLabel)
+  #ENDIF
+#ENDFOR
+#?END
+#RESUME
+#EMBED(%AfterPrint,'After Printing Detail Section')
+#!--------------------------------------------
+#GROUP(%ReportEndOfProcedure)
+#IF(%EnableQuickScan)
+#EMBED(%BeforeTurnQuickScanOff,'Before Turning QuickScan Off'),WHERE(%EnableQuickScan)
+IF SEND(%Primary,'QUICKSCAN=off').
+#FOR(%Secondary),WHERE(%SecondaryType = '1:MANY')
+IF SEND(%Secondary,'QUICKSCAN=off').
+#ENDFOR
+#EMBED(%AfterTurnQuickScanOff,'After Turning QuickScan Off'),WHERE(%EnableQuickScan)
+#ENDIF
+#IF(%EnablePrintPreview)
+   #IF(NOT %GlobalUseABCClasess OR (%GlobalUseABCClasess AND %GlobalReportPreviewMode='Procedure'))
+      #IF(%OverrideGlobalReportPreviewProcedure)
+          #SET(%LocalReportPreviewProcedure,%ReportPreviewProcedure&'(PrintPreviewQueue)')
+      #ELSE
+          #SET(%LocalReportPreviewProcedure,%GlobalReportPreview&'(PrintPreviewQueue)')
+      #ENDIF
+   #ELSE
+      #IF(ITEMS(%ReportTargetList))
+          #SET(%LocalReportPreviewProcedure,%Procedure&'_ABCReportPreview'&'(PrintPreviewQueue,'&%PreviewerObjectName&',LocalTargetSelector,LocalWMFParser)')
+      #ELSE
+          #SET(%LocalReportPreviewProcedure,%Procedure&'_ABCReportPreview'&'(PrintPreviewQueue,'&%PreviewerObjectName&')')
+      #ENDIF
+   #ENDIF
+IF LocalResponse = RequestCompleted
+  #EMBED(%BeforeEndReport,'Before End Report'),WHERE(%EnablePrintPreview)
+  #EMBED(%BeforePrintPreview,'Process Completed'),WHERE(%EnablePrintPreview)
+  ENDPAGE(%Report)
+  #EMBED(%AfterEndReport,'After End Report'),WHERE(%EnablePrintPreview)
+  #EMBED(%PrintPreviewBefore,'Before Print Preview'),WHERE(%EnablePrintPreview)
+  IF NOT SkipPreview THEN
+     %LocalReportPreviewProcedure
+  ELSE
+     GlobalResponse = RequestCompleted
+  END
+  #EMBED(%PrintPreviewAfter,'After Print Preview'),WHERE(%EnablePrintPreview)
+  IF GlobalResponse = RequestCompleted
+     #EMBED(%PrintPreviewAccepted,'Print Preview Accepted'),WHERE(%EnablePrintPreview)
+     #IF(ITEMS(%ReportTargetList)>0)
+     IF NOT LocalReportTarget &= NULL THEN
+        IF RECORDS(PrintPreviewQueue) THEN
+           IF LocalReportTarget.SupportResultQueue()=True THEN
+              LocalReportTarget.SetResultQueue(LocalOutputFileQueue)
+           END
+           ! The false parameter indicates that the AskProperties must ask for a name
+           ! only if the target name is blank
+           IF LocalReportTarget.AskProperties(False)=Level:Benign THEN
+              LocalWMFParser.Init(PrintPreviewQueue, LocalReportTarget)
+              IF LocalWMFParser.GenerateReport(ShowOutputProgress)=Level:Benign THEN
+                 IF LocalReportTarget.SupportResultQueue()=True THEN
+                    Do ProcessOutputFileQueue
+                 END
+              END
+           END
+        END
+     ELSE
+     #ENDIF
+        FREE(LocalOutputFileQueue)
+        LOOP PreviewQueueIndex=1 TO RECORDS(PrintPreviewQueue)
+             GET(PrintPreviewQueue,PreviewQueueIndex)
+             IF NOT ERRORCODE() THEN
+                LocalOutputFileQueue.FileName = PrintPreviewQueue.FileName
+                ADD(LocalOutputFileQueue)
+             END
+        END
+        Do ProcessOutputFileQueue
+        FREE(LocalOutputFileQueue)
+        #EMBED(%BeforeFlushReport,'Before Flush Report'),WHERE(%EnablePrintPreview)
+        %Report{PROP:FlushPreview} = True
+        #EMBED(%AfterFlushReport,'After Flush Report'),WHERE(%EnablePrintPreview)
+     #IF(ITEMS(%ReportTargetList)>0)
+     END
+     #ENDIF
+  #SUSPEND
+  #?ELSE
+        #EMBED(%PrintPreviewCanceled,'Print Preview Canceled'),WHERE(%EnablePrintPreview)
+  #RESUME
+  END
+  #SUSPEND
+#?ELSE
+  #EMBED(%ProcessCancelled,'Process Cancelled'),WHERE(%EnablePrintPreview)
+  #RESUME
+END
+#ENDIF
+#EMBED(%BeforeClosingReport,'Before Closing Report')
+CLOSE(%Report)
+#EMBED(%AfterClosingReport,'After Closing Report')
+#IF(%EnablePrintPreview)
+FREE(PrintPreviewQueue)
+#ENDIF

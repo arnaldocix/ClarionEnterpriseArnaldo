@@ -1,0 +1,61 @@
+#!---------------------------------------------------
+#GROUP(%QuickDeclareProcedure)
+#DECLARE(%ReturnValue,%ProcedureList)
+#DECLARE(%WindowOperationMode,%ProcedureList)
+#DECLARE(%INISaveWindow,%ProcedureList)
+#DECLARE(%WindowMessage,%ProcedureList)
+#DECLARE(%EnablePrintPreview,%ProcedureList)
+#DECLARE(%EnableQuickScan,%ProcedureList)
+#!---------------------------------------------------
+#GROUP(%GenerateProcedurePrompts)
+[PROMPTS]
+#IF(%ReturnValue)
+%%ReturnValue STRING  ('%ReturnValue')
+#ENDIF
+#IF(%WindowOperationMode)
+%%WindowOperationMode STRING  ('%WindowOperationMode')
+#ENDIF
+#IF(%INISaveWindow)
+%%INISaveWindow LONG  (%INISaveWindow)
+#ENDIF
+#IF(%WindowMessage)
+%%WindowMessage STRING  ('%WindowMessage')
+#ENDIF
+#IF(%EnablePrintPreview)
+%%EnablePrintPreview LONG  (%EnablePrintPreview)
+#ENDIF
+#IF(%EnableQuickScan)
+%%EnableQuickScan LONG  (%EnableQuickScan)
+#ENDIF
+#!--------------------------------------------------------------------------
+#GROUP(%GenerateProcedureHeader)
+[PROCEDURE]
+NAME %ProcedureList
+#CASE (%QuickProcedureType)
+#OF ('Clarion Form')
+CATEGORY 'Form'
+#OF ('Clarion Browse')
+CATEGORY 'Browse'
+#OF ('Clarion Process')
+CATEGORY 'Process'
+#OF ('Clarion Report')
+CATEGORY 'Report'
+#OF ('Clarion Window')
+CATEGORY 'Window'
+#END
+#IF (%Parameters)
+PARAMETERS  '%Parameters'
+#ENDIF
+[COMMON]
+#SET(%ValueConstruct,%QuickProcedureDescription)
+#IF(%QuickProcedureType='Clarion Form' OR %QuickProcedureType='Clarion Browse' OR %QuickProcedureType='Clarion Process' OR %QuickProcedureType='Clarion Report')
+#CALL(%ReplaceSubString,%ValueConstruct,'%FileName',%QuickProcedurePrimary)
+#ENDIF
+DESCRIPTION '%ValueConstruct'
+FROM %QuickProcedureType
+#SUSPEND
+[DATA]
+#FOR(%ProcedureDataItemID)
+%[25]ProcedureDataItem %ProcedureDataItemType
+#ENDFOR
+#RESUME

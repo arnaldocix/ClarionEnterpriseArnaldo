@@ -1,0 +1,482 @@
+#GROUP(%BLOBInControlPrompts)
+  #BOXED,HIDE
+    #BUTTON('BLOB Entry Field Properties'),MULTI(%BlobFields,%BlobField&'-'&%BlobFieldTemplate),INLINE
+       #PROMPT('BlobField:',@S255),%BlobField
+       #PROMPT('BlobFieldTemplate:',@S255),%BlobFieldTemplate
+       #PROMPT('BlobFieldTemplateInstance:',@S255),%BlobFieldTemplateInstance
+       #PROMPT('BlobFile:',@S255),%BlobFile
+       #PROMPT('BlobFileKey:',@S255),%BlobFileKey
+    #ENDBUTTON
+  #ENDBOXED
+#BUTTON('BLOB Fields Properties'),MULTI(%BlobLinkedFields,%BlobLinkedField&' -> '&%BlobLinkedControlType&': '&%BlobLinkedControl),INLINE,AT(,5),HLP('~TPLExtensionBLOBInControl.htm')
+  #PROMPT('BLOB &Field:', FROM(%BlobFields,,%BlobField)),%BlobLinkedField,REQ,DEFAULT('')
+  #BOXED,SECTION
+    #BOXED,WHERE(UPPER(%ProcedureTemplate)<>'REPORT'),AT(,0)
+      #PROMPT('Control:', FROM(%Control, %ControlType = 'IMAGE' OR %ControlType = 'TEXT')),%BlobLinkedWindowControl,REQ,DEFAULT(''),WHENACCEPTED(%BLOBInControlSetBlobControlType(%BlobLinkedWindowControl,%BlobLinkedControl,%BlobLinkedControlType,%BlobLinkedControlUse,%BlobLinkedControlXPos,%BlobLinkedControlYPos,%BlobLinkedControlWidth,%BlobLinkedControlHeight))
+    #ENDBOXED
+    #BOXED,WHERE(UPPER(%ProcedureTemplate)='REPORT'),AT(,0)
+      #PROMPT('Control:', FROM(%ReportControl, %ReportControlType = 'IMAGE' OR %ReportControlType = 'TEXT')),%BlobLinkedReportControl,REQ,DEFAULT(''),WHENACCEPTED(%BLOBInControlSetBlobControlType(%BlobLinkedReportControl,%BlobLinkedControl,%BlobLinkedControlType,%BlobLinkedControlUse,%BlobLinkedControlXPos,%BlobLinkedControlYPos,%BlobLinkedControlWidth,%BlobLinkedControlHeight,1))
+    #ENDBOXED
+  #ENDBOXED
+  #BOXED,SECTION
+     #BOXED,HIDE
+        #PROMPT('BlobLinkedControl:',@S255),%BlobLinkedControl
+        #PROMPT('Control Type',@S255),%BlobLinkedControlType
+        #PROMPT('Control Use',@S255),%BlobLinkedControlUse
+        #PROMPT('XPos',@S255),%BlobLinkedControlXPos
+        #PROMPT('YPos',@S255),%BlobLinkedControlYPos
+        #PROMPT('Width',@S255),%BlobLinkedControlWidth
+        #PROMPT('Height',@S255),%BlobLinkedControlHeight
+     #ENDBOXED
+     #BOXED,AT(,0)
+       #ENABLE(%BlobLinkedControlType='IMAGE')
+         #DISPLAY('When Image does not exist use the folowing image')
+         #PROMPT('Image File:',OPENDIALOG('Pick File','JPEG|*.JPG|GIF|*.GIF|BMP|*.BMP')),%BlobLinkedAltImage,DEFAULT('')
+         #PROMPT('Resize to control size',CHECK),%BlobLinkedImageResize,DEFAULT(%True)
+       #ENDENABLE
+       #ENABLE(LEFT(UPPER(%BlobFieldTemplate),4)='SAVE')
+         #DISPLAY('Condition to assign from control to blob')
+         #PROMPT('Condition:',EXPR),%BlobLinkedCondition,DEFAULT('True'),REQ
+       #ENDENABLE
+     #ENDBOXED
+  #ENDBOXED
+#ENDBUTTON
+#!
+#!
+#GROUP(%BLOBInControlAtStart)
+  #DECLARE(%BlobFiles),MULTI,UNIQUE
+  #FOR(%BlobLinkedFields),WHERE(%BlobLinkedControlType='IMAGE' AND %BlobLinkedImageResize)
+    #IF(UPPER(%ProcedureTemplate)='REPORT')
+        #FIX(%ReportControl,%BlobLinkedReportControl)
+        #CALL(%BLOBInControlSetBlobControlType,%BlobLinkedReportControl,%BlobLinkedControl,%BlobLinkedControlType,%BlobLinkedControlUse,%BlobLinkedControlXPos,%BlobLinkedControlYPos,%BlobLinkedControlWidth,%BlobLinkedControlHeight,1)
+    #ELSE
+        #FIX(%Control,%BlobLinkedWindowControl)
+        #CALL(%BLOBInControlSetBlobControlType,%BlobLinkedWindowControl,%BlobLinkedControl,%BlobLinkedControlType,%BlobLinkedControlUse,%BlobLinkedControlXPos,%BlobLinkedControlYPos,%BlobLinkedControlWidth,%BlobLinkedControlHeight)
+    #ENDIF
+  #ENDFOR
+#!
+#!
+#GROUP(%BLOBInControlGetDataFromBlobFormVCR)
+#CALL(%BLOBInControlGetDataFromBlobBrowse,1)
+#!
+#GROUP(%BLOBInControlGetDataFromBlobReport),PRESERVE
+#CALL(%BLOBInControlGetDataFromBlobBrowse,0,1)
+#!
+#GROUP(%BLOBInControlGetDataFromBlobBrowse,%pFromFormVCR=0,%pFromReport=0),AUTO
+#DECLARE(%lEmbedInstance,LONG)
+#DECLARE(%ActiveTPLInstance,LONG)
+#DECLARE(%ParentTPLInstance,LONG)
+#DECLARE(%LastFileName)
+#DECLARE(%lViewKey)
+#DECLARE(%lReport)
+#DECLARE(%lTextControls),MULTI,UNIQUE
+#DECLARE(%lImageControls),MULTI,UNIQUE
+#DECLARE(%lAltImageControls,%lImageControls)
+#DECLARE(%lXPos,%lImageControls)
+#DECLARE(%lYPos,%lImageControls)
+#DECLARE(%lWidth,%lImageControls)
+#DECLARE(%lHeight,%lImageControls)
+#DECLARE(%lImageResize,%lImageControls)
+#SET(%ActiveTPLInstance,%ActiveTemplateInstance)
+#IF(INSTRING(',',%EmbedParameters,1,1))
+   #SET(%lEmbedInstance,SUB(%EmbedParameters,1,INSTRING(',',%EmbedParameters,1,1)-1))
+#ELSE
+   #SET(%lEmbedInstance,%EmbedParameters)
+#ENDIF
+#SET(%lReport,%Report)
+#IF(%lEmbedInstance)
+  #IF(%pFromFormVCR)
+     #SET(%ParentTPLInstance,%SVFindParentTemplateInstance(%lEmbedInstance))
+  #ELSE
+     #SET(%ParentTPLInstance,%lEmbedInstance)
+  #ENDIF
+#ELSE
+  #IF(%pFromReport)
+     #SET(%ParentTPLInstance,0)
+  #ELSE
+     #RETURN
+  #ENDIF
+#ENDIF
+#FREE(%lTextControls)
+#FREE(%lImageControls)
+#FOR(%BlobFields)
+    #IF(INSTANCE(%BlobFields)=1)
+        #SET(%LastFileName,%BlobFile)
+#SUSPEND
+#IF(%AppTemplateFamily='ABC')
+#?IF Access:%BlobFile.TryFetch(%BlobFileKey)=Level:Benign
+#ELSIF(%AppTemplateFamily='CLARION')
+#?GET(%BlobFile,%BlobFileKey)
+#?IF NOT ERRORCODE()
+#ENDIF
+    #ENDIF
+    #IF(%LastFileName<>%BlobFile)
+#?ELSE
+    #IF(%pFromReport)
+       #FOR(%lImageControls)
+          #IF(%lAltImageControls)
+   %lReport $ %lImageControls{PROP:Text}=%lAltImageControls
+            #IF(%lImageResize)
+   ResizeImage(%lImageControls,%lXPos,%lYPos,%lWidth,%lHeight,%lReport)
+            #ENDIF
+          #ELSE
+   %lReport $ %lImageControls{PROP:HIDE}=True
+          #ENDIF
+       #ENDFOR
+       #FOR(%lTextControls)
+   %lReport $ %lTextControls{PROP:TEXT}=''
+       #ENDFOR
+    #ELSE
+       #FOR(%lTextControls)
+   CHANGE(%lTextControls,'')
+       #ENDFOR
+       #FOR(%lImageControls)
+          #IF(%lAltImageControls)
+   %lImageControls{PROP:Text}=%lAltImageControls
+            #IF(%lImageResize)
+   ResizeImage(%lImageControls,%lXPos,%lYPos,%lWidth,%lHeight)
+            #ENDIF
+          #ELSE
+   HIDE(%lImageControls)
+          #ENDIF
+       #ENDFOR
+    #ENDIF
+        #SET(%LastFileName,%BlobFile)
+#?END
+    #IF(ITEMS(%lTextControls) OR ITEMS(%lImageControls))
+        #RELEASE
+    #ENDIF
+#RESUME
+#SUSPEND
+#IF(%AppTemplateFamily='ABC')
+#?IF Access:%BlobFile.TryFetch(%BlobFileKey)=Level:Benign
+#ELSIF(%AppTemplateFamily='CLARION')
+#?GET(%BlobFile,%BlobFileKey)
+#?IF NOT ERRORCODE()
+#ENDIF
+        #FREE(%lTextControls)
+        #FREE(%lImageControls)
+    #ENDIF
+    #FOR(%BlobLinkedFields),WHERE(%BlobLinkedField=%BlobField)
+       #IF(%BlobFieldTemplateInstance=%ParentTPLInstance)
+   #INSERT(%BLOBInControlGetDataFromBlob,%pFromReport,%lReport)
+          #IF(%BlobLinkedControlType='TEXT')
+            #ADD(%lTextControls,%BlobLinkedControl)
+          #ELSE
+            #ADD(%lImageControls,%BlobLinkedControl)
+            #IF(%BlobLinkedAltImage)
+                #SET(%lAltImageControls,%StandardReturnIconName(%BlobLinkedAltImage))
+            #ELSE
+                #SET(%lAltImageControls,'')
+            #ENDIF
+            #SET(%lImageResize,%BlobLinkedImageResize)
+            #SET(%lXPos,%BlobLinkedControlXPos)
+            #SET(%lYPos,%BlobLinkedControlYPos)
+            #SET(%lWidth,%BlobLinkedControlWidth)
+            #SET(%lHeight,%BlobLinkedControlHeight)
+          #ENDIF
+       #ENDIF
+    #ENDFOR
+    #IF(INSTANCE(%BlobFields)=ITEMS(%BlobFields))
+#?ELSE
+    #IF(%pFromReport)
+       #FOR(%lImageControls)
+          #IF(%lAltImageControls)
+  %lReport $ %lImageControls{PROP:Text}=%lAltImageControls
+            #IF(%lImageResize)
+  ResizeImage(%lImageControls,%lXPos,%lYPos,%lWidth,%lHeight,%lReport)
+            #ENDIF
+          #ELSE
+  %lReport $ %lImageControls{PROP:HIDE}=True
+          #ENDIF
+       #ENDFOR
+       #FOR(%lTextControls)
+  %lReport $ %lTextControls{PROP:TEXT}=''
+       #ENDFOR
+    #ELSE
+       #FOR(%lTextControls)
+  CHANGE(%lTextControls,'')
+       #ENDFOR
+       #FOR(%lImageControls)
+          #IF(%lAltImageControls)
+  %lImageControls{PROP:Text}=%lAltImageControls
+            #IF(%lImageResize)
+  ResizeImage(%lImageControls,%lXPos,%lYPos,%lWidth,%lHeight)
+            #ENDIF
+          #ELSE
+  HIDE(%lImageControls)
+          #ENDIF
+       #ENDFOR
+    #ENDIF
+#?END
+    #IF(ITEMS(%lTextControls) OR ITEMS(%lImageControls))
+        #RELEASE
+    #ENDIF
+#RESUME
+    #ENDIF
+#ENDFOR
+#!
+#!
+#!
+#GROUP(%BLOBInControlGetDataFromBlobForm),AUTO
+#DECLARE(%lThereAre)
+#SET(%lThereAre,%False)
+#SUSPEND
+#IF(%AppTemplateFamily='ABC')
+#?IF SELF.Request = InsertRecord
+#ELSIF(%AppTemplateFamily='CLARION')
+#?IF LocalRequest = InsertRecord
+#ENDIF
+#FOR(%BlobLinkedFields)
+   #FIND(%BlobField,%BlobLinkedField)
+   #IF(%BlobField=%BlobLinkedField)
+      #IF(LEFT(UPPER(%BlobFieldTemplate),4)='SAVE')
+          #IF(%BlobLinkedControlType='TEXT')
+              #IF(NOT %lThereAre)
+                  #SET(%lThereAre,%True)
+                  #RELEASE
+              #ENDIF
+   %BlobLinkedControlUse = ''
+          #ENDIF
+      #ENDIF
+   #ENDIF
+#ENDFOR
+#?ELSE
+#FOR(%BlobLinkedFields)
+   #FIND(%BlobField,%BlobLinkedField)
+   #IF(%BlobField=%BlobLinkedField)
+      #IF(LEFT(UPPER(%BlobFieldTemplate),4)='SAVE')
+         #IF(%lThereAre)
+   #INSERT(%BLOBInControlGetDataFromBlob)
+         #ELSE
+#INSERT(%BLOBInControlGetDataFromBlob)
+         #ENDIF
+      #ENDIF
+   #ENDIF
+#ENDFOR
+#?END
+#RESUME
+#!
+#GROUP(%BLOBInControlGetDataFromBlob,%pFromReport=0,%pReport=''),AUTO
+#DECLARE(%lControlType)
+   #IF(%BlobLinkedControlType='TEXT')
+IF SIZE(%BlobLinkedField) > 0
+   %BlobLinkedControlUse = %BlobLinkedField[0 : SIZE(%BlobLinkedField) - 1]
+ELSE
+   %BlobLinkedControlUse = ''
+END
+#IF(NOT %pFromReport)
+DISPLAY(%BlobLinkedControl)
+#ENDIF
+   #ELSIF(%BlobLinkedControlType='IMAGE')
+      #IF(NOT %pFromReport)
+IF SIZE(%BlobLinkedField) > 0
+   %BlobLinkedControl{PROP:ImageBlob} = %BlobLinkedField{PROP:Handle}
+         #IF(%BlobLinkedImageResize)
+   ResizeImage(%BlobLinkedControl,%BlobLinkedControlXPos,%BlobLinkedControlYPos,%BlobLinkedControlWidth,%BlobLinkedControlHeight)
+   #ASSERT(%BlobLinkedControlWidth AND %BlobLinkedControlHeight,%Procedure&':The control '&%BlobLinkedControl&' is using the default width and height and that is not compatible with the ResizeImage')
+         #ENDIF
+   UNHIDE(%BlobLinkedControl)
+ELSE
+   #IF(%BlobLinkedAltImage)
+   #CALL(%StandardAddIconToProject,%BlobLinkedAltImage)
+   %BlobLinkedControl{PROP:Text} = %(%StandardReturnIconName(%BlobLinkedAltImage))
+         #IF(%BlobLinkedImageResize)
+   ResizeImage(%BlobLinkedControl,%BlobLinkedControlXPos,%BlobLinkedControlYPos,%BlobLinkedControlWidth,%BlobLinkedControlHeight)
+   #ASSERT(%BlobLinkedControlWidth AND %BlobLinkedControlHeight,%Procedure&':The control '&%BlobLinkedControl&' is using the default width and height and that is not compatible with the ResizeImage')
+         #ENDIF
+   #ELSE
+   HIDE(%BlobLinkedControl)
+   #ENDIF
+END
+      #ELSE
+IF SIZE(%BlobLinkedField) > 0
+   %pReport $ %BlobLinkedControl{PROP:ImageBlob} = %BlobLinkedField{PROP:Handle}
+   %pReport $ %BlobLinkedControl{PROP:HIDE} = False
+         #IF(%BlobLinkedImageResize)
+   ResizeImage(%BlobLinkedControl,%BlobLinkedControlXPos,%BlobLinkedControlYPos,%BlobLinkedControlWidth,%BlobLinkedControlHeight,%pReport)
+   #ASSERT(%BlobLinkedControlWidth AND %BlobLinkedControlHeight,%Procedure&':The control '&%BlobLinkedControl&' is using the default width and height and that is not compatible with the ResizeImage')
+         #ENDIF
+ELSE
+   #IF(%BlobLinkedAltImage)
+   #CALL(%StandardAddIconToProject,%BlobLinkedAltImage)
+   %pReport $ %BlobLinkedControl{PROP:Text} = %(%StandardReturnIconName(%BlobLinkedAltImage))
+         #IF(%BlobLinkedImageResize)
+   ResizeImage(%BlobLinkedControl,%BlobLinkedControlXPos,%BlobLinkedControlYPos,%BlobLinkedControlWidth,%BlobLinkedControlHeight,%pReport)
+   #ASSERT(%BlobLinkedControlWidth AND %BlobLinkedControlHeight,%Procedure&':The control '&%BlobLinkedControl&' is using the default width and height and that is not compatible with the ResizeImage')
+         #ENDIF
+   #ELSE
+   %pReport $ %BlobLinkedControl{PROP:HIDE} = True
+   #ENDIF
+END
+      #ENDIF
+   #ENDIF
+#!
+#!
+#!
+#!
+#!
+#GROUP(%BLOBInControlPutDataInBlob),AUTO
+#DECLARE(%lUsedBlobs),MULTI
+#FOR(%BlobLinkedFields)
+   #FIND(%BlobField,%BlobLinkedField)
+   #IF(%BlobField=%BlobLinkedField)
+      #IF(LEFT(UPPER(%BlobFieldTemplate),4)='SAVE')
+IF %BlobLinkedCondition
+         #IF(%BlobLinkedControlType='TEXT')
+   IF %BlobLinkedControlUse = ''
+      %BlobLinkedField{PROP:Size}=0
+   ELSE
+      %BlobLinkedField{PROP:Size}=LEN(%BlobLinkedControlUse)
+      %BlobLinkedField[0 : LEN(%BlobLinkedControlUse) - 1] = %BlobLinkedControlUse
+   END
+         #ELSIF(%BlobLinkedControlType='IMAGE')
+   %BlobLinkedField{PROP:Handle} = %BlobLinkedControl{PROP:ImageBlob}
+         #ENDIF
+END
+      #ENDIF
+   #ENDIF
+#ENDFOR
+#!
+#!
+#!
+#!
+#GROUP(%BLOBInControlLoadBlobFieldNames),PRESERVE
+#DECLARE(%LocalActiveTemplateInstance)
+#FREE(%BlobFields)
+#SET(%LocalActiveTemplateInstance,%ActiveTemplateInstance)
+ #IF(%Primary AND %PrimaryInstance=0)
+    #CALL(%BLOBInControlLoadBlobFieldNamesPrimary,%True)
+ #ENDIF
+  #FOR(%ActiveTemplate)
+    #FOR(%ActiveTemplateInstance)
+        #CALL(%BLOBInControlLoadBlobFieldNamesPrimary)
+    #ENDFOR
+ #ENDFOR
+ #FIND(%ActiveTemplateInstance,%LocalActiveTemplateInstance)
+#!                                       
+#GROUP(%BLOBInControlLoadBlobFieldNamesPrimary,%pFromProcedure=0)
+     #IF(%Primary)
+         #IF(%PrimaryInstance=%ActiveTemplateInstance OR %pFromProcedure)
+            #FIX(%File, %Primary)
+            #FOR(%Field),WHERE(%FieldType = 'BLOB')
+                #ADD(%BlobFields, ITEMS(%BlobFields)+1)
+                #SET(%BlobField, %Field)
+                #SET(%BlobFile,%File)
+                #IF(%pFromProcedure)
+                   #SET(%BlobFieldTemplate, %ProcedureTemplate)
+                   #SET(%BlobFieldTemplateInstance, 0)
+                #ELSE
+                   #SET(%BlobFieldTemplate, %ActiveTemplate)
+                   #SET(%BlobFieldTemplateInstance, %ActiveTemplateInstance)
+                #ENDIF
+                #IF(%FilePrimaryKey)
+                    #SET(%BlobFileKey,%FilePrimaryKey)
+                #ELSE
+                    #SET(%BlobFileKey,%PrimaryKey)
+                #ENDIF
+            #ENDFOR
+            #FOR(%Secondary)
+               #FIX(%File, %Secondary)
+               #FOR(%Field),WHERE(%FieldType = 'BLOB')
+                   #ADD(%BlobFields, ITEMS(%BlobFields)+1)
+                   #SET(%BlobField, %Field)
+                   #SET(%BlobFile,%File)
+                   #IF(%pFromProcedure)
+                      #SET(%BlobFieldTemplate, %ProcedureTemplate)
+                      #SET(%BlobFieldTemplateInstance, 0)
+                   #ELSE
+                      #SET(%BlobFieldTemplate, %ActiveTemplate)
+                      #SET(%BlobFieldTemplateInstance, %ActiveTemplateInstance)
+                   #ENDIF
+                   #IF(%FilePrimaryKey)
+                       #SET(%BlobFileKey,%FilePrimaryKey)
+                   #ELSE
+                       #FIX(%File,%SecondaryTo)
+                       #FIX(%Relation,%Secondary)
+                       #IF(%Relation=%Secondary AND %File=%SecondaryTo)
+                           #SET(%BlobFileKey,%RelationKey)
+                       #ENDIF
+                   #ENDIF
+               #ENDFOR
+            #ENDFOR
+         #ENDIF
+     #END
+#!
+#GROUP(%BLOBInControlSetBlobControlType,%pOriginalControl,*%pSavedControl,*%pSavedControlType,*%pSavedControlUse,*%pControlXPos,*%pControlYPos,*%pControlWidth,*%pControlHeight,%pFromReport=0)
+#IF(%pFromReport)
+    #FIX(%ReportControl,%pOriginalControl)
+    #SET(%pSavedControl,%ReportControl)
+    #SET(%pSavedControlType,%ReportControlType)
+    #SET(%pSavedControlUse,%ReportControlUse)
+    #SET(%pControlXPos,EXTRACT(%ReportControlStatement,'AT',1))
+    #SET(%pControlYPos,EXTRACT(%ReportControlStatement,'AT',2))
+    #SET(%pControlWidth,EXTRACT(%ReportControlStatement,'AT',3))
+    #SET(%pControlHeight,EXTRACT(%ReportControlStatement,'AT',4))
+#ELSE
+    #FIX(%Control,%pOriginalControl)
+    #SET(%pSavedControl,%Control)
+    #SET(%pSavedControlType,%ControlType)
+    #SET(%pSavedControlUse,%ControlUse)
+    #SET(%pControlXPos,EXTRACT(%ControlStatement,'AT',1))
+    #SET(%pControlYPos,EXTRACT(%ControlStatement,'AT',2))
+    #SET(%pControlWidth,EXTRACT(%ControlStatement,'AT',3))
+    #SET(%pControlHeight,EXTRACT(%ControlStatement,'AT',4))
+#ENDIF
+#!
+#!
+#! --------------------------------------------------------------------------
+#GROUP(%ExportCWUtils),AUTO
+#DECLARE(%CWUtilProc),UNIQUE
+#DECLARE(%CWUtilProcProto,%CWUtilProc),UNIQUE
+#ADD(%CWUtilProc,'OSVersion')
+#ADD(%CWUtilProcProto,'( ),STRING')
+#ADD(%CWUtilProc,'FileExists')
+#ADD(%CWUtilProcProto,'( STRING sFile ), BYTE')
+#ADD(%CWUtilProc,'WindowExists')
+#ADD(%CWUtilProcProto,'( STRING sWindow ), BYTE')
+#ADD(%CWUtilProc,'ValidateOLE')
+#ADD(%CWUtilProcProto,'( SIGNED OleControl, <STRING OleFileName>, <STRING OleCreateName> ), BYTE')
+#ADD(%CWUtilProc,'GetUserName')
+#ADD(%CWUtilProcProto,'( ),STRING')
+#ADD(%CWUtilProc,'BeginUnique')
+#ADD(%CWUtilProcProto,'( STRING sAppName ),LONG')
+#ADD(%CWUtilProc,'EndUnique')
+#ADD(%CWUtilProcProto,'( LONG hUnique )')
+#ADD(%CWUtilProc,'IsTermServer')
+#ADD(%CWUtilProcProto,'( ),BYTE')
+#ADD(%CWUtilProc,'GetFileTime')
+#ADD(%CWUtilProcProto,'( STRING iFile, BYTE bType=0 ),LONG')
+#ADD(%CWUtilProc,'GetFileDate')
+#ADD(%CWUtilProcProto,'( STRING iFile, BYTE bType=0 ),LONG')
+#ADD(%CWUtilProc,'CreateDirectory')
+#ADD(%CWUtilProcProto,'( STRING sDirectory ), BYTE,PROC')
+#ADD(%CWUtilProc,'RemoveDirectory')
+#ADD(%CWUtilProcProto,'( STRING sDirectory ), BYTE,PROC')
+#ADD(%CWUtilProc,'GetTempPath')
+#ADD(%CWUtilProcProto,'( ), STRING')
+#ADD(%CWUtilProc,'GetTempFileName')
+#ADD(%CWUtilProcProto,'( STRING sPrefix, <STRING sDirectory> ),STRING')
+#ADD(%CWUtilProc,'FullDrag')
+#ADD(%CWUtilProcProto,'( <LONG lDragSetting> ),LONG,PROC')
+#ADD(%CWUtilProc,'LongToHex')
+#ADD(%CWUtilProcProto,'(ULONG, BYTE LowerCase = FALSE),STRING')
+#ADD(%CWUtilProc,'ShortToHex')
+#ADD(%CWUtilProcProto,'(USHORT, BYTE LowerCase = FALSE),STRING')
+#ADD(%CWUtilProc,'ByteToHex')
+#ADD(%CWUtilProcProto,'(BYTE, BYTE LowerCase = FALSE),STRING')
+#ADD(%CWUtilProc,'FileToBLOB')
+#ADD(%CWUtilProcProto,'(STRING name, *BLOB b),SIGNED')
+#ADD(%CWUtilProc,'BLOBToFile')
+#ADD(%CWUtilProcProto,'(*BLOB b, STRING name),SIGNED')
+#ADD(%CWUtilProc,'ResizeImage')
+#ADD(%CWUtilProcProto,'(SIGNED ctl,SIGNED x,SIGNED y,SIGNED w,SIGNED h,<REPORT pReport>)')
+;Start of CWUtils library exports
+#FOR(%CWUtilProc)
+    #FOR(%CWUtilProcProto)
+  %(LINKNAME(%CWUtilProc & %CWUtilProcProto)) @?
+    #ENDFOR
+#ENDFOR
+;End of CWUtils library exports
+#!
+#!-------------------------------------------------------------------------

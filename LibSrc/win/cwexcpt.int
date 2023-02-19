@@ -1,0 +1,53 @@
+! Declarations used to work with SYSTEM{PROP:LastChanceHook} hook function
+
+i386_Register      ITEMIZE(0),PRE
+Reg32_EAX            EQUATE
+Reg32_ECX            EQUATE
+Reg32_EDX            EQUATE
+Reg32_EBX            EQUATE
+Reg32_ESI            EQUATE
+Reg32_EDI            EQUATE
+Reg32_EIP            EQUATE
+Reg32_ESP            EQUATE
+Reg32_EBP            EQUATE
+                   END
+
+i386_SegRegister   ITEMIZE(0),PRE
+Reg32_SS             EQUATE
+Reg32_CS             EQUATE
+Reg32_DS             EQUATE
+Reg32_ES             EQUATE
+Reg32_FS             EQUATE
+Reg32_GS             EQUATE
+                   END
+
+! Interface passed to the hook function set as SYSTEM{PROP:LastChanceHook}
+
+ICWExceptionInfo   INTERFACE,COM
+ExceptionContext     PROCEDURE(),LONG
+ExceptionRecord      PROCEDURE(),LONG
+
+Register             PROCEDURE(SIGNED which),LONG ! Parameter - i386_Register
+SegRegister          PROCEDURE(SIGNED which),LONG ! Parameter - i386_SegRegister
+FlagRegister         PROCEDURE(),LONG
+i87Register          PROCEDURE(BYTE n),REAL
+i87ControlWord       PROCEDURE(),LONG
+i87StatusWord        PROCEDURE(),LONG
+
+ExceptionCode        PROCEDURE(),LONG
+ExceptionFlags       PROCEDURE(),LONG
+ExceptionAddress     PROCEDURE(),LONG
+NofParameters        PROCEDURE(),LONG
+Parameter            PROCEDURE(LONG n),LONG
+
+FlatAddress          PROCEDURE(SIGNED seg, LONG ofs),LONG   ! 1st parameter - i386_SegRegister
+ReadMemory           PROCEDURE(LONG src, LONG dest, UNSIGNED sz),UNSIGNED,PROC
+LogException         PROCEDURE(<CONST *CSTRING filename>)
+
+CloseProcessButton   PROCEDURE(<CONST *CSTRING btntext>)
+CloseThreadButton    PROCEDURE(<CONST *CSTRING btntext>)
+InvokeDebuggerButton PROCEDURE(<CONST *CSTRING btntext>)
+DebugBreakButton     PROCEDURE(<CONST *CSTRING btntext>)
+ContinueButton       PROCEDURE(<CONST *CSTRING btntext>)
+LogButton            PROCEDURE(<CONST *CSTRING btntext>)                  
+                  END

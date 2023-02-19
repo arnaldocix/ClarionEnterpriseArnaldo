@@ -1,0 +1,571 @@
+#PROCEDURE(Window,'Generic Window Handler'),WINDOW,REPORT,HLP('~tplprocwindow.htm')
+#COMMENT(60)
+#LOCALDATA
+LocalRequest         LONG
+OriginalRequest      LONG
+LocalResponse        LONG
+FilesOpened          LONG
+WindowOpened         LONG
+WindowInitialized    LONG
+ForceRefresh         LONG
+#ENDLOCALDATA
+#CLASS('Procedure Setup','Upon Entry into the Procedure')
+#CLASS('Before Lookups','Refresh Window ROUTINE, before lookups')
+#CLASS('After Lookups','Refresh Window ROUTINE, after lookups')
+#CLASS('Procedure Exit','Before Leaving the Procedure')
+#ENABLE(%ProcedureType='FUNCTION')
+  #PROMPT('Return Value:',FIELD),%ReturnValue
+#ENDENABLE
+#!
+#INSERT(%StandardWindowPrompts)
+#!
+#AT(%CustomGlobalDeclarations)
+  #INSERT(%StandardGlobalSetup)
+#ENDAT
+#INSERT(%StandardWindowCode)
+#!
+#!---------------------------------------------------------
+#GROUP(%StandardWindowPrompts)
+#BUTTON('Window &Behavior'),AT(,,180),HLP('~tplprocwindow.htm')
+  #SHEET,HSCROLL
+    #TAB('&General'),HLP('~tplprocwindow.htm')
+      #ENABLE(NOT SUB(%WindowStatement,1,11)='APPLICATION')
+        #PROMPT('Window Operation Mode:',DROP('Use WINDOW setting|Normal|MDI|Modal')),%WindowOperationMode
+      #ENDENABLE
+      #ENABLE(%INIActive)
+        #BOXED('INI File Settings')
+          #PROMPT('Save and Restore Window Location',CHECK),%INISaveWindow,DEFAULT(1),AT(10,,150)
+        #ENDBOXED
+      #ENDENABLE
+      #INSERT(%EnhanceFocusProcedurePrompts)
+      #INSERT(%UseInsteadProcedurePrompts)
+    #ENDTAB
+  #ENDSHEET
+#ENDBUTTON
+#INSERT(%ListboxStylesPrompts)
+#INSERT(%ProcedureBindFieldsPrompts)
+#!---------------------------------------------------------
+#GROUP(%StandardWindowCode)
+#IF(NOT(%ProcedureTemplate='Process' OR %ProcedureTemplate='Report'))
+#IF(NOT %Window)
+  #ERROR(%Procedure & ' Error: No Window Defined!')
+  #RETURN
+#ENDIF
+#ENDIF
+#INSERT(%EnhanceFocusProcedureVariables)
+#INSERT(%UseInsteadProcedureVariables)
+#DECLARE(%FirstField)
+#DECLARE(%LastField)
+#DECLARE(%ProgressWindowRequired)
+#INSERT(%FieldTemplateStandardButtonMenuPrompt)
+#INSERT(%FieldTemplateStandardEntryPrompt)
+#INSERT(%FieldTemplateStandardCheckBoxPrompt)
+#INSERT(%FieldTemplateStandardRadioButtonPrompt)
+#INSERT(%FieldTemplateStandardTabPrompt)
+#INSERT(%FieldTemplateStandardSheetPrompt)
+#INSERT(%FieldGradientColorPrompts)
+#EMBED(%GatherSymbols,'Gather Template Symbols'),HIDE
+#DECLARE(%GenerateBRWInstance,LONG)
+#DECLARE(%GenerateSelectInstance,LONG)
+#DECLARE(%GenerateUpdateInstance,LONG)
+#DECLARE(%GenerateReltreeInstance,LONG)
+#EMBED(%GenerateInstanceUpdate,''),HIDE
+#ATSTART
+#ENDAT
+#!
+#!
+#!
+#!
+#INSERT(%FileControlInitialize)
+!!! <summary>
+!!! Generated from procedure template - %ProcedureTemplate
+#IF(%ProcedureDescription)
+!!! %ProcedureDescription
+#ENDIF
+#IF(%ProcedureLongDescription)
+#CALL(%SVInsertMultiLineSymbolPrefix,%ProcedureLongDescription)
+#ENDIF
+!!! </summary>
+%Procedure %ProcedureType%Parameters
+
+#EMBED(%DataSection,'Data for the procedure'),DATA,TREE('Local Data{{PRIORITY(1000)}|Generated Declarations')
+#EMBED(%DeclarationSection,'Declaration Section'),DATA
+#FOR(%LocalData)
+#IF(LEFT(%LocalDataStatement,6)='&CLASS')
+#SET(%ValueConstruct,EXTRACT(%LocalDataStatement,'&CLASS',1))
+#IF(NOT %ValueConstruct)
+    #SET(%ValueConstruct,'CLASS')
+#ENDIF
+%[20]LocalData &%ValueConstruct #<!%LocalDataDescription
+#ELSE
+%[20]LocalData %LocalDataStatement #<!%LocalDataDescription
+#ENDIF
+#ENDFOR
+#IF(%ProcedureEnhanceFocus)
+#INSERT(%EnhanceFocusProcedureCodeData)
+#ENDIF
+#IF(%ProcedureUseEnterInsteadTab)
+#INSERT(%UseInsteadProcedureData)
+#ENDIF
+#EMBED(%DerivedEmbedAfterLocalData),HIDE,DATA
+#IF(%Report)
+#INSERT(%StandardReportGeneration)
+#ENDIF
+#INSERT(%StandardWindowGeneration)
+#CREATE('PBDY.$$$')
+#SECTION
+#EMBED(%ProcedureRoutines,'Procedure Routines'),LABEL,DATA,TREE('Procedure Routines{{PRIORITY(5000)}')
+#EMBED(%LocalProcedures,'Local Procedures'),LABEL,DATA,TREE('Local Procedures{{PRIORITY(6000)}')
+#ENDSECTION
+#CLOSE('PBDY.$$$')
+#EMBED(%LocalDataClasses),LABEL,HIDE
+  CODE
+  PUSHBIND
+  #EMBED(%ProcedureInitialize,'Initialize the Procedure')
+  #EMBED(%DerivedEmbedAfterProcedureInitialize),HIDE
+  LocalRequest    = GlobalRequest
+  OriginalRequest = GlobalRequest
+  LocalResponse   = RequestCancelled
+  ForceRefresh    = False
+  CLEAR(GlobalRequest)
+  CLEAR(GlobalResponse)
+  #EMBED(%ProcedureSetup,'Procedure Setup')
+  IF KEYCODE() = MouseRight
+    SETKEYCODE(0)
+  END
+  #INSERT(%StandardFormula,'Procedure Setup')
+  DO PrepareProcedure
+  #EMBED(%BeforeAccept,'Preparing to Process the Window')
+  #MESSAGE('Accept Handling',3)
+  ACCEPT
+    #EMBED(%AcceptLoopBeforeEventHandling,'Accept Loop, Before CASE EVENT() handling')
+    CASE EVENT()
+    #EMBED(%EventCaseBeforeGenerated,'CASE EVENT() structure, before generated code')
+    #INSERT(%StandardWindowHandling)
+    #EMBED(%EventCaseAfterGenerated,'CASE EVENT() structure, after generated code')
+    END
+    #EMBED(%AcceptLoopAfterEventHandling,'Accept Loop, After CASE EVENT() handling')
+    #SUSPEND
+    #?CASE ACCEPTED()
+    #INSERT(%StandardAcceptedHandling)
+    #?END
+    #RESUME
+    #EMBED(%AcceptLoopBeforeFieldHandling,'Accept Loop, Before CASE FIELD() handling')
+    #SUSPEND
+    #?CASE FIELD()
+    #EMBED(%FieldCaseBeforeGenerated,'CASE FIELD() structure, before generated code')
+    #INSERT(%StandardControlHandling)
+    #EMBED(%FieldCaseAfterGenerated,'CASE FIELD() structure, after generated code')
+    #?END
+    #RESUME
+    #EMBED(%AcceptLoopAfterFieldHandling,'Accept Loop, After CASE FIELD() handling')
+    #IF(%ProcedureEnhanceFocus)
+    #INSERT(%EnhanceFocusProcedureCodeTakeEvent)
+    #ENDIF
+    #IF(%ProcedureUseEnterInsteadTab)
+    #INSERT(%UseInsteadProcedureCodeTakeEvent)
+    #ENDIF
+  END
+  #EMBED(%DerivedEmbedAfterAcceptLoop),HIDE
+  DO ProcedureReturn
+!---------------------------------------------------------------------------
+#EMBED(%DerivedEmbedBeforeRoutines),HIDE
+#!---------------------------------------------------------------------
+PrepareProcedure ROUTINE
+  #INSERT(%FileControlOpen)
+  #!
+  #!
+  #EMBED(%DerivedEmbedAfterFileOpen),HIDE
+  #!
+  #!
+  #INSERT(%StandardWindowOpening)
+  #!
+  #!
+  Do DefineListboxStyle
+  #!
+  #EMBED(%DerivedEmbedAfterStandardWindowOpening),HIDE
+  #!
+  #EMBED(%PrepareAlerts,'Preparing Window Alerts')
+
+!---------------------------------------------------------------------------
+BindFields ROUTINE
+  #CALL(%ProcedureAutoBindClean)
+  #EMBED(%BeforeBind,'Before BIND Fields')
+  #FOR(%ProcFilesUsed)
+  #INSERT(%FileControlBindRecord,%ProcFilesUsed)
+  #ENDFOR
+  #INSERT(%ProcedureGenereteBind)
+  #EMBED(%AfterBind,'After BIND Fields')
+!---------------------------------------------------------------------------
+UnBindFields ROUTINE
+  #EMBED(%BeforeUnBind,'Before UNBIND Fields')
+  #INSERT(%ProcedureGenereteUnBind)
+  #EMBED(%AfterUnBind,'After UNBIND Fields')
+!---------------------------------------------------------------------------
+ProcedureReturn ROUTINE
+!|
+!| This routine provides a common procedure exit point for all template
+!| generated procedures.
+!|
+!| First, all of the files opened by this procedure are closed.
+!|
+!| Next, if it was opened by this procedure, the window is closed.
+!|
+!| Next, GlobalResponse is assigned a value to signal the calling procedure
+!| what happened in this procedure.
+!|
+!| Next, we replace the BINDings that were in place when the procedure initialized
+!| (and saved with PUSHBIND) using POPBIND.
+!|
+#IF(%ReturnValue)
+!| Finally, we return to the calling procedure, passing %ReturnValue back.
+#ELSE
+!| Finally, we return to the calling procedure.
+#ENDIF
+!|
+  #INSERT(%FileControlClose)
+  #INSERT(%StandardWindowClosing)
+  #EMBED(%EndOfProcedure,'End of Procedure')
+  #INSERT(%StandardFormula,'Procedure Exit')
+  IF LocalResponse
+    GlobalResponse = LocalResponse
+  ELSE
+    GlobalResponse = RequestCancelled
+  END
+  POPBIND
+  #IF(%ProcedureType='FUNCTION')
+  RETURN(%ReturnValue)
+  #ELSE
+  RETURN
+  #ENDIF
+#!------------------------------------------
+#!
+#! ROUTINES
+#!
+#!------------------------------------------
+!---------------------------------------------------------------------------
+InitializeWindow ROUTINE
+!|
+!| This routine is used to prepare any control templates for use. It should be called once
+!| per procedure.
+!|
+  #EMBED(%WindowInitializationCode,'Window Initialization Code')
+  DO RefreshWindow
+!---------------------------------------------------------------------------
+RefreshWindow ROUTINE
+!|
+!| This routine is used to keep all displays and control templates current.
+!|
+  #IF(%Window)
+  IF %Window{Prop:AcceptAll} THEN EXIT.
+  #ELSE
+    #IF(%ProcedureTemplate='Process' OR %ProcedureTemplate='Report')
+  IF ProgressWindow{Prop:AcceptAll} THEN EXIT.
+    #ENDIF
+  #ENDIF
+  #EMBED(%RefreshWindowBeforeLookup,'Refresh Window routine, before lookups')
+  #!INSERT(%StandardFormula,'Before Lookups')
+  #!INSERT(%StandardSecondaryLookups)
+  #!INSERT(%StandardFormula,'After Lookups')
+  Do LookupRelated
+  #EMBED(%RefreshWindowAfterLookup,'Refresh Window routine, after lookups')
+  #EMBED(%RefreshWindowBeforeDisplay,'Refresh Window routine, before DISPLAY()')
+  DISPLAY()
+  ForceRefresh = False
+!---------------------------------------------------------------------------
+SyncWindow ROUTINE
+!|
+!| This routine is used to insure that any records pointed to in control
+!| templates are fetched before any procedures are called via buttons or menu
+!| options.
+!|
+  #EMBED(%SyncWindowBeforeLookup,'Sync Record routine, before lookups')
+  #!INSERT(%StandardFormula,'Before Lookups')
+  #!INSERT(%StandardSecondaryLookups)
+  #!INSERT(%StandardFormula,'After Lookups')
+  Do LookupRelated
+  #EMBED(%SyncWindowAfterLookup,'Sync Record routine, after lookups')
+!---------------------------------------------------------------------------
+LookupRelated  ROUTINE
+!|
+!| This routine fetch all related records.
+!| It's called from SyncWindow and RefreshWindow
+!|
+  #INSERT(%StandardFormula,'Before Lookups')
+  #INSERT(%StandardSecondaryLookups)
+  #INSERT(%StandardFormula,'After Lookups')
+!---------------------------------------------------------------------------
+DefineListboxStyle ROUTINE
+!|
+!| This routine create all the styles to be shared in this window
+!| It's called after the window open
+!|
+  #EMBED(%ListboxStyleBeforeDefine,'ListboxStyle Before Define')
+#FOR(%Control),WHERE((%ControlType='LIST' OR %ControlType='COMBO') AND (%ControlHasStyle OR INLIST(%Control,%WindowStyleOtherListboxes)))
+  !------------------------------------
+  !Style for %Control
+  !------------------------------------
+   #FOR(%WindowStyles)
+       #IF(%WindowStyleFontNameIsVariable)
+  %Control{PROPSTYLE:FontName, %(INSTANCE(%WindowStyles))}      = %WindowStyleFontNameVariable
+       #ELSE
+  %Control{PROPSTYLE:FontName, %(INSTANCE(%WindowStyles))}      = %(''''&QUOTE(%WindowStyleFontName)&'''')
+       #ENDIF
+  %Control{PROPSTYLE:FontSize, %(INSTANCE(%WindowStyles))}      = %(CHOOSE(%WindowStyleFontSizeIsVariable,%WindowStyleFontSizeVariable,%WindowStyleFontSize))
+  %Control{PROPSTYLE:FontStyle, %(INSTANCE(%WindowStyles))}     = %(CHOOSE(%WindowStyleFontStyleIsVariable,%WindowStyleFontStyleVariable,%WindowStyleFontStyle))
+  %Control{PROPSTYLE:TextColor, %(INSTANCE(%WindowStyles))}     = %(CHOOSE(%WindowStyleForegroundNormalIsVariable,%WindowStyleForegroundNormalVariable,%WindowStyleForegroundNormal))
+  %Control{PROPSTYLE:BackColor, %(INSTANCE(%WindowStyles))}     = %(CHOOSE(%WindowStyleBackgroundNormalIsVariable,%WindowStyleBackgroundNormalVariable,%WindowStyleBackgroundNormal))
+  %Control{PROPSTYLE:TextSelected, %(INSTANCE(%WindowStyles))}  = %(CHOOSE(%WindowStyleForegroundSelectedIsVariable,%WindowStyleForegroundSelectedVariable,%WindowStyleForegroundSelected))
+  %Control{PROPSTYLE:BackSelected, %(INSTANCE(%WindowStyles))}  = %(CHOOSE(%WindowStyleBackgroundSelectedIsVariable,%WindowStyleBackgroundSelectedVariable,%WindowStyleBackgroundSelected))
+  #IF(%WindowStylePictureIsVariable)
+  IF CLIP(%WindowStylePictureVariable) THEN
+     %Control{PROPSTYLE:Picture, %(INSTANCE(%WindowStyles))}    = CLIP(%WindowStylePictureVariable)
+  END
+  #ELSE
+     #IF(%WindowStylePicture)
+  %Control{PROPSTYLE:Picture, %(INSTANCE(%WindowStyles))}       = %(''''&QUOTE(%WindowStylePicture)&'''')
+     #ENDIF
+  #ENDIF
+  !------------------------------------
+  #ENDFOR
+#ENDFOR
+  #EMBED(%ListboxStyleAfterDefine,'ListboxStyle After Define')
+!---------------------------------------------------------------------------
+#EMBED(%ProcRoutines,'Proc Routines'),LABEL
+#APPEND('PBDY.$$$'),SECTION
+#EMBED(%AfterAPPENDStatement),HIDE
+#REMOVE('PBDY.$$$')
+#!EMBED(%ProcedureRoutines,'Procedure Routines'),LABEL
+#!EMBED(%LocalProcedures,'Local Procedures'),DATA,LABEL
+#!
+#!
+#!---------------------------------------------------------------------------
+#GROUP(%GetControlName,%SearchReport=%False),PRESERVE      #!Gets the control name for the current active template
+#IF(%Searchreport)
+  #FIND(%ReportControlInstance,%ActiveTemplateInstance,%ReportControl)
+  #RETURN (%ReportControl)
+#ELSE
+  #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+  #RETURN (%Control)
+#END
+#!
+#!---------------------------------------------------------------------------
+#!
+#GROUP(%ListboxStylesPrompts)
+#BUTTON('Listbox St&yles'),AT(,,180),HLP('~TPLListboxStyles.htm')
+  #SHEET
+    #TAB('&Styles')
+      #BUTTON('Styles'),MULTI(%WindowStyles,INSTANCE(%WindowStyles)&'-'&CHOOSE(%WindowStyleFontNameIsVariable,%WindowStyleFontNameVariable,%WindowStyleFontName)&','&CHOOSE(%WindowStyleFontSizeIsVariable,%WindowStyleFontSizeVariable,%WindowStyleFontSize)),INLINE,HLP('~TPLListboxStyles.htm')
+         #BOXED('Font')
+            #BOXED,SECTION
+              #BOXED,WHERE(NOT %WindowStyleFontNameIsVariable),AT(10,0)
+                #PROMPT ('Font Name:',@s255), %WindowStyleFontName,DEFAULT('Microsoft Sans Serif')
+              #ENDBOXED
+              #BOXED,WHERE(%WindowStyleFontNameIsVariable),AT(10,0)
+                #PROMPT ('Font Name:',EXPR), %WindowStyleFontNameVariable,REQ
+              #ENDBOXED
+              #PROMPT ('V',CHECK),%WindowStyleFontNameIsVariable,PROP(PROP:FLAT,1),DEFAULT(%False),AT(86,2,12,10)
+            #ENDBOXED
+            #BOXED,SECTION
+              #BOXED,WHERE(NOT %WindowStyleFontSizeIsVariable),AT(10,0)
+                #PROMPT ('Font Size:',SPIN(@n3,1,200)), %WindowStyleFontSize,DEFAULT('10')
+              #ENDBOXED
+              #BOXED,WHERE(%WindowStyleFontSizeIsVariable),AT(10,0)
+                #PROMPT ('Font Size:',EXPR), %WindowStyleFontSizeVariable,REQ
+              #ENDBOXED
+              #PROMPT ('V',CHECK),%WindowStyleFontSizeIsVariable,PROP(PROP:FLAT,1),DEFAULT(%False),AT(86,2,12,10)
+            #ENDBOXED
+            #BOXED,SECTION
+              #BOXED,WHERE(NOT %WindowStyleFontStyleIsVariable),AT(10,0)
+                #PROMPT ('Font Style:',@n11), %WindowStyleFontStyle,DEFAULT('700')
+              #ENDBOXED
+              #BOXED,WHERE(%WindowStyleFontStyleIsVariable),AT(10,0)
+                #PROMPT ('Font Style:',EXPR), %WindowStyleFontStyleVariable,REQ
+              #ENDBOXED
+              #PROMPT ('V',CHECK),%WindowStyleFontStyleIsVariable,PROP(PROP:FLAT,1),DEFAULT(%False),AT(86,2,12,10)
+            #ENDBOXED
+            #ENABLE(NOT %WindowStyleFontStyleIsVariable OR NOT %WindowStyleFontSizeIsVariable OR NOT %WindowStyleFontNameIsVariable)
+              #BUTTON('Font...'),WHENACCEPTED(%SVFSelectFont(%WindowStyleFontName,%WindowStyleFontSize,%WindowStyleFontColor,%WindowStyleFontStyle,%WindowStyleFontCharSet)),AT(,,30)
+              #ENDBUTTON
+            #ENDENABLE
+            #BOXED,WHERE(NOT %WindowStyleFontStyleIsVariable OR NOT %WindowStyleFontSizeIsVariable OR NOT %WindowStyleFontNameIsVariable)
+            #DISPLAY('Sample Text: aAbBcCdD-012345'),PROP(PROP:FONTName,%WindowStyleFontName),PROP(PROP:FONTColor,%WindowStyleFontColor),PROP(PROP:FONTSize,%WindowStyleFontSize),PROP(PROP:FONTStyle,%WindowStyleFontStyle),PROP(PROP:FONTCharSet,%WindowStyleFontCharSet)
+            #ENDBOXED
+            #ENABLE(%False),HIDE
+              #PROMPT ('Font Color:',@n11), %WindowStyleFontColor,DEFAULT('0')
+              #PROMPT('FontCharSet:',@s255),%WindowStyleFontCharSet,DEFAULT(1)
+            #ENDENABLE
+         #ENDBOXED
+         #BOXED('Color')
+            #BOXED,SECTION
+              #BOXED,WHERE(NOT %WindowStyleForegroundNormalIsVariable),AT(10,0)
+                #PROMPT('&Foreground Normal:',COLOR),%WindowStyleForegroundNormal,DEFAULT(-1)
+              #ENDBOXED
+              #BOXED,WHERE(%WindowStyleForegroundNormalIsVariable),AT(10,0)
+                #PROMPT('&Foreground Normal:',EXPR),%WindowStyleForegroundNormalVariable,REQ
+              #ENDBOXED
+              #PROMPT ('V',CHECK),%WindowStyleForegroundNormalIsVariable,PROP(PROP:FLAT,1),DEFAULT(%False),AT(86,2,12,10)
+            #ENDBOXED
+            #BOXED,SECTION
+              #BOXED,WHERE(NOT %WindowStyleBackgroundNormalIsVariable),AT(10,0)
+                #PROMPT('&Background Normal:',COLOR),%WindowStyleBackgroundNormal,DEFAULT(-1)
+              #ENDBOXED
+              #BOXED,WHERE(%WindowStyleBackgroundNormalIsVariable),AT(10,0)
+                #PROMPT('&Background Normal:',EXPR),%WindowStyleBackgroundNormalVariable,REQ
+              #ENDBOXED
+              #PROMPT ('V',CHECK),%WindowStyleBackgroundNormalIsVariable,PROP(PROP:FLAT,1),DEFAULT(%False),AT(86,2,12,10)
+            #ENDBOXED
+            #BOXED,SECTION
+              #BOXED,WHERE(NOT %WindowStyleForegroundSelectedIsVariable),AT(10,0)
+                #PROMPT('&Foreground Selected:',COLOR),%WindowStyleForegroundSelected,DEFAULT(-1)
+              #ENDBOXED
+              #BOXED,WHERE(%WindowStyleForegroundSelectedIsVariable),AT(10,0)
+                #PROMPT('&Foreground Selected:',EXPR),%WindowStyleForegroundSelectedVariable,REQ
+              #ENDBOXED
+              #PROMPT ('V',CHECK),%WindowStyleForegroundSelectedIsVariable,PROP(PROP:FLAT,1),DEFAULT(%False),AT(86,2,12,10)
+            #ENDBOXED
+            #BOXED,SECTION
+              #BOXED,WHERE(NOT %WindowStyleBackgroundSelectedIsVariable),AT(10,0)
+                #PROMPT('&Background Selected:',COLOR),%WindowStyleBackgroundSelected,DEFAULT(-1)
+              #ENDBOXED
+              #BOXED,WHERE(%WindowStyleBackgroundSelectedIsVariable),AT(10,0)
+                #PROMPT('&Background Selected:',EXPR),%WindowStyleBackgroundSelectedVariable,REQ
+              #ENDBOXED
+              #PROMPT ('V',CHECK),%WindowStyleBackgroundSelectedIsVariable,PROP(PROP:FLAT,1),DEFAULT(%False),AT(86,2,12,10)
+            #ENDBOXED
+         #ENDBOXED
+         #BOXED,SECTION
+           #BOXED,WHERE(NOT %WindowStylePictureIsVariable),AT(10,0)
+             #PROMPT('Picture:',PICTURE),%WindowStylePicture,DEFAULT('')
+           #ENDBOXED
+           #BOXED,WHERE(%WindowStylePictureIsVariable),AT(10,0)
+             #PROMPT('Picture:',EXPR),%WindowStylePictureVariable,REQ
+           #ENDBOXED
+           #PROMPT ('V',CHECK),%WindowStylePictureIsVariable,PROP(PROP:FLAT,1),DEFAULT(%False),AT(86,2,12,10)
+         #ENDBOXED
+         #DISPLAY('If you leave the picture blank the column')
+         #DISPLAY('picture will be used')
+      #ENDBUTTON
+      #DISPLAY('')
+      #DISPLAY('These styles are available for all ')
+      #DISPLAY('List, Drop or Combo control in the window')
+      #DISPLAY('Refer to each style by number in your')
+      #DISPLAY('source embeds.')
+    #ENDTAB
+    #TAB('&Run Time Listbox')
+      #DISPLAY('If you are using any template to change the')
+      #DISPLAY('style property at runtime, or need to change ')
+      #DISPLAY('the style of a hand coded listbox, you must select ')
+      #DISPLAY('the control''s Field Equate label (FEQ) in this list.')
+      #DISPLAY('')
+      #PROMPT('Choose Lisboxes',FROM(%Control,(%ControlType = 'LIST' OR %ControlType = 'COMBO'))),%WindowStyleOtherListboxes,INLINE,SELECTION('Choose Lisboxes')
+    #ENDTAB
+  #ENDSHEET
+#ENDBUTTON
+#!
+#!---------------------------------------------------------------------------
+#GROUP(%GetStyleNumber,%pStyleType,%pStyleNumber,%pStyleString),AUTO
+#IF(%pStyleType='Local List')
+   #DECLARE(%LocStyleSep)
+   #SET(%LocStyleSep,INSTRING('-',%pStyleString,1,1)-1)
+   #IF(%LocStyleSep>0)
+      #RETURN(LEFT(%pStyleString,%LocStyleSep))
+   #ELSE
+      #RETURN(0)
+   #ENDIF
+#ELSE
+   #RETURN(%pStyleNumber)
+#ENDIF
+#!
+#!
+#!
+#GROUP(%FieldTemplateStandardSheetPrompt)
+#FIELD WHERE(%ControlType = 'SHEET')
+  #BUTTON('Extended UI'),AT(,,180),HLP('~TPLExtendedUISheet.htm')
+    #PROMPT('Override Global',CHECK),%ExtUITabStyleOverrideGlobal,AT(10)
+    #BOXED('Extended UI')
+      #ENABLE(%ExtUITabStyleOverrideGlobal)
+        #PROMPT('Tab Style:',DROP('Default[Default]|B&W[BlackAndWhite]|Colored[Colored]|Boxed[Boxed]')),%ExtUITabStyle,DEFAULT('Default')
+      #ENDENABLE
+    #ENDBOXED
+  #ENDBUTTON
+#ENDFIELD
+#!
+#GROUP(%FieldTemplateStandardTabPrompt)
+#FIELD WHERE(%ControlType = 'TAB')
+  #BUTTON('Extended UI'),AT(,,180),HLP('~TPLExtendedUITab.htm')
+    #BOXED('Extended UI')
+      #PROMPT('Tab Icon:',ICON),%ExtUITabIcon
+    #ENDBOXED
+  #ENDBUTTON
+#ENDFIELD
+#!
+#GROUP(%FieldGradientColorPrompts)
+#FIELD WHERE(%ControlType = 'TOOLBAR' OR %ControlType = 'BOX' OR %ControlType = 'PANEL')
+#!OR %ControlType = 'REGION'
+  #BUTTON('Gradient Color'),AT(,,180)
+       #BOXED,SECTION
+          #BOXED,WHERE(NOT %FieldGradientColorTypeIsVariable),AT(10,0)
+            #PROMPT('Gradient Type:',DROP('Off[Off]|Vertical|Horizontal|VerticalCylinder|HorizontalCylinder|DiagonalTopLeft|DiagonalBottomLeft|DiagonalTopRight|DiagonalBottomRight')),%FieldGradientColorType,DEFAULT('Off')
+          #ENDBOXED
+          #BOXED,WHERE(%FieldGradientColorTypeIsVariable),AT(10,0)
+            #PROMPT('Gradient Type:',EXPR),%FieldGradientColorTypeVariable,REQ,DEFAULT('')
+          #ENDBOXED
+          #PROMPT ('V',CHECK),%FieldGradientColorTypeIsVariable,PROP(PROP:FLAT,1),DEFAULT(%False),AT(86,2,12,10)
+       #ENDBOXED 
+       #ENABLE(%FieldGradientColorTypeIsVariable OR (NOT %FieldGradientColorTypeIsVariable AND %FieldGradientColorType<>'Off'))
+            #BOXED,SECTION
+              #BOXED,WHERE(NOT %FieldGradientColorFromIsVariable),AT(10,0)
+                #PROMPT('Gradient &From:',COLOR),%FieldGradientColorFrom,DEFAULT(-1)
+              #ENDBOXED
+              #BOXED,WHERE(%FieldGradientColorFromIsVariable),AT(10,0)
+                #PROMPT('Gradient &From:',EXPR),%FieldGradientColorFromVariable,REQ
+              #ENDBOXED
+              #PROMPT ('V',CHECK),%FieldGradientColorFromIsVariable,PROP(PROP:FLAT,1),DEFAULT(%False),AT(86,2,12,10)
+            #ENDBOXED
+            #BOXED,SECTION
+              #BOXED,WHERE(NOT %FieldGradientColorToIsVariable),AT(10,0)
+                #PROMPT('Gradient &To:',COLOR),%FieldGradientColorTo,DEFAULT(-1)
+              #ENDBOXED
+              #BOXED,WHERE(%FieldGradientColorToIsVariable),AT(10,0)
+                #PROMPT('Gradient &To:',EXPR),%FieldGradientColorToVariable,REQ
+              #ENDBOXED
+              #PROMPT ('V',CHECK),%FieldGradientColorToIsVariable,PROP(PROP:FLAT,1),DEFAULT(%False),AT(86,2,12,10)
+            #ENDBOXED
+       #ENDENABLE
+  #ENDBUTTON
+#ENDFIELD
+#!
+#GROUP(%FieldGradientColorGenerateCode)
+#FOR(%Control),WHERE(%ControlType = 'TOOLBAR' OR %ControlType = 'BOX' OR %ControlType = 'PANEL')
+#IF(%FieldGradientColorTypeIsVariable)
+ #IF(UPPER(%FieldGradientColorTypeVariable)<>'OFF' AND UPPER(%FieldGradientColorTypeVariable)<>'FALSE')
+ #IF(%FieldGradientColorFromIsVariable)
+%Control{PROP:GradientFromColor} = %FieldGradientColorFromVariable
+ #ELSE
+%Control{PROP:GradientFromColor} = %FieldGradientColorFrom
+ #ENDIF
+ #IF(%FieldGradientColorToIsVariable)
+%Control{PROP:GradientToColor}   = %FieldGradientColorToVariable
+ #ELSE
+%Control{PROP:GradientToColor}   = %FieldGradientColorTo
+ #ENDIF
+%Control{PROP:GradientType}      = %FieldGradientColorTypeVariable
+ #ENDIF
+#ELSE
+ #IF(UPPER(%FieldGradientColorType)<>'OFF')
+ #IF(%FieldGradientColorFromIsVariable)
+%Control{PROP:GradientFromColor} = %FieldGradientColorFromVariable
+ #ELSE
+%Control{PROP:GradientFromColor} = %FieldGradientColorFrom
+ #ENDIF
+ #IF(%FieldGradientColorToIsVariable)
+%Control{PROP:GradientToColor}   = %FieldGradientColorToVariable
+ #ELSE
+%Control{PROP:GradientToColor}   = %FieldGradientColorTo
+ #ENDIF
+%Control{PROP:GradientType}      = GradientTypes:%FieldGradientColorType
+ #ENDIF
+#ENDIF
+#ENDFOR
+#!

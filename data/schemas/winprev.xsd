@@ -1,0 +1,362 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.softvelocity.com/2009/winprev" xmlns="http://www.softvelocity.com/2009/winprev">
+	<xs:complexType name ="Style">
+		<xs:attribute name="id" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					A unique identifier used to reference this style
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="fontName" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The name of the font to use
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="fontSize" type="xs:integer" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The size of the font
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="fontStyle" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The font style (can use the FONT: equates)
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="textColor" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The foreground color to use when not selected (Can be a COLOR: equates)
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="backColor" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The background ground color to use when not selected (Can be a COLOR: equates)
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="textSelected" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The foreground color to use when selected (Can be a COLOR: equates)
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="backSelected" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The background ground color to use when selected (Can be a COLOR: equates)
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="barFrame" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The bar frame color (Can be a COLOR: equates)
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="charSet" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The font character set
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="fontColor" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The font color
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="picture" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The display picture
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ColumnRow">
+		<xs:attribute name="text" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The data to display in the control/column
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="textColor" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The foreground color to use when not selected (Can be a COLOR: equates)
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="backColor" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The background ground color to use when not selected (Can be a COLOR: equates)
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="textSelected" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The foreground color to use when selected (Can be a COLOR: equates)
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="backSelected" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The background ground color to use when selected (Can be a COLOR: equates)
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="icon" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The name of the icon to use for this field
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="treeLevel" type="xs:integer" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The level of the tree
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="style" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The name of a Style element that gives the style to use with this text
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="tooltip" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The tooltip to display if the column has seperate tooltips
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="Column">
+		<xs:all>
+			<xs:element name="row" type="ColumnRow" />
+		</xs:all>
+		<xs:attribute name="id" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					A unique identifier used to reference this column
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="Percentage">
+		<xs:attribute name="value" type="xs:integer" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					The amount of the progress bar to fill in.  Valid values are from 0 to 100
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="Image">
+		<xs:attribute name="location" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					The location of the image file.  The redirection system is used to find the file
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="Text">
+		<xs:attribute name="value" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					The data to display in the control/column
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ColumnReference">
+		<xs:attribute name="tree" type="xs:boolean" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					If true, then only columns which are trees can use this column data
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="header" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					A regular expression that is compared with the header text
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="picture" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					A regular expression that is compared with the data picture
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="column" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The column number or an expression in the form operator column_number.  Where operator
+					is &lt;, &gt;, =, !=, &lt;=, or &gt;=
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="text" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					The ID of a Column where the column details can be found
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="icon" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The ID of a Column where icons can be found for columns that use icons
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="color" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The ID of a Column where color information can be found for columns that use color
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="style" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The ID of a Column where styles can be found for columns that use styles
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="tooltip" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					The ID of a Column where tooltips can be found for columns that use tooltips
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:group name="ControlData">
+		<xs:choice>
+			<xs:element name="percentage" type="Percentage" minOccurs="0" maxOccurs="1" />
+			<xs:element name="image" type="Image" minOccurs="0" maxOccurs="1" />
+			<xs:element name="text" type="Text" minOccurs="0" maxOccurs="unbounded" />
+			<xs:element name="column" type="ColumnReference" minOccurs="0" maxOccurs="unbounded" />
+		</xs:choice>
+	</xs:group>
+	<xs:complexType name="Control">
+		<xs:group ref="ControlData" minOccurs="1" maxOccurs="unbounded" />
+		<xs:attribute name="type" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					This Control applies to Window Controls of type supplied in the value of this attribute
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="use" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					This Control applies to Window Controls whose USE attribute matches the regular expression
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="picture" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					This Control applies to STRING and ENTRY Controls whose picture matches the regular expression
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:group name="ControlColumnOrStyle">
+		<xs:choice>
+			<xs:element name="control" type="Control" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						Dummy Data for Controls
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="column" type="Column" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						Dummy Data for displaying in list and combo columns
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="style" type="Style" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						Dummy Data for displaying styles in list and combo columns
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:choice>
+	</xs:group>
+	<xs:complexType name="WindowPreviewer">
+		<xs:group ref="ControlColumnOrStyle" minOccurs="1" maxOccurs="unbounded" />
+		<xs:attribute name="name" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					The name for this collection of Window Preview Contol Display Data
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="author" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					Who created the Display Data
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="copyright" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					Optional copyright information
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="url" type="xs:anyURI" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					Option URL details that can be used to direct the user to your web site
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="description" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>
+					Optional description of this collection of Window Preview Contol Display Data
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="priority" type="xs:integer" use="required">
+			<xs:annotation>
+				<xs:documentation>
+					The priority of this file.  1 = very low priority, 63575 is very high priority
+				</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:element name="windowPreviewer" type="WindowPreviewer" />
+</xs:schema>

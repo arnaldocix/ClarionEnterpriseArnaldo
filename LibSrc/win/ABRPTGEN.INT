@@ -1,0 +1,225 @@
+ !ABCIncludeFile(ABC)
+
+OMIT('_EndOfInclude_', _ReportGeneratorInterface_)
+_ReportGeneratorInterface_ EQUATE(TRUE)
+
+OutputFileQueue EQUATE(PrintPreviewFileQueue)
+
+MaxAttributeSize  EQUATE(2048)
+
+Band:Header     EQUATE('HEADER')
+Band:Footer     EQUATE('FOOTER')
+Band:Break      EQUATE('BREAK')
+Band:Detail     EQUATE('DETAIL')
+Band:Form       EQUATE('FORM')
+
+PosGrp         GROUP,TYPE
+Top              LONG
+Left             LONG
+Bottom           LONG
+Right            LONG
+               END
+
+StyleGrp       GROUP,TYPE
+BackgroundColor  LONG
+BackgroundStyle  USHORT
+BorderColor      LONG
+BorderWidth      LONG
+BorderStyle      USHORT
+               END
+
+ImageFormatGrp GROUP,TYPE
+Pos              GROUP(PosGrp).
+StretchMode      USHORT
+EmbedStart       ULONG
+               END
+
+LineFormatGrp  GROUP,TYPE
+Pos              GROUP(PosGrp).
+Color            LONG
+Width            LONG
+Style            LONG
+               END
+
+RectFormatGrp  GROUP,TYPE
+Pos              GROUP(PosGrp).
+Style            GROUP(StyleGrp).
+Ell_width        USHORT
+Ell_height       USHORT
+               END
+
+EllipseFormatGrp  GROUP,TYPE
+Pos                 GROUP(PosGrp).
+Style               GROUP(StyleGrp).
+                  END
+
+ArcFormatGrp GROUP,TYPE
+Pos            GROUP(PosGrp).
+Style          GROUP(StyleGrp).
+StartX         LONG
+StartY         LONG
+EndX           LONG
+EndY           LONG
+             END
+
+ChordFormatGrp GROUP(ArcFormatGrp),TYPE
+               END
+
+StringFormatGrp  GROUP,TYPE
+Pos                GROUP(PosGrp).
+topText            SIGNED
+leftText           SIGNED
+BackgroundColor    LONG
+Color              LONG
+Face               CSTRING(32)
+Size               SIGNED
+Style              SIGNED
+CharSet            BYTE
+Angle              LONG
+                 END
+
+CheckFormatGrp GROUP,TYPE
+Pos              GROUP(PosGrp).
+Style            GROUP(StyleGrp).
+Prompt           GROUP(StringFormatGrp).
+Checked          BYTE
+               END
+
+RadioFormatGrp GROUP,TYPE
+Prompt           GROUP(StringFormatGrp).
+Outer            GROUP(EllipseFormatGrp).
+Inner            GROUP(EllipseFormatGrp).
+Checked          BYTE
+               END
+
+GroupFormatGrp  GROUP,TYPE
+Pos               GROUP(PosGrp).
+header            GROUP(StringFormatGrp).
+X1                USHORT
+X2                USHORT
+LineColor         LONG
+LineWidth         LONG
+LineStyle         USHORT
+                END
+
+TextFormatQueue     QUEUE,TYPE
+Format                GROUP(StringFormatGrp).
+Text                  CSTRING(257)
+                    END
+
+SliceFormatGrp GROUP,TYPE
+Style            GROUP(StyleGrp).
+StartX           LONG
+StartY           LONG
+EndX             LONG
+EndY             LONG
+               END
+
+SliceFormatQueue  QUEUE,TYPE
+Format              GROUP(SliceFormatGrp).
+                  END
+
+PointQueue QUEUE,TYPE
+XPos         LONG
+YPos         LONG
+           END
+
+RepGen:ALL          EQUATE('ALL')! To be used to store an attribute that can be read by all the targetsRepGen:Html         EQUATE(1)
+RepGen:HTML         EQUATE('HTML')
+RepGen:XML          EQUATE('XML')
+RepGen:PDF          EQUATE('PDF')
+RepGen:XLS          EQUATE('XLS')
+RepGen:Preview      EQUATE('PRVW')
+RepGen:RTF          EQUATE('RTF')
+RepGen:TXT          EQUATE('TXT')
+RepGen:CSV          EQUATE('CSV')
+RepGen:PDB          EQUATE('PDF')
+RepGen:DBF          EQUATE('DBF')
+RepGen:DotMatrix    EQUATE('DTMX')
+
+RepGen:Align:Left   EQUATE(0100H)
+RepGen:Align:Center EQUATE(0010H)
+RepGen:Align:Right  EQUATE(0001H)
+
+ColumnFormatGrp  GROUP,TYPE
+Pos                GROUP(PosGrp).
+topText            SIGNED
+leftText           SIGNED
+BackgroundColor    LONG
+Color              LONG
+Face               CSTRING(32)
+Size               SIGNED
+Style              SIGNED
+CharSet            BYTE
+Angle              LONG
+                 END
+                 
+OutputGeneratorTargetQueue QUEUE,TYPE
+OutputGenerator              &IOutputGeneratorTarget
+                           END
+ReportGeneratorQueue       QUEUE,TYPE
+ReportGenerator              &IReportGenerator
+                           END
+DataOutputGeneratorQueue   QUEUE,TYPE
+DataOutputGenerator          &IDataOutputGenerator
+                           END                     
+
+IOutputGeneratorTarget   INTERFACE
+AskProperties       PROCEDURE(BYTE Force=0),BYTE
+WhoAmI              PROCEDURE(),STRING ! Return one of the RepGen: EQUATES
+DisplayName         PROCEDURE(),STRING
+DisplayIcon         PROCEDURE(),STRING
+GetFileName         PROCEDURE(),STRING !Return the original file name. If it is a multi file it will return the first file
+ END
+
+!used in the browse to export the browse content
+IDataOutputGenerator INTERFACE(IOutputGeneratorTarget)
+Init                PROCEDURE(<ErrorClass EC>)
+
+OpenOutput          PROCEDURE(STRING sourceName),BYTE
+CloseOutput         PROCEDURE(),BYTE
+OpenRecord          PROCEDURE(),BYTE
+CloseRecord         PROCEDURE(),BYTE
+OpenHeader          PROCEDURE(),BYTE
+CloseHeader         PROCEDURE(),BYTE
+SupportHeader       PROCEDURE(),BYTE
+ProcessHeader       PROCEDURE(STRING pHeaderContent,USHORT pAlign,BYTE pColumn,STRING pColType,SHORT pWidth),BYTE
+ProcessColumn       PROCEDURE(STRING pCellContent,USHORT pAlign,BYTE pColumn,STRING pColType,SHORT pWidth),BYTE
+
+SupportResultQueue  PROCEDURE(),BYTE !Return True/False if the processor support file creation
+SetResultQueue      PROCEDURE(OutputFileQueue OutputFile) !Pass the queue to the processor
+!IsReportGenerator   PROCEDURE(),BYTE
+!GetReportGenerator  PROCEDURE(),*IReportGenerator
+ END
+ 
+IReportGenerator INTERFACE(IOutputGeneratorTarget)
+Init                PROCEDURE(<ErrorClass EC>)
+
+OpenDocument        PROCEDURE(UNSIGNED TotalPages),BYTE
+CloseDocument       PROCEDURE(),BYTE
+OpenPage            PROCEDURE(STRING PageName),BYTE
+ClosePage           PROCEDURE(),BYTE
+
+SetResultQueue      PROCEDURE(OutputFileQueue OutputFile) !Pass the queue to the processor
+SupportResultQueue  PROCEDURE(),BYTE !Return True/False if the processor support file creation
+SupportPageProcessing PROCEDURE(),BYTE !Return True/False if the processor support Page Processing, if not none of the Process methods will be called and the parser will not need to parse the files If the Processor need to call the StartPageProcess
+SupportPageParsing  PROCEDURE(),BYTE !Return True/False if the processor support Page Parsing, if not none of the Process methods will be called and the parser will not need to parse the files
+
+StartPageProcess    PROCEDURE(SHORT BoxLeft,SHORT BoxTop,SHORT BoxRight,SHORT BoxBottom,STRING PageName),BYTE
+ProcessArc          PROCEDURE(*ArcFormatGrp pFormatGrp, STRING pExtendControlAttr)
+ProcessBand         PROCEDURE(STRING type, BYTE start)
+ProcessCheck        PROCEDURE(*CheckFormatGrp pFormatGrp, STRING Text, STRING pExtendControlAttr)
+ProcessChord        PROCEDURE(*ChordFormatGrp pFormatGrp, STRING pExtendControlAttr)
+ProcessEllipse      PROCEDURE(*EllipseFormatGrp pFormatGrp, STRING pExtendControlAttr)
+ProcessImage        PROCEDURE(*ImageFormatGrp pFormatGrp, STRING iName, STRING pExtendControlAttr)
+ProcessLine         PROCEDURE(*LineFormatGrp pFormatGrp, STRING pExtendControlAttr)
+ProcessGroup        PROCEDURE(*GroupFormatGrp pFormatGrp, STRING Text, STRING pExtendControlAttr)
+ProcessPie          PROCEDURE(SliceFormatQueue pSliceFormatQueue, *PosGrp pPosGroup, STRING pExtendControlAttr)
+ProcessPolygon      PROCEDURE(PointQueue pPointQueue, *StyleGrp pStyleGrp, STRING pExtendControlAttr)
+ProcessRadio        PROCEDURE(*RadioFormatGrp pFormatGrp, STRING Text, STRING pExtendControlAttr)
+ProcessRectangle    PROCEDURE(*RectFormatGrp pFormatGrp, STRING pExtendControlAttr)
+ProcessString       PROCEDURE(*StringFormatGrp pFormatGrp, STRING Text, STRING pExtendControlAttr)
+ProcessText         PROCEDURE(TextFormatQueue pTextFormatQueue, STRING pExtendControlAttr)
+                   END
+
+_EndOfInclude_

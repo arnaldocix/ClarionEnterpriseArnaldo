@@ -1,0 +1,42 @@
+<head>
+<meta name="ts-control" content="group,option">
+</head>
+<body>
+<form>
+<!--Group.htm -- Start -->
+<TSSCRIPT value="EmbedBeforeControl" type=html>
+</TSSCRIPT>
+<TSSCRIPT include=Boxed>
+  <TSSCRIPT tag=table attr=bgcolor value="BorderColor" first>
+  <table width="100%">
+    <tr>
+      <td>
+        <table border="0" width="100%">
+          <TSSCRIPT include="DisplayText!=''">
+            <tr finalcolor="Header">
+              <td><b>
+                <TSSCRIPT value=DisplayText>
+                Header Text
+                </TSSCRIPT>
+              </b></td>
+            </tr>
+          </TSSCRIPT>
+          <TSSCRIPT tag=tr attr=bgcolor value="CellColor" first>
+            <tr>
+              <td><img width="500" height="261" name="ZONE:Contents" alt="Wizatrons will place controls in here"></td>
+            </tr>
+          </TSSCRIPT>
+        </table>
+      </td>
+    </tr>
+  </table>
+  </TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT omit=Boxed>
+  <img width="500" height="261" name="ZONE:Contents" alt="Wizatrons will place controls in here">
+</TSSCRIPT>
+<TSSCRIPT value="EmbedAfterControl" type=html>
+</TSSCRIPT>
+<!--Group.htm -- End -->
+</form>
+</body>

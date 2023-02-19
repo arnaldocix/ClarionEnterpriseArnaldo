@@ -1,0 +1,23 @@
+<!-- Select.htm -->
+<TSSCRIPT tag=select attr=name replace="NAME" value="Name">
+<TSSCRIPT tag=select attr=size value="IsDrop ? 0 : (Height+4)/8">
+<TSSCRIPT tag=select attr=onChange text="icSubmitForm()" when="SubmitOnChange">
+  <SELECT NAME="NAME$Choice" SIZE=1>
+  <TSSCRIPT omit="Choice != 0">
+    <option value="0" selected=1>
+  </TSSCRIPT>
+  <TSSCRIPT repeat times="FromRows" name=row>
+    <TSSCRIPT tag=option attr=value value=row>
+    <TSSCRIPT tag=option attr=selected value="1" when="Choice==row">
+      <option value="VALUE">
+    </TSSCRIPT>
+    </TSSCRIPT>
+    <TSSCRIPT value="CellText[row-1][0]">
+      CELLTEXT
+    </TSSCRIPT>
+  </TSSCRIPT>
+</SELECT>
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+<!-- /Select.htm -->

@@ -1,0 +1,79 @@
+#PROCEDURE(Browse,'Browse Fields in a Page-Loaded List Box'),WINDOW,REPORT,HLP('~TPLProcBrowse.htm'),QUICK(BrowseWizard(Wizards))
+#COMMENT(60)
+#LOCALDATA
+LocalRequest         LONG
+OriginalRequest      LONG
+LocalResponse        LONG
+FilesOpened          LONG
+WindowOpened         LONG
+WindowInitialized    LONG
+ForceRefresh         LONG
+CurrentTab           STRING(80)
+#ENDLOCALDATA
+#CLASS('Procedure Setup','Upon Entry into the Procedure')
+#CLASS('Before Lookups','Refresh Window ROUTINE, before lookups')
+#CLASS('After Lookups','Refresh Window ROUTINE, after lookups')
+#CLASS('Procedure Exit','Before Leaving the Procedure')
+#ENABLE(%ProcedureType='FUNCTION')
+  #PROMPT('Return Value:',FIELD),%ReturnValue
+#ENDENABLE
+#INSERT(%StandardWindowPrompts)
+#AT(%CustomGlobalDeclarations)
+  #INSERT(%StandardGlobalSetup)
+#ENDAT
+#INSERT(%StandardWindowCode)
+#!-----------------------------------------
+#DEFAULT
+NAME DefaultBrowse
+[COMMON]
+DESCRIPTION 'Browse with update and select'
+FROM Clarion Browse
+[PROMPTS]
+%WindowOperationMode STRING  ('Use WINDOW setting')
+%INISaveWindow LONG  (1)
+[ADDITION]
+NAME Clarion BrowseBox
+[INSTANCE]
+INSTANCE 1
+PROCPROP
+[PROMPTS]
+%LocatorType STRING  ('Step')
+%RecordFilter @S180  ('')
+%RangeField COMPONENT  ()
+%RangeLimitType STRING  ('Current Value')
+%RangeLimit @s40  ('')
+%RangeLow @S50  ('')
+%RangeHigh @S50  ('')
+%HotFields MULTI LONG  ()
+%HotField DEPEND %HotFields FIELD TIMES 0
+
+[ADDITION]
+NAME Clarion BrowseSelectButton
+[INSTANCE]
+INSTANCE 3
+PARENT 1
+[PROMPTS]
+%HideIfDisabled LONG  (1)
+[ADDITION]
+NAME Clarion BrowseUpdateButtons
+[INSTANCE]
+INSTANCE 2
+PARENT 1
+PROCPROP
+[PROMPTS]
+%UpdateProcedure PROCEDURE  ()
+[ADDITION]
+NAME Clarion CloseButton
+[INSTANCE]
+INSTANCE 4
+[WINDOW]
+BrowseWindow WINDOW('Browse Records'),AT(0,0,247,140),SYSTEM,GRAY,MDI
+       LIST,AT(5,5,235,100),MSG('Browsing Records'),USE(?List),IMM,FROM(Queue:Browse),HVSCROLL,#SEQ(1),#ORIG(BrowseBox)
+       BUTTON('&Insert'),AT(5,110,40,12),USE(?Insert),#SEQ(2),#ORIG(?Insert),#LINK(?Change)
+       BUTTON('&Change'),AT(50,110,40,12),USE(?Change),DEFAULT,#SEQ(2),#ORIG(?Change),#LINK(?Delete)
+       BUTTON('&Delete'),AT(95,110,40,12),USE(?Delete),#SEQ(2),#ORIG(?Delete),#LINK(?Insert)
+       BUTTON('&Select'),AT(145,110,40,12),USE(?Select),#SEQ(3),#ORIG(?Select)
+       BUTTON('Close'),AT(200,110,40,12),USE(?Close),#SEQ(4),#ORIG(?Close)
+     END
+
+#ENDDEFAULT

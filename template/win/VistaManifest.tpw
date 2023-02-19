@@ -1,0 +1,193 @@
+#GROUP(%XPVistaManifestGlobalPrompts)
+#BUTTON('Application Manifest'),AT(,,175),HLP('~TPLXPVistaManifestGlobal.htm')
+   #PROMPT('Include Default Application Manifest',CHECK),%UseDefaultXPManifest,DEFAULT(0),AT(10)
+   #ENABLE(NOT %UseDefaultXPManifest),CLEAR
+      #PROMPT('Generate Manifest',CHECK),%GenerateXPManifest,DEFAULT(0),AT(10)
+   #ENDENABLE
+   #ENABLE(%GenerateXPManifest),CLEAR
+      #PROMPT('Link Generated Manifest in Project',CHECK),%LinkGenerateXPManifest,DEFAULT(0),AT(10)
+      #PROMPT('Configure Manifest',CHECK),%AddVistaXPManifest,DEFAULT(0),AT(10)
+      #ENABLE(%AddVistaXPManifest)
+         #BOXED('Manifest')
+            #PROMPT('Execution level:',DROP('asInvoker|highestAvailable|requireAdministrator')),%VistaManifestExecutionLevel,DEFAULT('asInvoker')
+            #ENABLE(%VistaManifestExecutionLevel='requireAdministrator'),CLEAR
+                #PROMPT('Application requires UIAccess',CHECK),%VistaManifestUIAccess,DEFAULT(0),AT(10)
+            #ENDENABLE
+         #ENDBOXED
+      #ENDENABLE
+      #PROMPT('** Do not use Themed Controls **',CHECK),%NoThemedControlsDependency,DEFAULT(0),AT(10)
+   #ENDENABLE
+   #ENABLE(%GenerateXPManifest)
+      #BUTTON('Dependent Assembly (or COM)'),MULTI(%VistaManifestDependentAssembly,%VistaManifestDependentAssemblyName&' ('& %VistaManifestDependentAssemblyVersion&')'),AT(,,175)
+         #DISPLAY('Dependent Assembly or COM File')
+         #PROMPT('File Name:',@S255),%VistaManifestDependentAssemblyName,REQ
+         #PROMPT('Version:',@S255),%VistaManifestDependentAssemblyVersion,REQ
+         #PROMPT('Type:',DROP('win32')),%VistaManifestDependentAssemblyType,DEFAULT('win32')
+         #PROMPT('Public Key Token:',@S50),%VistaManifestDependentAssemblyPublicKeyToken,DEFAULT('')         
+         #PROMPT('Language:',@S20),%VistaManifestDependentAssemblyLanguage,DEFAULT('*')
+         #PROMPT('Add x86 Processor Architecture',CHECK),%VistaManifestDependentAssemblyProcessorArchitecture,DEFAULT(0)
+         #DISPLAY('')
+         #DISPLAY('The program requires this file in order to run.')
+         #DISPLAY('Remember to distribute it with your program.')
+         #DISPLAY('Remember to add the .manifest file for the COM DLL')
+         #DISPLAY('in the same directory as your EXE.')
+      #ENDBUTTON
+   #ENDENABLE
+   #ENABLE(%UseDefaultXPManifest OR %GenerateXPManifest),CLEAR
+      #BOXED('OS Compatibility'),SECTION,AT(,,,45)
+         #PROMPT('Vista',CHECK),%W7ManifestVista,DEFAULT(1),AT(10,2)
+         #PROMPT('Windows 7',CHECK),%W7ManifestW7,DEFAULT(1),AT(10,12)
+         #PROMPT('Windows 8',CHECK),%W7ManifestW8,DEFAULT(1),AT(10,22)
+         #PROMPT('Windows 8.1',CHECK),%W7ManifestW81,DEFAULT(1),AT(100,2)
+         #PROMPT('Windows 10',CHECK),%W7ManifestW10,DEFAULT(1),AT(100,12)
+      #ENDBOXED
+   #ENDENABLE
+   #BOXED('Controls Inside TAB')
+      #ENABLE(NOT %ForceMakeColorXPManifest),CLEAR
+         #PROMPT('Make transparent',CHECK),%ForceMakeTransparentXPManifest,DEFAULT(0),AT(10)
+      #ENDENABLE
+      #ENABLE(NOT %ForceMakeTransparentXPManifest),CLEAR
+         #PROMPT('Make COLOR(COLOR:WINDOW)',CHECK),%ForceMakeColorXPManifest,DEFAULT(0),AT(10)
+      #ENDENABLE
+   #ENDBOXED
+   #PROMPT('SHEET controls do not use the OS Theme color',CHECK),%ForceSHEETNoTheme,DEFAULT(0),AT(10)
+#ENDBUTTON
+#!
+#GROUP(%AddTRNXPManifest)
+#IF(%ForceMakeTransparentXPManifest OR %ForceMakeColorXPManifest)
+  #IF(%ControlParentType='TAB' OR ((%ControlParentType='GROUP' OR %ControlParentType='OPTION') AND %ControlParentTab))
+    #CASE(%ControlType)
+    #OF('OPTION')
+    #OROF('GROUP')
+    #OROF('RADIO')
+    #OROF('STRING')
+    #OROF('CHECK')
+    #OROF('PROMPT')
+      #IF(%ForceMakeTransparentXPManifest)
+        #IF(NOT EXTRACT(%ControlSourceLine,'TRN'))
+            #SET(%ControlSourceLine,%ControlSourceLine&',TRN')
+        #ENDIF
+      #ENDIF
+      #IF(%ForceMakeColorXPManifest)
+        #IF(NOT EXTRACT(%ControlSourceLine,'COLOR'))
+            #SET(%ControlSourceLine,REPLACE(%ControlSourceLine,'TRN',''))  #!Remove TRN attribute
+            #SET(%ControlSourceLine,%ControlSourceLine&',COLOR(COLOR:Window)')
+        #ENDIF
+      #ENDIF
+    #ENDCASE
+  #ENDIF
+#ENDIF
+#!
+#GROUP(%AddNoThemedXPManifest)
+#IF(%ForceSHEETNoTheme)
+#FOR(%Control),WHERE(%ControlType='SHEET')
+%Control{PROP:NoTheme} = True
+#ENDFOR
+#ENDIF
+#!
+#GROUP(%ConstructXPManifest)
+#IF(%UseDefaultXPManifest OR NOT %GenerateXPManifest)
+   #RETURN
+#ENDIF
+#IF(%ProgramExtension <> 'EXE')
+  #RETURN
+#ENDIF
+#!
+#EMBED (%BeforeGenerateXPManifest, 'Before Generating XPManifest'), HIDE
+#!
+#SET(%ExportFile,%ProjectTarget & '.manifest')
+#CREATE(%BuildFile)
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity
+    version="1.0.0.0"
+    processorArchitecture="x86"
+    name="SoftVelocity.Clarion10.Application"
+    type="win32"
+  />
+  <description>Clarion application.</description>
+#IF(%AddVistaXPManifest)
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    <security>
+      <requestedPrivileges>
+        <requestedExecutionLevel level="%VistaManifestExecutionLevel" uiAccess="%(CHOOSE(%VistaManifestUIAccess=1,'true','false'))"/>
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+#ENDIF
+#IF(%NoThemedControlsDependency)
+  <!--Uncomment the dependency element to use themed controls -->
+  <!--
+#ENDIF  
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity
+        type="win32"
+        name="Microsoft.Windows.Common-Controls"
+        version="6.0.0.0"
+        processorArchitecture="x86"
+        publicKeyToken="6595b64144ccf1df"
+        language="*"
+      />
+    </dependentAssembly>
+  </dependency>
+      #FOR(%VistaManifestDependentAssembly)
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity 
+        type="%VistaManifestDependentAssemblyType" 
+        name="%VistaManifestDependentAssemblyName" 
+        version="%VistaManifestDependentAssemblyVersion"
+        #IF(%VistaManifestDependentAssemblyPublicKeyToken)
+        publicKeyToken="%VistaManifestDependentAssemblyPublicKeyToken"
+        #ENDIF
+        #IF(%VistaManifestDependentAssemblyProcessorArchitecture)
+        processorArchitecture="x86"
+        #ENDIF
+        #IF(%VistaManifestDependentAssemblyLanguage)
+        language="%VistaManifestDependentAssemblyLanguage"
+        #ENDIF
+      />
+    </dependentAssembly>
+  </dependency>
+      #ENDFOR
+#IF(%NoThemedControlsDependency)
+  -->
+#ENDIF
+#IF(%W7ManifestVista OR %W7ManifestW7 OR %W7ManifestW8 OR %W7ManifestW81 OR %W7ManifestW10)
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application> 
+  #IF(%W7ManifestVista)
+      <!--The ID below indicates application support for Windows Vista -->
+      <supportedOS Id="{e2011457-1546-43c5-a5fe-008deee3d3f0}"/> 
+  #ENDIF
+  #IF(%W7ManifestW7)
+      <!--The ID below indicates application support for Windows 7 -->
+      <supportedOS Id="{35138b9a-5d96-4fbd-8e2d-a2440225f93a}"/>
+  #ENDIF
+  #IF(%W7ManifestW8)
+      <!--The ID below indicates application support for Windows 8 -->
+      <supportedOS Id="{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}"/>
+  #ENDIF
+  #IF(%W7ManifestW81)
+      <!--The ID below indicates application support for Windows 8-1 -->
+      <supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0da78}"/> 
+  #ENDIF
+  #IF(%W7ManifestW10)
+      <!--The ID below indicates application support for Windows 10 -->
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/>
+  #ENDIF
+    </application>
+  </compatibility>
+#ENDIF
+</assembly>
+#CLOSE(%BuildFile)
+#REPLACE(%ExportFile,%BuildFile)
+#!
+#EMBED (%AfterGenerateXPManifest, 'After Generating XPManifest'), HIDE
+#!
+#IF(%LinkGenerateXPManifest)
+   #PROJECT(%ExportFile)
+#ENDIF
+#!
+#!

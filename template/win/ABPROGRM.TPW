@@ -1,0 +1,1656 @@
+#PROGRAM(ABC,'Default Program'),HLP('~TPLProgram.htm')
+#!
+#!
+#DECLARE(%TranslatorFiles),UNIQUE
+#DECLARE(%CustomGlobalMapProcedureLabel)
+#!
+#SECTION
+#CREATE('PBDY.$$$')
+%NULL
+  CODE
+  #EMBED(%AfterEntryPointCodeStatement,'After PROGRAM code statement')
+  #CASE(%ProgramExtension)
+  #OF('DLL')
+    #IF(%GlobalExternal)                              #!A DLL with global data external
+#INSERT(%MakeDLLExternalGlobals)
+    #ELSE                                             #!A DLL with export global data
+#INSERT(%MakeDLLExportGlobals)
+    #ENDIF
+  #OF('LIB')
+    #IF(%GlobalExternal)                              #!A LIB with global data external
+#INSERT(%MakeLIBExternalGlobals)
+    #ELSE                                             #!A LIB with global data local
+#INSERT(%MakeLIBExportGlobals)
+    #ENDIF
+  #OF('EXE')
+    #IF(%GlobalExternal)                              #!An EXE with global data external
+#INSERT(%MakeEXEExternalGlobals)
+    #ELSE                                             #!An EXE with global data local
+#INSERT(%MakeEXE)
+    #ENDIF
+  #ENDCASE
+  #EMBED(%EndOfMainCode,'End of main code section'),HIDE
+  #IF(%ProgramExtension='EXE')
+    #SUSPEND
+    #?%NULL
+#EMBED(%ProgramRoutines,'Program Routines'),DATA,WHERE(%ProgramExtension='EXE')
+    #RESUME
+    #SUSPEND
+    #?%NULL
+#EMBED(%ProgramProcedures,'Program Procedures'),DATA,WHERE(%programExtension='EXE')
+    #RESUME
+  #ENDIF
+  #IF(~%GlobalExternal AND ~%NoGenerateGlobals)
+
+
+Dictionary.Construct PROCEDURE
+
+  CODE
+  #EMBED(%DictionaryConstruct, 'Dictionary Construct')
+  IF THREAD()<>1
+     #EMBED(%BeforeDctInitialization, 'Before dictionary initialization')
+     DctInit()
+     #EMBED(%AfterDctInitialization, 'After dictionary initialization')
+  END
+
+
+Dictionary.Destruct PROCEDURE
+
+  CODE
+  #EMBED(%DictionaryDestruct, 'Dictionary Destruct')
+  #EMBED(%BeforeDctDestruction, 'Before dictionary destruction')
+  DctKill()
+  #EMBED(%AfterDctDestruction, 'After dictionary destruction')
+  #ENDIF
+
+#!
+#!
+#AT(%ErrorManagerCodeSection),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#!
+#AT(%INIManagerCodeSection),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#!
+#AT(%TranslatorCodeSection),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%EnableRunTimeTranslator AND %ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#!
+#AT(%FuzzyMatcherMethodCodeSection),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%FuzzyMatchingEnabled AND %ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#AT (%CustomGlobalDeclarations)
+  #CALL(%DefineCategoryPragmas)
+#ENDAT
+#!
+#!
+#AT (%ProgramProcedures), WHERE(%ProgramExtension='DLL')
+#CALL(%GenerateCategoryFunctions)
+#ENDAT
+#!
+#!
+#IF(%ProgramExtension<>'DLL')
+  #CALL(%GenerateVirtuals, 'ErrorManager', 'Global Objects|Abc Objects|Error Manager', '%ErrorManagerVirtuals(ABC)', %True)
+  #CALL(%GenerateVirtuals, 'INIManager', 'Global Objects|Abc Objects|INI Manager', '%INIManagerVirtuals(ABC)', %True)
+#ENDIF
+#IF(%EnableRunTimeTranslator)
+  #CALL(%GenerateVirtuals, 'Translator', 'Global Objects|Abc Objects|Run-Time Translator', '%TranslatorVirtuals(ABC)', %True)
+#ENDIF
+#IF(%FuzzyMatchingEnabled)
+  #CALL(%GenerateVirtuals, 'FuzzyMatcher', 'Global Objects|Abc Objects|Fuzzy Matcher', '%FuzzyMatcherVirtuals(ABC)', %True)
+#ENDIF
+#!
+#!
+#!
+#!
+#!
+#CLOSE('PBDY.$$$')
+#ENDSECTION
+#!
+#!
+#!
+#SECTION
+#CREATE('PROG02.$$$')
+#IF(%EnableRunTimeTranslator)
+
+  #FOR(%TranslationGroups)
+    #ADD(%TranslatorFiles,%TranslationFile)
+  #ENDFOR
+  #EQUATE(%AbutilPresent,%False)
+  #FOR(%TranslatorFiles)
+   INCLUDE('%(UPPER(%TranslatorFiles))')
+   #IF(UPPER(%TranslatorFiles) = 'ABUTIL.TRN')
+    #SET(%AbutilPresent, %True)
+   #ENDIF
+  #ENDFOR
+  #IF(%ProgramExtension = 'DLL' AND NOT %AbutilPresent)
+   INCLUDE('ABUTIL.TRN')                                        #<! ABUTIL.TRN is required in DLL's with run-time translation enabled
+  #ENDIF
+#ENDIF
+#!
+#EMBED(%AfterGlobalIncludes,'After Global INCLUDEs'),DATA
+#!
+#! Generate MAP
+#!
+#MESSAGE('Generating MAP',3)
+
+   MAP
+  #IF(%ProgramExtension = 'EXE')
+  #ENDIF
+  #IF(~%GlobalExternal AND ~%NoGenerateGlobals)
+     MODULE('%(%MakeMainBCFilename())')
+DctInit     PROCEDURE                                           #<! Initializes the dictionary definition module
+DctKill     PROCEDURE                                           #<! Kills the dictionary definition module
+     END
+  #ENDIF
+#FOR(%Module),WHERE(%ModuleExternal AND (%ModuleTemplate='ExternalDLL(ABC)' OR %ModuleTemplate='ExternalLib(ABC)'))
+  #SUSPEND
+  #IF(%ModuleTemplate='ExternalDLL(ABC)')
+    #?MODULE('%(UPPER(%ModuleBase)).DLL')
+  #ELSE
+    #?MODULE('%(UPPER(%ModuleBase)).LIB')
+  #ENDIF
+  #FOR(%ModuleProcedure),WHERE(~%ModuleInclude)
+    #FIX(%Procedure,%ModuleProcedure)
+    #IF(%ModuleTemplate='ExternalDLL(ABC)')
+%[22]Procedure %ProcedureType%Prototype,DLL                     #<! %ProcedureDescription
+    #ELSE
+%[22]Procedure %ProcedureType%Prototype                         #<! %ProcedureDescription
+    #ENDIF
+  #ENDFOR
+    #?END
+  #RESUME
+#ENDFOR
+#!
+#FIX(%Module,%Program)
+#FOR(%ModuleProcedure)
+  #FIX(%Procedure,%ModuleProcedure)
+%[22]Procedure %ProcedureType%Prototype                         #<! %ProcedureDescription
+#ENDFOR
+#!
+#IF(%ModuleInclude)
+     INCLUDE('%ModuleInclude')
+#ENDIF
+#FOR(%CustomGlobalMapModule)
+     MODULE('%CustomGlobalMapModule')
+  #FOR(%CustomGlobalMapProcedure)
+    #SET(%CustomGlobalMapProcedureLabel, CLIP(LEFT(%CustomGlobalMapProcedure)))  #!Removes leading spaces avoiding potential compile errors
+%[22]CustomGlobalMapProcedureLabel PROCEDURE%CustomGlobalMapProcedurePrototype
+  #ENDFOR
+     END
+#ENDFOR
+#IF(%CreateLocalMap)
+#INSERT(%MakeLocalMaps)
+#ELSE
+#INSERT(%MakeGlobalMap)
+#ENDIF
+#FOR(%CustomGlobalMapIncludes)
+     INCLUDE('%CustomGlobalMapIncludes')
+#ENDFOR
+     #EMBED(%GlobalMap,'Inside the Global Map')
+#EMBED(%ProcedureDeclarationsInsideGlobalMap, ''),HIDE
+     #CALL(%GenerateCategoryDeclareFunctions)
+   END
+#FOR(%CustomGlobalDeclarationIncludes)
+   INCLUDE('%CustomGlobalDeclarationIncludes')
+#ENDFOR
+
+#FREE(%CustomGlobalData)
+#IF (NOT %NoGenerateGlobals)
+#EMBED(%BeforeGlobalData,'Before Global Data'),DATA,HIDE
+#EMBED(%BeforeGlobalDataUser,'Before Global Data'),DATA
+  #INSERT(%GenerateGlobalData,'FIRST',CHOOSE(%DefaultLocalExternal,'EXTERNAL','LOCAL'),CHOOSE(%DefaultLocalExternal,'INCLUDE','GENERATE')),NOINDENT
+  #FOR(%CustomGlobalData),WHERE(%CustomGlobalDataBeforeFiles)
+%[20]CustomGlobalData %CustomGlobalDataDeclaration
+    #FOR(%CustomGlobalDataComponent)
+%[20 + (%CustomGlobalDataComponentIndent * 2)]CustomGlobalDataComponent %CustomGlobalDataComponentDeclaration
+    #ENDFOR
+  #ENDFOR
+SilentRunning        BYTE(0)                                    #<! Set true when application is running in 'silent mode'
+
+#EMBED(%BeforeFileDeclarations,'Before File Declarations'),DATA
+  #CALL(%GenerateFileDeclarations)
+
+#!
+#!
+  #FOR(%CustomGlobalData),WHERE(NOT %CustomGlobalDataBeforeFiles)
+%[20]CustomGlobalData %CustomGlobalDataDeclaration
+    #FOR(%CustomGlobalDataComponent)
+%[20 + (%CustomGlobalDataComponentIndent * 2)]CustomGlobalDataComponent %CustomGlobalDataComponentDeclaration
+    #ENDFOR
+  #ENDFOR
+  #INSERT(%GenerateGlobalData,'LAST','LOCAL','GENERATE'),NOINDENT
+#EMBED(%AfterGlobalDataUser,'After Global Data'),DATA
+#EMBED(%AfterFileDeclarations,'After File Declarations'),DATA
+#EMBED(%GlobalData,'Global Data'),DATA
+#!
+#!
+  #CASE(%ProgramExtension)
+  #OF('DLL')
+    #IF(%GlobalExternal)
+      #CALL(%DLLGlobalsExternal)
+    #ELSE
+      #CALL(%DLLGlobalsInternal)
+
+Dictionary           CLASS,THREAD
+Construct              PROCEDURE
+Destruct               PROCEDURE
+                     END
+
+    #ENDIF
+  #OF('LIB')
+    #IF(%GlobalExternal)
+      #CALL(%LIBGlobalsExternal)
+    #ELSE
+      #CALL(%LIBGlobalsInternal)
+
+Dictionary           CLASS,THREAD
+Construct              PROCEDURE
+Destruct               PROCEDURE
+                     END
+
+    #ENDIF
+  #OF('EXE')
+    #IF(%GlobalExternal)
+      #CALL(%EXEGlobalsExternal)
+    #ELSE
+      #CALL(%EXEGlobalsInternal)
+
+Dictionary           CLASS,THREAD
+Construct              PROCEDURE
+Destruct               PROCEDURE
+                     END
+
+    #ENDIF
+  #ENDCASE
+#ENDIF
+#!
+#!
+#CLOSE('PROG02.$$$')
+#ENDSECTION
+#!
+#!
+#!
+#!    **** This section is done last, so that %GlobalIncludeList is filled correctly ****
+#!
+#!
+#SECTION
+#CREATE('PROG01.$$$')
+
+#FOR(%File),WHERE(%CacheFileUsed AND %GetFileDeclareMode() = 'FILE')
+  #CALL(%AddModuleIncludeFile, %CacheFileManager, 1)
+  #CALL(%AddModuleIncludeFile, %CacheRelationManager, 1)
+#ENDFOR
+#EMBED(%BeforeGlobalIncludes,'Before Global INCLUDEs'),DATA
+
+#FOR(%GlobalIncludeList)
+   INCLUDE('%(UPPER(CLIP(%GlobalIncludeList)))'),ONCE
+#ENDFOR
+#!
+#CLOSE('PROG01.$$$')
+#ENDSECTION
+#!
+#!
+#!---- Main Program Generation Starts Here -----------------------------------------
+#!
+#!
+   PROGRAM
+
+#APPEND('PROG01.$$$'),SECTION
+#REMOVE('PROG01.$$$')
+#APPEND('PROG02.$$$'),SECTION
+#REMOVE('PROG02.$$$')
+#APPEND('PBDY.$$$'),SECTION
+#REMOVE('PBDY.$$$')
+#!
+#!
+#IF(~%GlobalExternal AND ~%NoGenerateGlobals)
+  #IF(%DefaultExternal = 'None External' AND %DefaultLocalExternal)
+    #!
+    #!Generating the global data files
+    #!
+    #!Generate the CLW files with the EXTERNAL
+    #!
+#INSERT(%GenerateGlobalData,'FIRST','EXTERNAL','FILE'),NOINDENT
+    #!
+    #!Generate the CLW file where the real data is generated
+    #!
+#INSERT(%GenerateGlobalData,'FIRST','LOCAL','FILE'),NOINDENT
+    #!
+  #ENDIF
+  #CALL(%WriteFDModules)
+  #CALL(%WriteBCModules)
+#ENDIF
+#!
+#!-----------------------------------------------------------------------------------------
+#!-----------------------------------------------------------------------------------------
+#!
+#AT(%AfterCategoryDLLInitCode, 'ABC'),PRIORITY(8000),DESCRIPTION('Initializing with external Error Manager')
+  #FOR(%File),WHERE(%FileIsUsed())
+     #IF(%GetFileDeclareMode() = 'FILE')
+Access:%File.SetErrors(GlobalErrors)
+     #ENDIF
+  #ENDFOR
+#ENDAT
+#!
+#!
+#!AT(%AfterCategoryDLLInitCode, 'ABC'),PRIORITY(8500),DESCRIPTION('Initializing other ABC Clarion DLL')
+#AT(%AfterCategoryDLLInitCode),PRIORITY(8500),DESCRIPTION('Initializing other '&%Category&' Clarion DLL')
+#INSERT(%GenerateCategoryLocalCallInit,%Category)
+#ENDAT
+#!
+#!
+#!AT(%CategoryDLLKillCode,'ABC'),PRIORITY(8500),DESCRIPTION('Killing other ABC Clarion DLL')
+#AT(%CategoryDLLKillCode),PRIORITY(8500),DESCRIPTION('Killing other '&%Category&' Clarion DLL')
+#INSERT(%GenerateCategoryLocalCallKill,%Category)
+#ENDAT
+#!
+#!
+#AT(%RelationManagerCodeSection),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(~%GlobalExternal AND %ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#!
+#AT(%RelationManagerCodeSection,,'Kill','()'),PRIORITY(2000)
+_Hide:Access:%File.Kill                                         #<! Kill the file manager
+#ENDAT
+#!
+#!
+#AT(%RelationManagerCodeSection,,'Kill','()'),PRIORITY(8000)
+Relate:%File &= NULL                                            #<! Assign NULL to the RelationManager's FileManager reference, it is an error to reference this after this point
+DISPOSE(_Hide:Access:%File)                                     #<! destroy the file manager
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(~%GlobalExternal AND %ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection,,'Kill','()'),PRIORITY(8000)
+Access:%File &= NULL                                            #<! File manager has been destroyed to assign null, it is an error to reference this after this point
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection,,'PrimeFields','()'),WHERE(~%AliasFile),PRIORITY(2500)
+  #SUSPEND
+  #IF(NOT VAREXISTS(%InitialValue))
+     #DECLARE(%InitialValue)
+  #ELSE
+     #SET(%InitialValue,'')
+  #ENDIF
+  #FOR(%Field),WHERE(%FieldInitial)
+    #RELEASE
+    #SET(%InitialValue, %FieldInitial)
+    #IF(SUB(%InitialValue,1,1)='!')
+      #SET(%InitialValue, SUB(%InitialValue,2))
+    #ELSIF((%FieldType = 'STRING' OR %FieldType = 'CSTRING' OR %FieldType = 'PSTRING') AND SUB(%InitialValue,1,1) ~= '''')
+      #! If the user want to add () parenthesis to the the string initial value then the whole initial value must be between single quotes
+      #IF(NOT (INSTRING('(',%InitialValue) AND INSTRING(')',%InitialValue)))
+    	   #SET(%InitialValue, %SVStripPling(%InitialValue))
+      #ENDIF
+    #ENDIF
+%Field = %InitialValue                                          #<! Assign initial field value
+  #ENDFOR
+#EMBED(%RecordPriming,'Record Priming'),%File,LEGACY
+  #RESUME
+#ENDAT
+#!
+#AT(%FileManagerCodeSection,,'BindFields','()'),WHERE(~%AliasFile),PRIORITY(7500)
+  #FOR(%Field),WHERE(%FieldType = 'MEMO')
+BIND('%Field',%Field)                                           #<! Bind memo field
+  #ENDFOR
+#ENDAT
+#!
+#!
+#AT(%FileManagerDataSection,,'ValidateFieldServer','(UNSIGNED Id,BYTE HandleErrors),BYTE'),WHERE(~%AliasFile),PRIORITY(5000),AUTO
+#FOR(%Field),WHERE(%FieldLookup)
+  #CALL(%MakeDeclr,20,%ValueConstruct,'Save:'&%FieldLookup&%FieldNumber(%Field,%File),'USHORT,AUTO')
+%ValueConstruct
+#ENDFOR
+#ENDAT
+#!
+#AT(%FileManagerCodeSection,,'ValidateFieldServer','(UNSIGNED Id,BYTE HandleErrors),BYTE'),WHERE(~%AliasFile),PRIORITY(6000),AUTO
+#DECLARE(%CDList)
+#SUSPEND
+#?CASE Id
+#FOR(%Field),WHERE(%FieldDimension1<=1 AND %FieldID <> '')
+  #SUSPEND
+#?OF %(%FieldNumber(%Field,%File))
+  #IF (%FieldDescription)
+  #?GlobalErrors.SetField('%'FieldDescription')
+  #ELSE
+  #?GlobalErrors.SetField('%Field')
+  #ENDIF
+  #EMBED(%FieldLevelValidation,'Field level validation'),%File,%Field,WHERE(%FieldID <> '')
+  #RESUME
+#ENDFOR
+#?END
+#RESUME
+#ENDAT
+#!
+#!
+#AT(%FileManagerDataSection, , 'PreDelete', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile),PRIORITY(5000),DESCRIPTION('DCT Data')
+#INSERT(%TriggerGenerateData,'BEFORE_DELETE')
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection, , 'PreDelete', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#PRIORITY(100),DESCRIPTION('Start Scope')
+#INSERT(%TriggerGenerateCodeStart,'BEFORE_DELETE')
+#PRIORITY(6000),DESCRIPTION('DCT Code')
+#INSERT(%TriggerGenerateCodeDCTCode,'BEFORE_DELETE')
+#PRIORITY(7000),DESCRIPTION('End Scope')
+#INSERT(%TriggerGenerateCodeEnd,'BEFORE_DELETE')
+#ENDAT
+#!
+#!
+#AT(%ClassVirtualMethodRoutineCodeSection, , 'PreDelete', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#INSERT(%TriggerGenerateCodeRoutine,'BEFORE_DELETE')
+#ENDAT
+#!
+#!
+#AT(%FileManagerDataSection, , 'PostDelete', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile),PRIORITY(5000),DESCRIPTION('DCT Data')
+#INSERT(%TriggerGenerateData,'AFTER_DELETE')
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection, , 'PostDelete', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#PRIORITY(100),DESCRIPTION('Start Scope')
+#INSERT(%TriggerGenerateCodeStart,'AFTER_DELETE')
+#PRIORITY(6000),DESCRIPTION('DCT Code')
+#INSERT(%TriggerGenerateCodeDCTCode,'AFTER_DELETE')
+#PRIORITY(7000),DESCRIPTION('End Scope')
+#INSERT(%TriggerGenerateCodeEnd,'AFTER_DELETE')
+#ENDAT
+#!
+#!
+#AT(%ClassVirtualMethodRoutineCodeSection, , 'PostDelete', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#INSERT(%TriggerGenerateCodeRoutine,'AFTER_DELETE')
+#ENDAT
+#!
+#!
+#AT(%FileManagerDataSection, , 'PreInsert', '(SIGNED OpCode,UNSIGNED AddLen,*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile),PRIORITY(5000),DESCRIPTION('DCT Data')
+#INSERT(%TriggerGenerateData,'BEFORE_INSERT')
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection, , 'PreInsert', '(SIGNED OpCode,UNSIGNED AddLen,*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#PRIORITY(100),DESCRIPTION('Start Scope')
+#INSERT(%TriggerGenerateCodeStart,'BEFORE_INSERT')
+#PRIORITY(6000),DESCRIPTION('DCT Code')
+#INSERT(%TriggerGenerateCodeDCTCode,'BEFORE_INSERT')
+#PRIORITY(7000),DESCRIPTION('End Scope')
+#INSERT(%TriggerGenerateCodeEnd,'BEFORE_INSERT')
+#ENDAT
+#!
+#!
+#AT(%ClassVirtualMethodRoutineCodeSection, , 'PreInsert', '(SIGNED OpCode,UNSIGNED AddLen,*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#INSERT(%TriggerGenerateCodeRoutine,'BEFORE_INSERT')
+#ENDAT
+#!
+#!
+#AT(%FileManagerDataSection, , 'PostInsert', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile),PRIORITY(5000),DESCRIPTION('DCT Data')
+#INSERT(%TriggerGenerateData,'AFTER_INSERT')
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection, , 'PostInsert', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#PRIORITY(100),DESCRIPTION('Start Scope')
+#INSERT(%TriggerGenerateCodeStart,'AFTER_INSERT')
+#PRIORITY(6000),DESCRIPTION('DCT Code')
+#INSERT(%TriggerGenerateCodeDCTCode,'AFTER_INSERT')
+#PRIORITY(7000),DESCRIPTION('End Scope')
+#INSERT(%TriggerGenerateCodeEnd,'AFTER_INSERT')
+#ENDAT
+#!
+#!
+#AT(%ClassVirtualMethodRoutineCodeSection, , 'PostInsert', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#INSERT(%TriggerGenerateCodeRoutine,'AFTER_INSERT')
+#ENDAT
+#!
+#!
+#AT(%FileManagerDataSection, , 'PreUpdate', '(LONG Pntr,UNSIGNED PutLen,*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile),PRIORITY(5000),DESCRIPTION('DCT Data')
+#INSERT(%TriggerGenerateData,'BEFORE_UPDATE')
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection, , 'PreUpdate', '(LONG Pntr,UNSIGNED PutLen,*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#PRIORITY(100),DESCRIPTION('Start Scope')
+#INSERT(%TriggerGenerateCodeStart,'BEFORE_UPDATE')
+#PRIORITY(6000),DESCRIPTION('DCT Code')
+#INSERT(%TriggerGenerateCodeDCTCode,'BEFORE_UPDATE')
+#PRIORITY(7000),DESCRIPTION('End Scope')
+#INSERT(%TriggerGenerateCodeEnd,'BEFORE_UPDATE')
+#ENDAT
+#!
+#!
+#AT(%ClassVirtualMethodRoutineCodeSection, , 'PreUpdate', '(LONG Pntr,UNSIGNED PutLen,*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#INSERT(%TriggerGenerateCodeRoutine,'BEFORE_UPDATE')
+#ENDAT
+#!
+#!
+#AT(%FileManagerDataSection, , 'PostUpdate', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile),PRIORITY(5000),DESCRIPTION('DCT Data')
+#INSERT(%TriggerGenerateData,'AFTER_UPDATE')
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection, , 'PostUpdate', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#PRIORITY(100),DESCRIPTION('Start Scope')
+#INSERT(%TriggerGenerateCodeStart,'AFTER_UPDATE')
+#PRIORITY(6000),DESCRIPTION('DCT Code')
+#INSERT(%TriggerGenerateCodeDCTCode,'AFTER_UPDATE')
+#PRIORITY(7000),DESCRIPTION('End Scope')
+#INSERT(%TriggerGenerateCodeEnd,'AFTER_UPDATE')
+#ENDAT
+#!
+#!
+#AT(%ClassVirtualMethodRoutineCodeSection, , 'PostUpdate', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#INSERT(%TriggerGenerateCodeRoutine,'AFTER_UPDATE')
+#ENDAT
+#!
+#!
+#AT(%FileManagerDataSection, , 'PreFetch', '(SIGNED OpCode,KEY key,STRING positionBuffer,LONG pointer,UNSIGNED recLen,*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile),PRIORITY(5000),DESCRIPTION('DCT Data')
+#INSERT(%TriggerGenerateData,'BEFORE_FETCH')
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection, , 'PreFetch', '(SIGNED OpCode,KEY key,STRING positionBuffer,LONG pointer,UNSIGNED recLen,*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#PRIORITY(100),DESCRIPTION('Start Scope')
+#INSERT(%TriggerGenerateCodeStart,'BEFORE_FETCH')
+#PRIORITY(6000),DESCRIPTION('DCT Code')
+#INSERT(%TriggerGenerateCodeDCTCode,'BEFORE_FETCH')
+#PRIORITY(7000),DESCRIPTION('End Scope')
+#INSERT(%TriggerGenerateCodeEnd,'BEFORE_FETCH')
+#ENDAT
+#!
+#!
+#AT(%ClassVirtualMethodRoutineCodeSection, , 'PreFetch', '(SIGNED OpCode,KEY key,STRING positionBuffer,LONG pointer,UNSIGNED recLen,*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#INSERT(%TriggerGenerateCodeRoutine,'BEFORE_FETCH')
+#ENDAT
+#!
+#!
+#AT(%FileManagerDataSection, , 'PostFetch', '(SIGNED OpCode,KEY key,STRING positionBuffer,LONG pointer,UNSIGNED recLen,*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile),PRIORITY(5000),DESCRIPTION('DCT Data')
+#INSERT(%TriggerGenerateData,'AFTER_FETCH')
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection, , 'PostFetch', '(SIGNED OpCode,KEY key,STRING positionBuffer,LONG pointer,UNSIGNED recLen,*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#PRIORITY(100),DESCRIPTION('Start Scope')
+#INSERT(%TriggerGenerateCodeStart,'AFTER_FETCH')
+#PRIORITY(6000),DESCRIPTION('DCT Code')
+#INSERT(%TriggerGenerateCodeDCTCode,'AFTER_FETCH')
+#PRIORITY(7000),DESCRIPTION('End Scope')
+#INSERT(%TriggerGenerateCodeEnd,'AFTER_FETCH')
+#ENDAT
+#!
+#!
+#AT(%ClassVirtualMethodRoutineCodeSection, , 'PostFetch', '(SIGNED OpCode,KEY key,STRING positionBuffer,LONG pointer,UNSIGNED recLen,*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#INSERT(%TriggerGenerateCodeRoutine,'AFTER_FETCH')
+#ENDAT
+#!
+#!
+#AT(%FileManagerDataSection, , 'PreCreate', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile),PRIORITY(5000),DESCRIPTION('DCT Data')
+#INSERT(%TriggerGenerateData,'BEFORE_CREATE')
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection, , 'PreCreate', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#PRIORITY(100),DESCRIPTION('Start Scope')
+#INSERT(%TriggerGenerateCodeStart,'BEFORE_CREATE')
+#PRIORITY(6000),DESCRIPTION('DCT Code')
+#INSERT(%TriggerGenerateCodeDCTCode,'BEFORE_CREATE')
+#PRIORITY(7000),DESCRIPTION('End Scope')
+#INSERT(%TriggerGenerateCodeEnd,'BEFORE_CREATE')
+#ENDAT
+#!
+#!
+#AT(%ClassVirtualMethodRoutineCodeSection, , 'PreCreate', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#INSERT(%TriggerGenerateCodeRoutine,'BEFORE_CREATE')
+#ENDAT
+#!
+#!
+#AT(%FileManagerDataSection, , 'PostCreate', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile),PRIORITY(5000),DESCRIPTION('DCT Data')
+#INSERT(%TriggerGenerateData,'AFTER_CREATE')
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection, , 'PostCreate', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#PRIORITY(100),DESCRIPTION('Start Scope')
+#INSERT(%TriggerGenerateCodeStart,'AFTER_CREATE')
+#PRIORITY(6000),DESCRIPTION('DCT Code')
+#INSERT(%TriggerGenerateCodeDCTCode,'AFTER_CREATE')
+#PRIORITY(7000),DESCRIPTION('End Scope')
+#INSERT(%TriggerGenerateCodeEnd,'AFTER_CREATE')
+#PRIORITY(7000),DESCRIPTION('End Scope')
+#ENDAT
+#!
+#!
+#AT(%ClassVirtualMethodRoutineCodeSection, , 'PostCreate', '(*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile)
+#INSERT(%TriggerGenerateCodeRoutine,'AFTER_CREATE')
+#ENDAT
+#!
+#!
+#AT(%FieldLevelValidation),PRIORITY(7500)
+#SUSPEND
+#?IF ReturnValue <> Level:Benign
+  #EMBED(%FieldLevelValidationFail,'Upon field validation failure'),%File,%Field,LEGACY
+#PRIORITY(8000)
+#SUSPEND
+#?ELSE
+#PRIORITY(8500)
+#RESUME
+#?END
+#RESUME
+#ENDAT
+#!
+#AT(%FieldLevelValidation),WHERE(ITEMS(%FieldValues) AND (%FieldValidation = 'INLIST')),PRIORITY(6000)
+#SET(%CDList,'')
+#FOR(%FieldValues)
+  #SET(%CDList, %CDList & ']' & %FieldValues & '[')
+#ENDFOR
+#SET (%CDList, '''' & QUOTE(%CDList) & '''')
+#IF(%FieldType = 'STRING' OR %FieldType = 'MEMO')
+IF INSTRING(']' & CLIP(%Field) & '[', %CDList, 1, 1) = 0
+#ELSE
+IF INSTRING(']' & %Field & '[', %CDList, 1, 1) = 0
+#ENDIF
+  ReturnValue = Level:Notify
+END
+#PRIORITY(7750)
+#IF (ITEMS(%FieldChoices))
+  #SET(%CDList,'')
+  #FOR(%FieldChoices)
+    #SET(%CDList,%CDList&CHOOSE(%CDList='','''',',''')&QUOTE(%FieldChoices)&'''')
+  #ENDFOR
+#ENDIF
+  IF HandleErrors
+    ReturnValue = GlobalErrors.ThrowMessage(Msg:FieldNotInList,'%'CDList')
+  END
+#ENDAT
+#!
+#AT(%FieldLevelValidation),WHERE(%FieldLookup AND (%FieldValidation = 'INFILE')),PRIORITY(6000)
+  #FIX(%Relation,%FieldLookup)
+Save:%FieldLookup%(%FieldNumber(%Field,%File)) = Access:%Relation.SaveFile()
+  #FOR(%FileKeyField)
+%FileKeyFieldLink = %FileKeyField
+  #ENDFOR
+ReturnValue = Access:%Relation.TryFetch(%RelationKey)
+#PRIORITY(7750)
+  IF HandleErrors                                               #<! Display message if handling errors
+    ReturnValue = GlobalErrors.ThrowMessage(Msg:FieldNotInFile,'%Relation')
+  END
+#PRIORITY(9000)
+Access:%Relation.RestoreFile(Save:%FieldLookup%(%FieldNumber(%Field,%File)))
+#ENDAT
+#!
+#AT(%FieldLevelValidation),WHERE((%FieldRangeLow OR %FieldRangeHigh) AND (%FieldValidation = 'INRANGE')),PRIORITY(6000)
+#IF(%FieldRangeLow AND %FieldRangeHigh)
+IF NOT INRANGE(%Field,%FieldRangeLow,%FieldRangeHigh)
+#ELSIF(%FieldRangeLow)
+IF %Field < %FieldRangeLow
+#ELSE
+IF %Field > %FieldRangeHigh
+#ENDIF
+  ReturnValue = Level:Notify
+END
+#PRIORITY(7750)
+  IF HandleErrors
+#IF(%FieldRangeLow AND %FieldRangeHigh)
+    ReturnValue = GlobalErrors.ThrowMessage(Msg:FieldOutOfRange,'%FieldRangeLow .. %FieldRangeHigh')
+#ELSIF(%FieldRangeLow)
+    ReturnValue = GlobalErrors.ThrowMessage(Msg:FieldOutOfRangeLow,'%FieldRangeLow')
+#ELSE
+    ReturnValue = GlobalErrors.ThrowMessage(Msg:FieldOutOfRangeHigh,'%FieldRangeHigh')
+#ENDIF
+  END
+#ENDAT
+#!
+#AT(%AfterCategoryDLLInitCode, 'ABC'),PRIORITY(5000),DESCRIPTION('Restoring DLL''s Preserved Variables'),WHERE(%ProgramExtension='DLL')
+#IF(NOT %NoGenerateGlobals)
+#FOR(%PreserveVars)
+%PreserveVar = INIMgr.TryFetch('Preserved','%PreserveVar')        #<! Resore ' preserved variable' from non-volatile store
+#ENDFOR
+#ENDIF
+#ENDAT
+#!
+#AT(%CategoryDLLKillCode,'ABC'),PRIORITY(9000),DESCRIPTION('Storing DLL''s Preserved Variables'),WHERE(%ProgramExtension='DLL')
+#IF(NOT %NoGenerateGlobals)
+#FOR(%PreserveVars)
+INIMgr.Update('Preserved','%PreserveVar',%PreserveVar)            #<! Save 'preserved variable' in non-volatile store
+#ENDFOR
+#ENDIF
+#ENDAT
+#!
+#AT(%INIManagerCodeSection,'Fetch','()'),PRIORITY(2500),WHERE(%ProgramExtension='EXE')
+#FOR(%PreserveVars)
+%PreserveVar = SELF.TryFetch('Preserved','%PreserveVar')        #<! Resore ' preserved variable' from non-volatile store
+#ENDFOR
+#ENDAT
+#!
+#AT(%INIManagerCodeSection,'Update','()'),PRIORITY(7500),WHERE(%ProgramExtension='EXE')
+#FOR(%PreserveVars)
+SELF.Update('Preserved','%PreserveVar',%PreserveVar)            #<! Save 'preserved variable' in non-volatile store
+#ENDFOR
+#ENDAT
+#!
+#!
+#AT (%BeforeCategoryDLLInitCode,'ABC')
+  #EMBED(%DLLInitCode,'DLL Initialization code'),TREE('DLL Initialization|ABC|DLL Initialization Code{{PRIORITY(2000)}')
+#END
+#!
+#!
+#AT (%AfterCategoryDLLInitCode,'ABC')
+  #EMBED(%AfterInitGlobalDllObjects, 'DLL Initialization code after configuring global objects'),TREE('DLL Initialization|ABC|After configuring global objects{{PRIORITY(3000)}')
+#END
+#!
+#!
+#AT (%CategoryDLLKillCode,'ABC')
+  #EMBED(%DLLKillCode, 'DLL Killing code') ,TREE('DLL Kill|ABC|DLL Killing Code{{PRIORITY(2000)}')
+#END
+#!
+#!
+#!
+#AT(%FileManagerCodeSection,,'Init','()'),PRIORITY(4500),DESCRIPTION('File Initialization')
+#IF(%CacheFileUsed AND ~(%CacheFileExternal OR %GlobalExternal) AND %GetFileDeclareMode() = 'FILE')
+SELF.Initialized = False
+SELF.Buffer &= %FilePrefix:Record
+#IF(%AliasFile)
+SELF.AliasedFile &= Access:%AliasFile             #<!This is a File Alias, so assign aliased file manager
+#ENDIF
+SELF.FileNameValue = '%File'
+SELF.SetErrors(GlobalErrors)
+SELF.File &= %File
+  #IF (%FileName)
+    #IF (SUB(%FileName,1,1)<>'''')
+SELF.FileName &= %FileName
+    #ENDIF
+  #ENDIF
+#ENDIF
+#!
+#ENDAT
+#AT(%FileManagerCodeSection,,'Init','()'),PRIORITY(5500),DESCRIPTION('Lazy Open Initialization')
+#IF(%CacheFileUsed AND ~(%CacheFileExternal OR %GlobalExternal) AND %GetFileDeclareMode() = 'FILE')
+Access:%File &= SELF
+#IF(%OverrideLazyOpen='Use Default')
+  #IF(~%DefaultLazyOpen)
+SELF.LazyOpen = False
+  #ENDIF
+#ELSIF(%OverrideLazyOpen='No')
+SELF.LazyOpen = False
+#ENDIF
+#ENDIF
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection,,'UseFile','(BYTE UseType = UseType:Uses),BYTE'),PRIORITY(4500),DESCRIPTION('Global Settings')
+#IF(%CacheFileUsed AND ~(%CacheFileExternal OR %GlobalExternal) AND %GetFileDeclareMode() = 'FILE')
+IF UseType ~= UseType:Initialize
+  SELF.UseFile(UseType:Initialize)                #<!Recursive call to ensure initialization takes place
+END
+IF UseType = UseType:Initialize AND ~SELF.Initialized
+  SELF.InUseFile = True
+  SELF.Init(%File,GlobalErrors)
+#!  #IF (%FileName)
+#!    #IF (SUB(%FileName,1,1)<>'''')
+#!  SELF.FileName &= %FileName
+#!    #ENDIF
+#!  #ENDIF
+  #SET(%ThisOpenMode,%DefaultOpenMode)
+  #SET(%ThisOtherAccess,%DefaultOtherAccess)
+  #SET(%ThisUserAccess,%DefaultUserAccess)
+  #SET(%ThisCreate,%DefaultCreate)
+  #IF (%OverrideOpenMode <> 'Use Default')
+    #SET(%ThisOpenMode,%OverrideOpenMode)
+  #ENDIF
+  #IF (%OverrideOtherAccess <> 'Use Default')
+    #SET(%ThisOtherAccess,%OverrideOtherAccess)
+  #ENDIF
+  #IF (%OverrideUserAccess <> 'Use Default')
+    #SET(%ThisUserAccess,%OverrideUserAccess)
+  #ENDIF
+  #IF (%OverrideCreate <> 'Use Default')
+    #SET(%ThisCreate,%OverrideCreate)
+  #ENDIF
+  #SUSPEND
+  #?IF NOT SELF.OpenModeOverridden
+     #CASE(%ThisOpenMode)
+     #OF('Open')
+     SELF.OpenMode = 22h
+     #OF('Other')
+       #CASE(%ThisOtherAccess)
+       #OF('Deny None')
+     SELF.OpenMode = DenyNone
+       #OF('Deny Read')
+     SELF.OpenMode = DenyRead
+       #OF('Deny Write')
+     SELF.OpenMode = DenyWrite
+       #OF('Deny All')
+     SELF.OpenMode = DenyAll
+       #OF('Any Access')
+     SELF.OpenMode = AnyAccess
+       #ENDCASE
+       #CASE(%ThisUserAccess)
+       #OF('Read/Write')
+     SELF.OpenMode += ReadWrite
+       #OF('Read Only')
+     SELF.OpenMode += ReadOnly
+       #OF('Write Only')
+     SELF.OpenMode += WriteOnly
+       #ENDCASE
+     #ENDCASE
+  #?END
+  #RESUME
+  #CASE(%ThisCreate)
+  #OF('Use File Setting')
+  SELF.Create = %(CHOOSE(%FileCreate,1,0))
+  #OF('Create File')
+  #OROF('Create All')
+  SELF.Create = 1
+  #OF('Do Not Create File')
+  #OROF('Create None')
+  SELF.Create = 0
+  #ENDCASE
+  SELF.LockRecover = %LockRecoverTime
+  #FOR (%Key)
+  SELF.AddKey(%Key,'%(CHOOSE(%KeyDescription<>'',QUOTE(%KeyDescription),%Key))',%(INLIST(%KeyAuto,%KeyField)))
+  #ENDFOR
+END
+#<!SELF.InUseFile will be set to False in PARENT
+#ENDIF
+#ENDAT
+#!
+#!
+#AT(%RelationManagerCodeSection,,'DeferedAddRelations','()'),PRIORITY(4500),DESCRIPTION('Add Relations')
+#IF(%CacheFileUsed AND ~(%CacheFileExternal OR %GlobalExternal) AND %GetFileDeclareMode() = 'FILE')
+#DECLARE(%Cnt,LONG)
+#DECLARE(%RelateCnt,LONG)
+  #SET(%RelateCnt,0)
+  #SET(%Cnt,0)
+  #FOR(%Relation),WHERE((%ThisFileIsUsed(%Relation) AND %GeneratesAsFile(%Relation)) OR %RelationConstraintUpdate OR %RelationConstraintDelete)
+    #SET(%Cnt,%Cnt+1)
+  #ENDFOR
+  #IF(%Cnt)
+    #SET(%RelateCnt,((%Cnt-1)/%RelatesPerRoutine)+1)
+  #ENDIF
+  #LOOP,FOR(%Cnt,1,%RelateCnt)
+DO AddRelations_%Cnt
+
+  #ENDLOOP
+  #SET(%Cnt,0)
+  #SET(%RelateCnt,1)
+#ENDIF
+#PRIORITY(9000),DESCRIPTION('Add Relations Routines')
+#IF(%CacheFileUsed AND ~(%CacheFileExternal OR %GlobalExternal) AND %GetFileDeclareMode() = 'FILE')
+#INDENT(-2)
+  #FOR(%Relation),WHERE((%ThisFileIsUsed(%Relation) AND %GeneratesAsFile(%Relation)) OR %RelationConstraintUpdate OR %RelationConstraintDelete)
+
+    #SET(%Cnt,%Cnt+1)
+    #IF(%Cnt=1)
+AddRelations_%RelateCnt ROUTINE
+      #SET(%RelateCnt,%RelateCnt+1)
+    #ENDIF
+    #IF(%Cnt=%RelatesPerRoutine)
+      #SET(%Cnt,0)
+    #ENDIF
+    #IF (%RelationKey AND ( %FileRelationType = '1:MANY'  OR ~%FileKey ) )
+      #IF (%RelationConstraintUpdate)
+        #SET(%UpdateStrategy,'RI:' & %RelationConstraintUpdate)
+      #ELSE
+        #SET(%UpdateStrategy,'RI:None')
+      #ENDIF
+      #IF (%RelationConstraintDelete)
+        #SET(%DeleteStrategy,'RI:' & %RelationConstraintDelete)
+      #ELSE
+        #SET(%DeleteStrategy,'RI:None')
+      #ENDIF
+  SELF.AddRelation(Relate:%Relation,%UpdateStrategy,%DeleteStrategy,%RelationKey)
+      #FOR (%FileKeyField),WHERE(%FileKeyField)
+  SELF.AddRelationLink(%FileKeyField,%FileKeyFieldLink)
+      #ENDFOR
+      #CYCLE
+    #ENDIF
+  SELF.AddRelation(Relate:%Relation)
+  #ENDFOR
+#INDENT(2)
+#ENDIF
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection, , 'PreInsert', '(SIGNED OpCode,UNSIGNED AddLen,*CSTRING ErrCode,*CSTRING ErrMsg),BYTE'),WHERE(~%AliasFile),PRIORITY(101)
+#INSERT(%GenerateIdentityColumnSetting)
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection,,'UseFile','(BYTE UseType = UseType:Uses),BYTE'),PRIORITY(4045)
+#IF(EXTRACT(UPPER(%FileUserOptions), UPPER('EmulateAutoNumKey'),1) = '1' OR UPPER(EXTRACT(UPPER(%FileUserOptions), UPPER('EmulateAutoNumKey'),1)) = 'TRUE')
+   #FOR(%Field),WHERE(%FieldType<>'MEMO' AND %FieldType<>'BLOB' AND %FieldType<>'END' AND %FieldType<>'GROUP')
+       #IF((EXTRACT(UPPER(%FieldUserOptions), UPPER('IsIdentity'),1) = '1' OR UPPER(EXTRACT(UPPER(%FieldUserOptions), UPPER('IsIdentity'),1)) = 'TRUE') OR EXTRACT(UPPER(%FieldUserOptions), UPPER('ServerAutoIncColumn'),1) <> '')
+! EmulateAutoNumKey, this will force the FM to auto insert the record and
+! recover the Identity column
+IF UseType = UseType:Initialize AND ~SELF.Initialized
+   SELF.HasAutoInc = True
+END
+           #BREAK
+       #ENDIF
+   #ENDFOR
+#ENDIF
+#ENDAT
+#!
+#!
+#!------------------------------------------------------------------------------
+#!
+#!
+#GROUP(%GenerateIdentityColumnSetting),AUTO
+#DECLARE(%lFileCount)
+#DECLARE(%FileIdentityField)
+#DECLARE(%FileIdentityFieldInstance)
+#DECLARE(%FileIdentityFieldColumn,LONG)
+#SET(%FileIdentityField,'')
+#SET(%FileIdentityFieldInstance,0)
+#SET(%FileIdentityFieldColumn,1)
+#SET(%lFileCount,0)
+#FOR(%Field),WHERE(%FieldType<>'MEMO' AND %FieldType<>'BLOB' AND %FieldType<>'END')
+      #SET(%lFileCount,%lFileCount+1)
+      #IF((EXTRACT(UPPER(%FieldUserOptions), UPPER('IsIdentity'),1) = '1' OR UPPER(EXTRACT(UPPER(%FieldUserOptions), UPPER('IsIdentity'),1)) = 'TRUE') AND %FieldType<>'GROUP')
+         #IF(%FileIdentityFieldInstance=0)
+            #SET(%FileIdentityField,%Field)
+            #SET(%FileIdentityFieldInstance,%lFileCount)
+            #SET(%FileIdentityFieldColumn,1)
+         #ELSE
+            #ERROR('Only one Identity column per File is allowed - Second instance (File:'&%File&' - Column:'&%Field&')')
+         #ENDIF
+      #ENDIF
+#ENDFOR
+#IF(%FileIdentityFieldInstance<>0)
+%File{PROP:ServerAutoInc}
+%File{PROP:ServerAutoInc,%FileIdentityFieldInstance}=%FileIdentityFieldColumn !%FileIdentityField
+   #FOR(%Key),WHERE(%KeyAuto=%FileIdentityField)
+      #ERROR('An Identity Column can not belong to an Auto Number Key (Key:'&%Key&' - Column:'&%FileIdentityField&')')
+      #ERROR('Set the Auto Number option to false.')
+An Identity Column can not belong to an Auto Number Key (Key:%Key - Column:%FileIdentityField)
+Set the auto Number option to false.
+   #ENDFOR
+#ELSE
+   #FOR(%Field),WHERE((EXTRACT(UPPER(%FieldUserOptions), UPPER('ServerAutoIncColumn'),1) <> '') AND %FieldType<>'MEMO' AND %FieldType<>'BLOB' AND %FieldType<>'GROUP')
+%File{PROP:ServerAutoInc}
+      #BREAK
+   #ENDFOR
+   #SET(%lFileCount,0)
+   #FOR(%Field),WHERE(%FieldType<>'MEMO' AND %FieldType<>'BLOB' AND %FieldType<>'END')
+      #SET(%lFileCount,%lFileCount+1)
+      #IF(EXTRACT(UPPER(%FieldUserOptions), UPPER('ServerAutoIncColumn'),1) <> '')
+         #IF(%FieldType<>'GROUP')
+            #SET(%FileIdentityField,%Field)
+            #SET(%FileIdentityFieldInstance,%lFileCount)
+            #SET(%FileIdentityFieldColumn,EXTRACT(UPPER(%FieldUserOptions), UPPER('ServerAutoIncColumn'),1))
+%File{PROP:ServerAutoInc,%FileIdentityFieldInstance}=%FileIdentityFieldColumn !%FileIdentityField
+            #FOR(%Key),WHERE(%KeyAuto=%FileIdentityField)
+               #ERROR('A Server Auto Inc Column can not belong to an Auto Number Key (Key:'&%Key&' - Column:'&%FileIdentityField&')')
+               #ERROR('Set the Auto Number option to false.')
+A Server Auto Inc Column can not belong to an Auto Number Key (Key:%Key - Column:%FileIdentityField)
+Set the auto Number option to false.
+            #ENDFOR
+         #ENDIF
+      #ENDIF
+   #ENDFOR
+#ENDIF
+#!
+#!
+#!------------------------------------------------
+#!
+#!
+#GROUP(%ErrorManagerVirtuals, %TreeText, %DataText, %CodeText)
+#IF(~%NoGenerateGlobals)
+#EMBED(%ErrorManagerDataSection,'Error Manager Data Section'),%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('ErrorManager'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%ErrorManagerCodeSection,'Error Manager Executable Code Section'),%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('ErrorManager'))),TREE(%TreeText & %CodeText)
+#ENDIF
+#!
+#!
+#GROUP(%INIManagerVirtuals, %TreeText, %DataText, %CodeText)
+#IF(~%NoGenerateGlobals)
+#EMBED(%INIManagerDataSection,'INI Manager Data Section'),%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('INIManager'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%INIManagerCodeSection,'INI Manager Executable Code Section'),%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('INIManager'))),TREE(%TreeText & %CodeText)
+#ENDIF
+#!
+#!
+#GROUP(%TranslatorVirtuals, %TreeText, %DataText, %CodeText)
+#IF(~%NoGenerateGlobals)
+#EMBED(%TranslatorDataSection,'Translator Data Section'),%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('Translator'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%TranslatorCodeSection,'Translator Executable Code Section'),%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('Translator'))),TREE(%TreeText & %CodeText)
+#ENDIF
+#!
+#!
+#GROUP(%FuzzyMatcherVirtuals, %TreeText, %DataText, %CodeText)
+#IF(~%NoGenerateGlobals)
+#EMBED(%FuzzyMatcherMethodDataSection,'Fuzzy Matcher Method Data Section'),%pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(,%FixClassName(%FixBaseClassToUse('FuzzyMatcher'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%FuzzyMatcherMethodCodeSection,'Fuzzy Matcher Method Executable Code Section'),%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('FuzzyMatcher'))),TREE(%TreeText & %CodeText)
+#ENDIF
+#!
+#!
+#!-------------------------------------------------
+#GROUP(%MakeEXE)
+  #IF(%HelpFile)
+  HELP('%HelpFile')                                             #<! Open the applications help file
+  #ENDIF
+  #INSERT(%InitCode)
+  #INSERT(%CallFirstProcedure)
+  #IF(~%NoGenerateGlobals)
+  INIMgr.Update
+  #ENDIF
+  #INSERT(%KillCode)
+#!-------------------------------------------------------
+#GROUP(%MakeEXEExternalGlobals)
+  #IF(%HelpFile)
+  HELP('%HelpFile')                                             #<! Open the applications help file
+  #ENDIF
+  #INSERT(%InitCode)
+  #!
+  #!-- Initialize external dll's
+  #INSERT(%GenerateCategoryCallInit)
+  #!
+  #INSERT(%CallFirstProcedure)
+  #!
+  #IF(~%NoGenerateGlobals)
+  INIMgr.Update
+  #ENDIF
+  #!-- Kill external dll's
+  #INSERT(%GenerateCategoryCallKill)
+  #!
+  #INSERT(%KillCode)
+#!
+#!
+#GROUP(%CallFirstProcedure)
+#EMBED(%BeforeCallingFirstProcedure),HIDE
+%FirstProcedure
+#EMBED(%AfterCallingFirstProcedure),HIDE
+#!
+#!
+#!-------------------------------------------------------
+#GROUP(%MakeDLLExportGlobals)
+#INSERT(%MainDLLCode)
+#!-------------------------------------------------------
+#GROUP(%MakeDLLExternalGlobals)
+#INSERT(%MainDLLCode)
+#!-------------------------------------------------------
+#GROUP(%MainDLLCode)
+  #IF(~%NoGenerateGlobals)
+DLLInitializer.Construct PROCEDURE
+
+    #IF(%INIType = 'NVD_INI')
+      #IF(%INIFile='Program Name.INI' AND %INIProgramIniLocation = 'CSIDLDIR')
+svSpecialFolder       SpecialFolder
+svFileName            string(255) 
+      #ENDIF
+    #ENDIF
+
+  CODE
+  LocalErrors.Init(LocalErrorStatus)
+    #IF(%INIType = 'NVD_Registry')
+  LocalINIMgr.Init(%(%StripPling(%INIFileName)), %INIType, %REGRoot)  #<! Initialize the local INI manager to use the registry
+    #ELSE
+      #IF(%INIFile='Other')
+  LocalINIMgr.Init(%(%StripPling(%ININame)), %INIType)             #<! Initialize the local INI manager to use windows INI file
+      #ELSE     
+       #IF(%INIProgramIniLocation = 'APPDIR')
+  LocalINIMgr.Init(%(%StripPling(%INIFileName)), %INIType)      #<! Initialize the local INI manager to use windows INI file
+      #ELSE
+	    #IF(%CSIDLCreate)
+  svSpecialFolder.CreateDirIn(%INICSIDLDirectory, %(%StripPling(%CSIDLCompanyDir)) & '\' & %(%StripPling(%CSIDLProductDir)) )	
+          #SUSPEND
+#?IF svSpecialFolder.GetError()
+  #EMBED(%AfterCSILDCreateFolderGetErrorDLL, 'DLLInitialiser.Construct CODE Section Error Handling for INI file CSIDL folder creation')
+#?END 
+          #RESUME
+        #ENDIF
+  svFileName = svSpecialFolder.GetDir(%INICSIDLDirectory,  %(%StripPling(%CSIDLCompanyDir)) & '\' &  %(%StripPling(%CSIDLProductDir)) & '\' &  %(%StripPling(%INIFileName)) )
+  LocalINIMgr.Init(svFileName, NVD_INI)
+        #IF(%GeneratePropDataPath)
+  SYSTEM{PROP:DataPath} = LocalINIMgr.refISystemFolder.GetDir(%INICSIDLDirectory) & '\' &   %(%StripPling(%CSIDLCompanyDir)) & '\' &  %(%StripPling(%CSIDLProductDir))
+        #ENDIF
+       #ENDIF
+      #ENDIF
+    #ENDIF
+  INIMgr &= LocalINIMgr
+  #IF(%ProgramExtension = 'DLL')
+  IF GlobalErrors &= NULL
+    GlobalErrors &= LocalErrors                                   #<! Assign local managers to global managers
+  END
+  #ENDIF
+  #IF(~%GlobalExternal AND ~%NoGenerateGlobals)
+  DctInit
+  #ENDIF
+  #INSERT(%InitCode)
+
+DLLInitializer.Destruct PROCEDURE
+
+  CODE
+  #INSERT(%KillCode)
+  LocalINIMgr.Kill                                            #<! Kill local managers and assign NULL to global refernces
+  INIMgr &= NULL                                              #<! It is an error to reference these object after this point
+  GlobalErrors &= NULL
+  #ENDIF
+
+#!-------------------------------------------------------
+#GROUP(%MakeLIBExportGlobals)
+#!-------------------------------------------------------
+#GROUP(%MakeLIBExternalGlobals)
+#!-------------------------------------------------------
+#!-------------------------------------------------------
+#GROUP(%MakeFilesDecls, %External, %DllMode)
+#EQUATE(%opts, ',THREAD')                                       #! File/relation managers will always be threaded
+#IF(%External ~= '')
+  #SET(%opts, CLIP(%opts) & ',' & %External)
+#ENDIF
+#IF(%DllMode ~= '')
+  #SET(%opts, CLIP(%opts) & ',' & %DllMode)
+#ENDIF
+#FOR(%File),WHERE(%CacheFileUsed AND %GetFileDeclareMode() = 'FILE')
+  #CALL(%MakeDeclr,22,%OOPConstruct,'Access:' & %File, '&' & %CacheFileManager & %opts)
+%OOPConstruct                                                   #<! FileManager for %File
+  #CALL(%MakeDeclr,22,%OOPConstruct,'Relate:' & %File, '&' & %CacheRelationManager & %opts)
+%OOPConstruct                                                   #<! RelationManager for %File
+#SUSPEND
+#?%NULL
+#EMBED(%FileObjectDeclarations, ''),%File,HIDE
+#?%NULL
+#RESUME
+#ENDFOR
+
+#!-------------------------------------------------------
+#!-------------------------------------------------------
+#GROUP(%EXEGlobalsInternal)
+#CALL(%MakeFilesDecls, '', '')
+#INSERT(%StandardGlobalLocals)
+GlobalRequest        BYTE(0),THREAD                             #<! Set when a browse calls a form, to let it know action to perform
+GlobalResponse       BYTE(0),THREAD                             #<! Set to the response from the form
+VCRRequest           LONG(0),THREAD                             #<! Set to the request from the VCR buttons
+#!-------------------------------------------------------
+#GROUP(%EXEGlobalsExternal)
+#IF(%ExternalSource='Dynamic Link Library (DLL)')
+  #CALL(%MakeFilesDecls, 'EXTERNAL', 'DLL(dll_mode)')
+#ELSE
+  #CALL(%MakeFilesDecls, 'EXTERNAL', '')
+#ENDIF
+#INSERT(%StandardGlobalLocals)
+  #IF(%ExternalSource='Dynamic Link Library (DLL)')
+GlobalRequest        BYTE,EXTERNAL,DLL(dll_mode),THREAD         #<! Exported from a dll, set when a browse calls a form, to let it know action to perform
+GlobalResponse       BYTE,EXTERNAL,DLL(dll_mode),THREAD         #<! Exported from a dll, set to the response from the form
+VCRRequest           LONG,EXTERNAL,DLL(dll_mode),THREAD         #<! Exported from a dll, set to the request from the VCR buttons
+  #ELSE
+GlobalRequest        BYTE,EXTERNAL,THREAD                       #<! Exported from a library, set when a browse calls a form, to let it know action to perform
+GlobalResponse       BYTE,EXTERNAL,THREAD                       #<! Exported from a library, set to the response from the form
+VCRRequest           LONG,EXTERNAL,THREAD                       #<! Exported from a library, set to the request from the VCR buttons
+  #ENDIF
+#!-------------------------------------------------------
+#GROUP(%DLLGlobalsInternal)
+#CALL(%MakeFilesDecls, '', '')
+GlobalRequest        BYTE(0),THREAD                             #<! Set when a browse calls a form, to let it know action to perform
+GlobalResponse       BYTE(0),THREAD                             #<! Set to the response from the form
+VCRRequest           LONG(0),THREAD                             #<! Set to the request from the VCR buttons
+#INSERT(%StandardGlobalLocals)
+#!-------------------------------------------------------
+#GROUP(%DLLGlobalsExternal)
+#IF(%ExternalSource='Dynamic Link Library (DLL)')
+  #CALL(%MakeFilesDecls, 'EXTERNAL', 'DLL')
+#ELSE
+  #CALL(%MakeFilesDecls, 'EXTERNAL', '')
+#ENDIF
+  #IF(%ExternalSource='Dynamic Link Library (DLL)')
+GlobalRequest        BYTE,EXTERNAL,DLL,THREAD                   #<! Exported from a dll, set when a browse calls a form, to let it know action to perform
+GlobalResponse       BYTE,EXTERNAL,DLL,THREAD                   #<! Exported from a dll, set to the response from the form
+VCRRequest           LONG,EXTERNAL,DLL,THREAD                   #<! Exported from a dll, set to the request from the VCR buttons
+  #ELSE
+GlobalRequest        BYTE,EXTERNAL,THREAD                       #<! Exported from a library, set when a browse calls a form, to let it know action to perform
+GlobalResponse       BYTE,EXTERNAL,THREAD                       #<! Exported from a library, set to the response from the form
+VCRRequest           LONG,EXTERNAL,THREAD                       #<! Exported from a library, set to the request from the VCR buttons
+  #ENDIF
+#INSERT(%StandardGlobalLocals)
+#!-------------------------------------------------------
+#GROUP(%LIBGlobalsInternal)
+#CALL(%MakeFilesDecls, '', '')
+#INSERT(%StandardGlobalLocals)
+GlobalRequest        BYTE(0),THREAD                             #<! Set when a browse calls a form, to let it know action to perform
+GlobalResponse       BYTE(0),THREAD                             #<! Set to the response from the form
+VCRRequest           LONG(0),THREAD                             #<! Set to the request from the VCR buttons
+#!-------------------------------------------------------
+#GROUP(%LIBGlobalsExternal)
+#IF(%ExternalSource='Dynamic Link Library (DLL)')
+  #CALL(%MakeFilesDecls, 'EXTERNAL', 'DLL(dll_mode)')
+#ELSE
+  #CALL(%MakeFilesDecls, 'EXTERNAL', '')
+#ENDIF
+#INSERT(%StandardGlobalLocals)
+  #IF(%ExternalSource='Dynamic Link Library (DLL)')
+GlobalRequest        BYTE,EXTERNAL,DLL(dll_mode),THREAD         #<! Exported from a dll, set when a browse calls a form, to let it know action to perform
+GlobalResponse       BYTE,EXTERNAL,DLL(dll_mode),THREAD         #<! Exported from a dll, set to the response from the form
+VCRRequest           LONG,EXTERNAL,DLL(dll_mode),THREAD         #<! Exported from a dll, set to the request from the VCR buttons
+  #ELSE
+GlobalRequest        BYTE,EXTERNAL,THREAD                       #<! Exported from a library, set when a browse calls a form, to let it know action to perform
+GlobalResponse       BYTE,EXTERNAL,THREAD                       #<! Exported from a library, set to the response from the form
+VCRRequest           LONG,EXTERNAL,THREAD                       #<! Exported from a library, set to the request from the VCR buttons
+  #ENDIF
+#!-------------------------------------------------------
+#GROUP(%InitCode)
+#IF(~%NoGenerateGlobals)
+  #EQUATE(%SaveIndent,%OutputIndent)
+  #IF(%ProgramExtension = 'EXE')
+GlobalErrors.Init(GlobalErrorStatus)
+     #!IF(~%GlobalExternal)
+       #IF(%DefaultErrorCategory <> 'ABC')
+GlobalErrors.SetCategory( , '%'DefaultErrorCategory')              #<! Set the error category
+       #ENDIF
+       #IF(%AllowSelectCopy)
+GlobalErrors.SetMsgStyle(MSGMODE:CANCOPY)                          #<! set the possibility to select all or any part of the text and copy it to the clipboard
+       #ENDIF
+       #IF(%StoreErrorHistory)
+         #IF(%LimitStoredHistory)
+GlobalErrors.SetHistoryThreshold(%ErrorHistoryThreshold)          #<! Limit the error history
+         #ELSE
+GlobalErrors.SetHistoryThreshold(-1)                              #<! No error history
+         #ENDIF
+         #IF(%HistoryViewTrigger <> 'Level:Fatal')
+GlobalErrors.SetHistoryViewLevel(%HistoryViewTrigger)             #<! Set the levl of error which trigger error history view
+         #ENDIF
+       #ENDIF
+     #!ENDIF
+  #ELSE
+       #IF(%DefaultErrorCategory <> 'ABC')
+LocalErrors.SetCategory( , '%'DefaultErrorCategory')              #<! Set the error category
+       #ENDIF
+       #IF(%AllowSelectCopy)
+LocalErrors.SetMsgStyle(MSGMODE:CANCOPY)                          #<! set the possibility to select all or any part of the text and copy it to the clipboard
+       #ENDIF
+       #IF(%StoreErrorHistory)
+         #IF(%LimitStoredHistory)
+LocalErrors.SetHistoryThreshold(%ErrorHistoryThreshold)          #<! Limit the error history
+         #ELSE
+LocalErrors.SetHistoryThreshold(-1)                              #<! No error history
+         #ENDIF
+         #IF(%HistoryViewTrigger <> 'Level:Fatal')
+LocalErrors.SetHistoryViewLevel(%HistoryViewTrigger)             #<! Set the levl of error which trigger error history view
+         #ENDIF
+       #ENDIF
+  #ENDIF
+#EMBED(%BeforeInitializingGlobalObjects),HIDE
+  #IF(%EnableRunTimeTranslator)
+#INSERT(%InitTranslator)
+  #ENDIF
+  #IF(%FuzzyMatchingEnabled)
+FuzzyMatcher.Init                                               #<! Initilaize the browse 'fuzzy matcher'
+FuzzyMatcher.SetOption(MatchOption:NoCase, %IgnoreCase)         #<! Configure case matching
+FuzzyMatcher.SetOption(MatchOption:WordOnly, %WordOnly)         #<! Configure 'word only' matching
+  #ENDIF
+  #IF(%ProgramExtension = 'EXE')
+    #IF(%INIType = 'NVD_Registry')
+INIMgr.Init(%(%StripPling(%INIFileName)), %INIType, %REGRoot)   #<! Configure INIManager to use system registry
+    #ELSE
+      #IF(%INIFile='Other')
+INIMgr.Init(%(%StripPling(%ININame)), %INIType)             #<! Configure INIManager to use INI file
+      #ELSE     
+       #IF(%INIProgramIniLocation = 'APPDIR')
+INIMgr.Init(%(%StripPling(%INIFileName)), %INIType)             #<! Configure INIManager to use INI file
+       #ELSE
+        #IF(%CSIDLCreate)
+svSpecialFolder.CreateDirIn(%INICSIDLDirectory, %(%StripPling(%CSIDLCompanyDir)) & '\' & %(%StripPling(%CSIDLProductDir)) )	
+          #SUSPEND
+#?IF svSpecialFolder.GetError()
+  #EMBED(%AfterCSILDCreateFolderGetError, 'Program CODE Section Error Handling for INI file CSIDL folder creation')
+#?END 
+          #RESUME
+        #ENDIF
+INIMgr.Init(svSpecialFolder.GetDir(%INICSIDLDirectory, %(%StripPling(%CSIDLCompanyDir)) & '\' & %(%StripPling(%CSIDLProductDir))) & '\' & %(%StripPling(%INIFileName)), %INIType)   
+       #ENDIF
+      #ENDIF
+    #ENDIF
+        #IF(%GeneratePropDataPath)
+          #CASE(%PropDataPathLocation)
+          #OF('CSIDLLIKEINI')
+            #IF(%DataPathCSIDLCreate)
+svSpecialFolder.CreateDirIn(%INICSIDLDirectory, %(%StripPling(%CSIDLCompanyDir)) & '\' & %(%StripPling(%CSIDLProductDir)))	
+              #SUSPEND
+#?IF svSpecialFolder.GetError()
+   #EMBED(%AfterDataPathCSIDLCreationGetError, 'Program CODE Section Error Handling for Data Path creation')
+#?END           
+			  #RESUME	
+            #ENDIF
+SYSTEM{PROP:DataPath} = svSpecialFolder.GetDir(%INICSIDLDirectory, %(%StripPling(%CSIDLCompanyDir)) & '\' & %(%StripPling(%CSIDLProductDir)))          
+          #OF('OTHERCSIDL')
+            #IF(%DataPathCSIDLCreate)
+svSpecialFolder.CreateDirIn(%DataPathCSIDLDirectory, %(%StripPling(%DataPathCSIDLCompanyDir)) & '\' & %(%StripPling(%DataPathCSIDLProductDir)))
+              #SUSPEND
+#?IF svSpecialFolder.GetError()
+  #EMBED(%AfterDataPathCSIDLCreationGetError, 'Program CODE Section Error Handling for Data Path creation')
+#?END            
+			  #RESUME
+            #ENDIF
+SYSTEM{PROP:DataPath} = svSpecialFolder.GetDir(%DataPathCSIDLDirectory, %(%StripPling(%DataPathCSIDLCompanyDir)) & '\' & %(%StripPLing(%DataPathCSIDLProductDir)))          
+          #OF('SPECIFYDIR')
+            #IF(%DataPathOtherDirectoryCreate)
+svSpecialFolder.CreateDir(%(%StripPling(%DataPathOtherDirectory)))
+			  #SUSPEND
+#?IF svSpecialFolder.GetError()
+  #EMBED(%AfterDataPathCSIDLCreationGetError, 'Program CODE Section Error Handling for Data Path creation')
+#?END    			  
+			  #RESUME
+            #ENDIF
+SYSTEM{PROP:DataPath} = %(%StripPling(%DataPathOtherDirectory))
+          #ENDCASE
+#EMBED(%AfterSetPropDataPath, 'Program CODE Section, after setting SYSTEM{{PROP:DataPath}')          
+    #ENDIF
+    #IF(~%GlobalExternal AND ~%NoGenerateGlobals)
+DctInit
+    #ENDIF
+  #ENDIF
+#ENDIF
+#EMBED(%ProgramSetup,'Program Setup')
+#IF(~%NoGenerateGlobals)
+  #IF(%ProgramExtension = 'EXE')
+    #IF(%ButtonMarginsCompatibility)   
+SYSTEM {PROP:Compatibility} = BOR (4, SYSTEM {PROP:Compatibility}) #<! Configure Button Margins Compatibility
+    #ENDIF
+  #ELSE
+    #INDENT(-%OutputIndent)
+    #SUSPEND
+  #?%NULL
+#EMBED(%ProgramRoutines,'Program Routines'),DATA
+  #?%NULL
+    #RESUME
+    #SUSPEND
+  #?%NULL
+#EMBED(%ProgramProcedures,'Program Procedures'),DATA
+  #?%NULL
+    #RESUME
+    #INDENT(%SaveIndent)
+  #ENDIF
+#ENDIF
+#!--------------------------
+#GROUP(%KillCode)
+#EMBED(%ProgramEnd,'Program End')
+#IF(~%NoGenerateGlobals)
+  #IF(%ProgramExtension = 'EXE')
+INIMgr.Kill                                                     #<! Destroy INI manager
+  #ENDIF
+  #IF(%FuzzyMatchingEnabled)
+FuzzyMatcher.Kill                                               #<! Destroy fuzzy matcher
+  #ENDIF
+  #IF(%EnableRunTimeTranslator)
+Translator.Kill                                                 #<! Destroy run-time translator
+  #ENDIF
+#EMBED(%AfterKillingGlobalObjects),HIDE
+#ENDIF
+#!-------------------------------------------------------
+#GROUP(%InitTranslator)
+Translator.Init                                                 #<! Initialize the run-time translator
+  #FOR(%TranslationGroups)
+Translator.AddTranslation(%TranslationGroup)                    #<! Add a translation group
+  #ENDFOR
+  #IF(%ExtractionFilename)
+Translator.ExtractText=%(%StripPling(%ExtractionFilename))      #<! Extract translation string constants to %ExtractionFilename
+  #ENDIF
+#!
+#!
+#GROUP(%MakeGlobalMap)
+#MESSAGE('Declaring Generated Procedures',3)
+#FOR(%Module),WHERE (%Module <> %Program)
+  #SUSPEND
+     #?MODULE('%(UPPER(%Module))')
+    #IF(%ModuleExternal)
+      #IF(%ModuleInclude)
+       INCLUDE('%(UPPER(%ModuleInclude))')
+      #ELSE
+        #IF(%ModuleTemplate <> 'ExternalDLL(ABC)' AND %ModuleTemplate <> 'ExternalLib(ABC)')
+          #FOR(%ModuleProcedure)
+            #FIX(%Procedure,%ModuleProcedure)
+#INSERT(%MakeProcedurePrototype)
+          #ENDFOR
+        #ENDIF
+      #ENDIF
+    #ELSE
+      #FOR(%ModuleProcedure)
+        #FIX(%Procedure,%ModuleProcedure)
+#!%[22]Procedure %ProcedureType%Prototype   !%ProcedureDescription
+#INSERT(%MakeProcedurePrototype)
+      #ENDFOR
+    #ENDIF
+     #?END
+  #RESUME
+#ENDFOR
+#!
+#!
+#GROUP(%MakeLocalMaps)                             #!Generate globals when otherwise making local maps
+#MESSAGE('Declaring Procedures in Global Map',1)
+!--- Application Global and Exported Procedure Definitions --------------------------------------------
+#FOR(%Module),WHERE(%Module<>%Program)
+  #IF(%ModuleExternal)
+    #IF(%ModuleInclude)
+     MODULE('%(UPPER(%Module))')
+       INCLUDE('%(UPPER(%ModuleInclude))')
+     END
+    #ELSE
+      #IF(%ModuleTemplate <> 'ExternalDLL(ABC)' AND %ModuleTemplate <> 'ExternalLib(ABC)')
+        #SUSPEND
+     #?MODULE('%(UPPER(%Module))')
+        #FOR(%ModuleProcedure)
+          #FIX(%Procedure,%ModuleProcedure)
+          #IF(%ProcedureIsGlobal OR %Procedure=%FirstProcedure OR (%ProgramExtension='DLL' AND %ProcedureExported))         #!Apps first procedure must be global
+#INSERT(%MakeProcedurePrototype)
+            #RELEASE
+          #ENDIF
+        #ENDFOR
+     #?END
+        #RESUME
+      #ENDIF
+    #ENDIF
+  #ELSE
+    #SUSPEND
+     #?MODULE('%(UPPER(%Module))')
+      #FOR(%ModuleProcedure)
+        #FIX(%Procedure,%ModuleProcedure)
+        #IF(%ProcedureIsGlobal OR %Procedure=%FirstProcedure OR (%ProgramExtension='DLL' AND %ProcedureExported))
+#!%[22]Procedure %ProcedureType%Prototype   !%ProcedureDescription
+#INSERT(%MakeProcedurePrototype)
+          #RELEASE
+        #ENDIF
+      #ENDFOR
+     #?END
+    #RESUME
+  #ENDIF
+#ENDFOR
+#!
+#!
+#GROUP(%MakeProcedurePrototype)
+#!IF(~%ModuleExternal)
+%[22]Procedure %ProcedureType%Prototype   !%ProcedureDescription
+#!ENDIF
+#!
+#!
+#GROUP(%ModuleBaseRemovePath),AUTO
+#DECLARE(%RVal)
+#SET(%RVal,%ModuleBase)
+#LOOP
+  #IF(INSTRING('\',%RVal,1,1))
+    #SET(%RVal,SUB(%RVal,INSTRING('\',%RVal,1,1)+1,LEN(%RVal)))
+  #ELSE
+    #BREAK
+  #ENDIF
+#ENDLOOP
+#RETURN(%RVal)
+#!
+#!
+#!
+#GROUP(%TriggerGenerateData,%pTriggerName)
+  #FIX(%Trigger, UPPER(%pTriggerName))
+  #IF(%Trigger = UPPER(%pTriggerName))
+    #FOR(%TriggerData)
+      #CALL(%MakeDeclr, 22, %ValueConstruct, %TriggerData, %TriggerDataStatement)
+#?%ValueConstruct
+    #ENDFOR
+ #ENDIF
+#?Buffer LIKE(%FilePrefix:RECORD)
+#!
+#GROUP(%TriggerGenerateCodeStart,%pTriggerName)
+#?PUSHERRORS()
+#?IF SELF.SavePreviousBuffer AND NOT(SELF.PreviousBuffer &= NULL)
+   #?Buffer = SELF.PreviousBuffer
+#?END
+#!
+#GROUP(%TriggerGenerateCodeRoutine,%pTriggerName)
+#INSERT(%TriggerGenerateCodeDCTCode,%pTriggerName,%True)
+#!
+#GROUP(%TriggerGenerateCodeDCTCode,%pTriggerName,%pJustRoutines=%False)
+#DECLARE(%lFoundRoutine)
+#DECLARE(%lGenerateChainOnlyCode)
+#DECLARE(%lGenerateCode)
+#SET(%lGenerateCode,%True)
+#SET(%lFoundRoutine,%False)
+#SET(%lGenerateChainOnlyCode,%False)
+  #FIX(%Trigger, UPPER(%pTriggerName))
+  #IF(%Trigger = UPPER(%pTriggerName))
+    #FOR(%TriggerSourceLine)
+       #IF(%lFoundRoutine = %False)
+          #IF(INSTRING(' ROUTINE', UPPER(CLIP(%TriggerSourceLine)),1,1))
+             #SET(%lFoundRoutine,%True)
+             #INDENT(-%Indent)
+          #ENDIF
+       #ENDIF
+       #IF(%pJustRoutines)
+          #IF(%lFoundRoutine = %False)
+             #CYCLE
+          #ENDIF
+       #ELSE
+          #IF(%lFoundRoutine = %True)
+             #CYCLE
+          #ENDIF
+       #ENDIF
+       #IF(LEFT(%TriggerSourceLine,3)='---')
+            #SET(%lGenerateChainOnlyCode,%True)
+            #IF('TARGET '&UPPER(%AppTemplateFamily)=UPPER(SUB(%TriggerSourceLine,4,7+LEN(%AppTemplateFamily))))
+                #SET(%lGenerateCode,%True)
+            #ELSE
+                #IF('ENDTARGET'=UPPER(SUB(%TriggerSourceLine,4,9)))
+                   #SET(%lGenerateChainOnlyCode,%False)
+                   #SET(%lGenerateCode,%True)
+                #ELSE
+                   #SET(%lGenerateCode,%False)
+                   #CYCLE
+                #ENDIF
+            #ENDIF
+            #CYCLE
+       #END
+       #IF(%lGenerateChainOnlyCode)
+          #IF(%lGenerateCode)
+%TriggerSourceLine
+          #ENDIF
+       #ELSE
+%TriggerSourceLine
+       #ENDIF
+    #ENDFOR
+  #ENDIF
+  #IF(%lFoundRoutine = %True)
+     #INDENT(%Indent)             
+  #ENDIF
+#!
+#GROUP(%TriggerGenerateCodeEnd,%pTriggerName)
+#?POPERRORS()
+#!
+#GROUP(%GenerateGlobalData,%pGlobalDataLast='LAST',%pGlobalDataLocalExternal='EXTERNAL',%pGenerateType='GENERATE'),AUTO
+#!
+#MESSAGE('Generating Global Data',3)
+#IF(NOT ITEMS(%GlobalData))
+   #RETURN
+#ENDIF
+#!
+#DECLARE(%lGLOFileOpen)
+#DECLARE(%lGLOFileName)
+#DECLARE(%lGLOFileNameExtension)
+#DECLARE(%lGlobalDataLast)
+#!
+#SET(%pGlobalDataLast,UPPER(%pGlobalDataLast))
+#IF(UPPER(%pGlobalDataLast)<>'LAST')
+    #SET(%pGlobalDataLast,'FIRST')
+#ENDIF
+#SET(%lGlobalDataLast,CHOOSE(UPPER(%pGlobalDataLast)='LAST',%True,%False))
+#IF(UPPER(%pGlobalDataLocalExternal)='EXTERNAL')
+    #IF(UPPER(%pGlobalDataLast)='LAST')
+      #SET(%lGLOFileName,UPPER(CLIP(SUB(SLICE(%Program,1,INSTRING('.',%Program,1,1)-1),1,5)))&'GLL.CLW')
+    #ELSE
+      #SET(%lGLOFileName,UPPER(CLIP(SUB(SLICE(%Program,1,INSTRING('.',%Program,1,1)-1),1,5)))&'GLF.CLW')
+    #ENDIF
+#ELSE
+    #SET(%lGLOFileName,UPPER(CLIP(SUB(SLICE(%Program,1,INSTRING('.',%Program,1,1)-1),1,5)))&'GLO.CLW')
+#ENDIF
+#CASE(UPPER(%pGenerateType))
+#OF('INCLUDE')
+
+   INCLUDE('%lGLOFileName'),ONCE
+
+#OF('FILE')
+#OROF('LINK')
+     #MESSAGE('Generating Module:  '&%lGLOFileName,1)
+     #MESSAGE('Global Data',2)
+     #MESSAGE(UPPER(%pGlobalDataLocalExternal),3)
+     #IF(UPPER(%pGenerateType)='FILE')
+        #CREATE('GLODATA.$$$')
+        #IF(NOT UPPER(%pGlobalDataLocalExternal)='EXTERNAL')
+    MEMBER
+
+        #ENDIF
+        #IF(%pGlobalDataLast='LAST')
+! Global Data to be included after file declaration
+        #ELSE
+! Global Data to be included before file declaration
+        #ENDIF
+        #IF(%pGlobalDataLocalExternal='EXTERNAL')
+            #FOR(%GlobalData), WHERE(%GlobalDataLast = %lGlobalDataLast)
+#INSERT(%GenerateGlobalDataField,%pGlobalDataLocalExternal)
+            #ENDFOR
+        #ELSE
+            #FOR(%GlobalData), WHERE(NOT %GlobalDataLast)
+#INSERT(%GenerateGlobalDataField,%pGlobalDataLocalExternal)
+            #ENDFOR
+        #ENDIF
+        #CLOSE('GLODATA.$$$')
+        #REPLACE(%lGLOFileName,'GLODATA.$$$')
+        #REMOVE('GLODATA.$$$')
+     #ENDIF
+     #IF(NOT UPPER(%pGlobalDataLocalExternal)='EXTERNAL')
+        #PROJECT(%lGLOFileName)
+     #ENDIF
+#ELSE
+  #FOR(%GlobalData), WHERE(%GlobalDataLast = %lGlobalDataLast)
+#INSERT(%GenerateGlobalDataField,%pGlobalDataLocalExternal)
+  #ENDFOR
+#ENDCASE
+#!
+#GROUP(%GenerateGlobalDataField,%pGlobalDataLocalExternal='EXTERNAL')
+#DECLARE(%BaseDataLevel,LONG)
+    #IF(%GlobalDataInDictionary)
+      #SET(%BaseDataLevel,1)
+    #ELSE
+      #SET(%BaseDataLevel,0)
+    #ENDIF
+    #IF(%GlobalDataInDictionary AND %GlobalExternal AND %GlobalDataLevel = %BaseDataLevel AND %GlobalData ~= '')
+%[20]GlobalData %GlobalDataStatement,EXTERNAL,DLL(_ABCDllMode_)
+    #ELSE
+        #IF(UPPER(%pGlobalDataLocalExternal)='EXTERNAL' AND %GlobalDataLevel = %BaseDataLevel AND %GlobalData ~= '')
+%[20 + ((%GlobalDataLevel - %BaseDataLevel) * 2)]GlobalData %GlobalDataStatement,EXTERNAL
+        #ELSE
+%[20 + ((%GlobalDataLevel - %BaseDataLevel) * 2)]GlobalData %GlobalDataStatement
+        #ENDIF
+    #ENDIF
+#!
+#GROUP(%AddCustomGlobalData, %pDataLabel, %pDataDeclarion, %pDataBeforeFile = %True)
+#ADD(%CustomGlobalData,%pDataLabel)
+#SET(%CustomGlobalDataDeclaration,%pDataDeclarion)
+#SET(%CustomGlobalDataBeforeFiles,%pDataBeforeFile)
+#!

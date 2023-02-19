@@ -1,0 +1,62 @@
+<!-- WinCore.htm -- Start -->
+<head>
+<TSSCRIPT include="TimeOut != 0">
+  <TSSCRIPT tag=meta attr=content replace="DELAY" value="TimeOut">
+    <TSSCRIPT tag=meta attr=content replace="PROGRAM.TARGET" value="ProgramReference">
+<meta HTTP-EQUIV="REFRESH" CONTENT="DELAY;URL=PROGRAM.TARGET">
+    </TSSCRIPT>
+  </TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT value="Text" patch="*" comment="patch title" >
+<title>
+<TSSCRIPT value="EmbedInsideTitle" type=html></TSSCRIPT>
+<TSSCRIPT value="Title">
+Title
+</TSSCRIPT>
+</title>
+</TSSCRIPT>
+</head>
+<body finalcolor="Page" bgcolor="white" onload="onBodyLoad()" onunload="onBodyUnload()">
+<TSSCRIPT value="EmbedBeforeWindow" type=html></TSSCRIPT>
+<TSSCRIPT tag=form attr=action value="ProgramReference">
+<TSSCRIPT tag=form attr=method value="FormMethod">
+<TSSCRIPT tag=form attr=enctype value="FormEncoding">
+  <form name="ClarionForm" method="GET" action="PROGRAM.TARGET" onsubmit="return (submitSuppress-- == 0);">
+    <input type="HIDDEN" name="__Special__" value>
+    <table finalcolor="Border" border="0" cellpadding="4" cellspacing="2" width="100%">
+      <tr finalcolor="Header">
+        <td width=99%><b>
+          <TSSCRIPT value=Title>
+            Page Title
+          </TSSCRIPT>
+        </b></td>
+        <td width=1%>
+          <TSSCRIPT tag=a attr=href replace="NAME" value="Name">
+          <a href="javascript:icSubmit('NAME$EventCloseWindow');"><img alt="Close" WIDTH="18" HEIGHT="15" SRC="/x.gif" BORDER=0></A>
+          </TSSCRIPT>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <img name="ZONE:Menubar" alt="Wizatrons will place menus in here">
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <img name="ZONE:Toolbar" alt="Wizatrons will place toolbars in here">
+        </td>
+      </tr>
+      <tr>
+        <td finalcolor="Cell" align="center" colspan="2">
+          <img name="ZONE:Default:Contents[WIDTH=100%]" alt="Wizatrons will place controls in here">
+        </td>
+      </tr>
+    </table>
+  </form>
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT value="EmbedAfterWindow" type=html></TSSCRIPT>
+<TSINCLUDE name="script.htm">
+</body>
+<!-- WinCore.htm -- End -->

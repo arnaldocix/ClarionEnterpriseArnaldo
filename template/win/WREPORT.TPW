@@ -1,0 +1,591 @@
+#UTILITY(LabelWizard,'Create a New Label Report Procedure'),WIZARD(Report(Clarion)),HLP('~TPLWizardLabel.htm')
+#!
+#PREPARE
+  #CALL(%DeclareTemplateSet)
+  #INSERT(%QuickReportDeclareLabelsType)
+  #SELECT(%LabelReportGroup, 1)
+  #SET(%QuickLabelGroup,%LabelReportGroup)
+  #SET(%QuickThemeList,%GetThemeListWiz())
+  #SET(%QuickTheme,%GetFirstThemeWiz(%QuickThemeList))
+  #IF(%QuickTheme)
+      #CALL(%LoadThemeLabelWizard)
+      #!SET(%QuickLayout,%SVGetFirstTheme(%QuickLayoutList))
+      #!CALL(%LoadLayoutWindowReportPrompts,%QuickLayout)
+  #ENDIF
+  #FIND(%LabelReportType,%QuickLabelType)
+  #CALL(%LoadLabelType,%QuickLabelGroup,%QuickLabelType,%CusLabelReportHeight, %CusLabelReportWidth, %CusLabelReportAcross, %CusLabelReportDown, %CusLabelReportTop, %CusLabelReportLeft, %CusLabelReportHPitch, %CusLabelReportVPitch, %CusLabelReportPageWidth, %CusLabelReportPageHeight,%CusLabelReportPaperType)
+  #!CALL(%SetLabelParametersFromType,%QuickLabelType,%CusLabelReportHeight, %CusLabelReportWidth, %CusLabelReportAcross, %CusLabelReportDown, %CusLabelReportTop, %CusLabelReportLeft, %CusLabelReportHPitch, %CusLabelReportVPitch, %CusLabelReportPageWidth, %CusLabelReportPageHeight,%CusLabelReportPaperType)
+  #!SET(,
+  #!SET(%QuickLabelType,
+  #!IF(%QuickLabelType<>'Custom')
+    #!CALL(%SetLabelParametersFromType,%QuickLabelType,%CusLabelReportHeight, %CusLabelReportWidth, %CusLabelReportAcross, %CusLabelReportDown, %CusLabelReportTop, %CusLabelReportLeft, %CusLabelReportHPitch, %CusLabelReportVPitch, %CusLabelReportPageWidth, %CusLabelReportPageHeight,%CusLabelReportPaperType)
+  #!ENDIF
+#ENDPREPARE
+#!
+#INSERT(%DeclareSymbols)
+#!
+#SHEET
+  #TAB('Label Report Wizard'),HLP('~TPLWizardLabel.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT1'&%GetColorSuffix()&'.GIF'))
+    #DISPLAY('This wizard will help you quickly create a new Label Report procedure.'),AT(90,8,235,24)
+    #DISPLAY('To begin creating your new Label Report procedure, click Next.'),AT(90,,,65)
+    #BOXED,HIDE
+      #INSERT(%TemplateSetPrompts)
+    #ENDBOXED
+  #ENDTAB
+  #TAB('Label Report Wizard - Theme Selection'),HLP('~TPLWizardLabel.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WAPP1' & %GetColorSuffix() & '.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('A theme determines the overall appearance of your application'),AT(90,8)
+    #DISPLAY('by providing a predefined set of icons, fonts, colors, buttons,'),AT(90)
+    #DISPLAY('and other window elements.'),AT(90)
+    #DISPLAY(''),AT(90)
+    #BOXED('HIDE'),HIDE
+        #PROMPT('Theme:',@s255),%QuickThemeList
+        #PROMPT('Layout:',@s255),%QuickLayoutList
+        #PROMPT('Report Layout:',DROP(%QuickLayoutList)),%QuickLayout
+        #!,AT(160,,120),PROMPTAT(90,,50),WHENACCEPTED(%LoadLayoutWindowReportPrompts(%QuickLayout))
+    #ENDBOXED
+    #PROMPT('Theme:',DROP(%QuickThemeList)),%QuickTheme,AT(160,,120),PROMPTAT(90,,50),WHENACCEPTED(%LoadThemeLabelWizard())
+    #PROMPT('Label Group:',FROM(%LabelReportGroup)),%QuickLabelGroup,AT(160,,120),PROMPTAT(90,,50),WHENACCEPTED(%LoadLabelType(%QuickLabelGroup,%QuickLabelType,%CusLabelReportHeight, %CusLabelReportWidth, %CusLabelReportAcross, %CusLabelReportDown, %CusLabelReportTop, %CusLabelReportLeft, %CusLabelReportHPitch, %CusLabelReportVPitch, %CusLabelReportPageWidth, %CusLabelReportPageHeight,%CusLabelReportPaperType))
+    #PROMPT('Label Type:',FROM(%LabelReportType)),%QuickLabelType,AT(160,,120),PROMPTAT(90,,50),WHENACCEPTED(%SetLabelParametersFromType(%QuickLabelType,%CusLabelReportHeight, %CusLabelReportWidth, %CusLabelReportAcross, %CusLabelReportDown, %CusLabelReportTop, %CusLabelReportLeft, %CusLabelReportHPitch, %CusLabelReportVPitch, %CusLabelReportPageWidth, %CusLabelReportPageHeight,%CusLabelReportPaperType))
+    #VALIDATE(%QuickTheme<>'','You must select a Theme from the Dropbox')
+    #!VALIDATE(%QuickLayout<>'','You must select a Layout from the Dropbox')
+    #DISPLAY
+    #PROMPT('Save changes?',CHECK),%QuickThemeRemember,AT(160,,),DEFAULT(%True)
+  #ENDTAB
+  #TAB('Label Report Wizard - Procedure Name'),WHERE(~%QuickProcedure),HLP('~TPLWizardLabel.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT1'&%GetColorSuffix()&'.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #PROMPT('What name should be used as the label of the report procedure?',@S100),%QuickReportPromptProcedureName,AT(90,23,235),PROMPTAT(90,8,235)
+    #VALIDATE(%QuickReportPromptProcedureName,'You must supply a procedure name!')
+  #ENDTAB
+  #TAB('Label Report Wizard - File Access'),FINISH(1),HLP('~TPLWizardLabel.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WFSCH'&%GetColorSuffix()&'.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #PROMPT('Which file do you want to report?',FILE),%QuickReportPromptPrimaryFile,AT(90,23,235),PROMPTAT(90,8,235)
+    #VALIDATE(%QuickReportPromptPrimaryFile,'You must supply a file to report!')
+    #BOXED,HIDE
+       #PROMPT('',FILE),%QuickReportPromptPrimaryFileOld
+    #ENDBOXED
+  #ENDTAB
+  #TAB('Label Report Wizard - Key Sequence'),FINISH(1),HLP('~TPLWizardLabel.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WKEY'&%GetColorSuffix()&'.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('A report can use a single record key, Runtime Key Selection, or can run in record order.'),AT(90,8,235,24)
+    #PROMPT('Select Sort Option:',DROP('Single Key|Runtime Key Selection|Record Order')),%QuickReportPromptSortType,DEFAULT('Single Key'),AT(180,,120),PROMPTAT(90,,90)
+    #BOXED,WHERE(%QuickReportPromptSortType='Single Key')
+       #PROMPT('Enter a key:',KEY(%QuickReportPromptPrimaryFile)),%QuickReportPromptPrimaryKey,REQ,AT(180,,120),PROMPTAT(90,,90)
+    #ENDBOXED
+  #ENDTAB
+  #TAB('Label Report Wizard - Columns Fields'),FINISH(1),HLP('~TPLWizardLabel.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT2'&%GetColorSuffix()&'.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #PREPARE
+       #IF(ITEMS(%QuickReportColumnFields)=0 OR %QuickReportPromptPrimaryFile<>%QuickReportPromptPrimaryFileOld)
+          #SET(%QuickReportPromptPrimaryFileOld,%QuickReportPromptPrimaryFile)
+          #CALL(%QuickReportLookUpAllFieldsDefaultValues,%QuickReportPromptPrimaryFile)
+       #ENDIF
+    #ENDPREPARE
+    #BOXED('HIDE'),HIDE
+       #PROMPT('The generated report will show the data in equally sized columns. How many columns do you want the report to use?',SPIN(@n3,1,20,1)),%QuickReportColumnCount,DEFAULT(1),AT(90,30,235),PROMPTAT(90,8,235,24)
+    #ENDBOXED
+    #DISPLAY('Select the fields you want the report to use?'),AT(90,25)
+    #BUTTON('Fields...'),MULTI(%QuickReportColumnFields,%QuickReportColumnField&' ('&%QuickReportColumnFieldPicture&') ('&%QuickReportColumnFieldHeader&') ['&LEFT(%QuickReportColumnFieldJust,1)&']'),INLINE,AT(90,40,235)
+        #PROMPT('Field:',FIELD(%QuickReportPromptPrimaryFile)),%QuickReportColumnField,REQ
+        #PROMPT('Label:',@S50),%QuickReportColumnFieldHeader
+        #PROMPT('Picture:',PICTURE),%QuickReportColumnFieldPicture,REQ
+        #PROMPT('Justification:',DROP('Left[L]|Center[C]|Right[R]|Default[D]')),%QuickReportColumnFieldJust,DEFAULT('Left')
+        #BUTTON('Default Values'),WHENACCEPTED(%QuickReportLookUpFieldDefaultValues(%QuickReportPromptPrimaryFile,%QuickReportColumnField,%QuickReportColumnFieldPicture,%QuickReportColumnFieldHeader,%QuickReportColumnFieldJust))
+        #ENDBUTTON
+    #ENDBUTTON
+    #BUTTON('&All Fields'),WHENACCEPTED(%QuickReportLookUpAllFieldsDefaultValues(%QuickReportPromptPrimaryFile)),AT(90)
+    #ENDBUTTON
+  #ENDTAB
+  #TAB('Label Report Wizard - Window and Control Customization'),HLP('~TPLWizardApplication.htm'),FINISH(1)
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WAPP3' & %GetColorSuffix() & '.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('You can customize the way than the Report Wizard generate your windows'),AT(90,8,235,24)
+    #DISPLAY(''),AT(90)
+    #BOXED('Customization'),AT(90,,235)
+      #INSERT(%CustomizationLabelPrompts)
+      #BOXED,HIDE
+        #INSERT(%CustomizationReportPrompts)
+      #ENDBOXED
+    #ENDBOXED
+  #ENDTAB
+  #TAB('Label Report Wizard - Procedure'),FINISH(1),HLP('~TPLWizardLabel.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT1'&%GetColorSuffix()&'.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('If you are creating new procedures with names that already exist in your application, the old procedures can be overwritten or the new procedures can be suppressed.'),AT(90,8,235,24)
+    #PROMPT('Overwrite existing procedures',CHECK),%QuickReportPromptOverwriteAll,AT(90,,235),DEFAULT(0)
+    #IMAGE('<255,1,4,127>'),AT(90,55)
+    #DISPLAY('The report procedure will always be overwritten by the report wizard!'),AT(125,54,200,20)
+  #ENDTAB
+  #TAB('Label Report Wizard - Finally...'),FINISH(1),HLP('~TPLWizardLabel.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WAPP1' & %GetColorSuffix() & '.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('Your customizations will be saved if you check the Save changes? checkbox. If you want to save a new Theme, you can do it here.'),AT(90,8,235,30)
+    #PROMPT('Save changes?',CHECK),%QuickThemeRemember,AT(90,,235),DEFAULT(%True)
+    #DISPLAY(''),AT(90)
+    #PROMPT('Save settings to a new Theme?',CHECK),%QuickThemeSavedAs,AT(90,,235),DEFAULT(%False)
+    #ENABLE(%QuickThemeSavedAs)
+    #BOXED('New Theme Data'),AT(90,,180)
+         #PROMPT('Theme Name:',@S25),%QuickNewThemeName
+         #VALIDATE(%QuickNewThemeName<>'','The Theme name can''t be null')
+         #DISPLAY('Ex: MyTheme')
+         #PROMPT('File Name:',@S25),%QuickNewThemeFileName
+         #VALIDATE(%QuickNewThemeFileName<>'','The Theme file name can''t be null')
+         #DISPLAY('Ex: MyTheme.TFT')
+    #ENDBOXED
+    #ENDENABLE
+    #!PROMPT('Change Layout Name?',CHECK),%QuickThemeChangeLayout,AT(90,,235),DEFAULT(%False)
+    #DISPLAY(''),AT(90)
+    #!BOXED('New Layout Name'),WHERE(%QuickThemeChangeLayout),AT(90,,180)
+         #!PROMPT('Layout Name:',@S25),%QuickNewLayoutName
+    #!ENDBOXED
+  #ENDTAB
+#ENDSHEET
+#!
+#IF(%QuickThemeSavedAs)
+   #CALL(%SaveAsThemeWiz,%QuickNewThemeName,%QuickNewThemeFileName)
+#ENDIF
+#! Save Theme
+#!IF(%QuickThemeChangeLayout)
+   #!CALL(%SVRenameThemeName,%QuickNewLayoutName,%QuickLayout,%QuickLayoutList)
+#!ENDIF
+#!IF(%QuickThemeRemember OR %QuickThemeChangeLayout OR %QuickThemeSavedAs)
+#IF(%QuickThemeRemember OR %QuickThemeSavedAs)
+   #CALL(%SaveThemeLabelWizard)
+#ENDIF
+#IF(%QuickProcedure)
+  #SET(%ValueConstruct,%QuickProcedure)
+#ELSE
+  #SET(%ValueConstruct,%QuickReportPromptProcedureName)
+#ENDIF
+#CALL(%SetReportLayourFromLabel)
+#CALL(%ReportAdjustDetailSize,%CusReportMarginTop,%CusReportMarginBottom,%CusReportAddHeader,%CusReportHeaderMarginTop,%CusReportHeaderPosHeight,%CusReportAddFooter,%CusReportFooterMarginBottom,%CusReportFooterPosHeight)
+#SET(%ReplaceExistingProcedures,%QuickReportPromptOverwriteAll)
+#ADD(%ProcedureList,%ValueConstruct)
+#SET(%QuickProcedurePrimary,%QuickReportPromptPrimaryFile)
+#IF(%QuickReportPromptSortType='Single Key')
+   #SET(%QuickProcedurePrimaryKey,%QuickReportPromptPrimaryKey)
+#ELSE
+   #SET(%QuickProcedurePrimaryKey,'')
+#ENDIF
+#SET(%QuickProcedureType,'Clarion Report')
+#SET(%QuickProcedureDescription,'Report the ' & %QuickProcedurePrimary & ' File')
+#SET(%QuickProcedureReport,%True)
+#SET(%QuickProcedureReportColumns,%QuickReportColumnCount)
+#PURGE(%QuickProcedureReportColumnFields)
+#FOR(%QuickReportColumnFields)
+   #ADD(%QuickProcedureReportColumnFields,INSTANCE(%QuickReportColumnFields))
+   #SET(%QuickProcedureReportColumnField,%QuickReportColumnField)
+   #SET(%QuickProcedureReportColumnFieldHeader,%QuickReportColumnFieldHeader)
+   #SET(%QuickProcedureReportColumnFieldPicture,%QuickReportColumnFieldPicture)
+   #SET(%QuickProcedureReportColumnFieldJust,%QuickReportColumnFieldJust)
+#ENDFOR
+#!
+#INSERT(%GenerateProcedures)
+#!***************************************************************************
+#!***************************************************************************
+#!***************************************************************************
+#UTILITY(WindowWizard,'Create a New Window Procedure'),WIZARD(Window(Clarion)),HLP('~TPLWizardProcess.htm.htm')
+#!
+#PREPARE
+  #CALL(%DeclareTemplateSet)
+  #SET(%QuickThemeList,%GetThemeListWiz())
+  #SET(%QuickTheme,%GetFirstThemeWiz(%QuickThemeList))
+  #IF(%QuickTheme)
+      #CALL(%LoadThemeOtherWindowWizard)
+  #ENDIF
+#ENDPREPARE
+#!
+#INSERT(%DeclareSymbols)
+#!
+#SHEET
+  #TAB('Window Wizard'),HLP('~TPLWizardWindow.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT1'&%GetColorSuffix()&'.GIF'))
+    #DISPLAY('This wizard will help you quickly create a new Window procedure.'),AT(90,8,235,24)
+    #DISPLAY('To begin creating your new Window procedure, click Next.'),AT(90,,,65)
+    #BOXED,HIDE
+       #INSERT(%TemplateSetPrompts)
+    #ENDBOXED
+  #ENDTAB
+  #TAB('Window Wizard - Theme Selection'),HLP('~TPLWizardWindow.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WAPP1' & %GetColorSuffix() & '.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('A theme determines the overall appearance of your application'),AT(90,8)
+    #DISPLAY('by providing a predefined set of icons, fonts, colors, buttons,'),AT(90)
+    #DISPLAY('and other window elements.'),AT(90)
+    #DISPLAY(''),AT(90)
+    #BOXED('HIDDEN'),HIDE
+        #PROMPT('Theme:',@s255),%QuickThemeList
+    #ENDBOXED
+    #PROMPT('Theme:',DROP(%QuickThemeList)),%QuickTheme,AT(140),PROMPTAT(90),WHENACCEPTED(%LoadThemeOtherWindowWizard())
+    #VALIDATE(%QuickTheme<>'','You must select a Theme from the Dropbox')
+    #DISPLAY
+    #PROMPT('Save changes?',CHECK),%QuickThemeRemember,AT(140,,235),DEFAULT(%True)
+  #ENDTAB
+  #TAB('Window Wizard - Procedure Name'),WHERE(~%QuickProcedure),HLP('~TPLWizardWindow.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT1'&%GetColorSuffix()&'.GIF'))
+    #PROMPT('What name should be used as the label of the Window procedure?',@S100),%QuickOtherWindowPromptProcedureName,AT(90,23,235),PROMPTAT(90,8,235)
+    #VALIDATE(%QuickOtherWindowPromptProcedureName,'You must supply a procedure name!')
+  #ENDTAB
+  #TAB('Window Wizard - Window and Control Customization'),HLP('~TPLWizardApplication'),FINISH(1)
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WAPP3' & %GetColorSuffix() & '.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('You can customize the way than the Window Wizard generate your windows'),AT(90,8,235,24)
+    #DISPLAY(''),AT(90)
+    #BOXED('Customization'),AT(90,,235)
+    #INSERT(%CustomizationOtherWindowPrompts)
+    #ENDBOXED
+  #ENDTAB
+  #TAB('Window Wizard - Procedure'),FINISH(1),HLP('~TPLWizardWindow.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT1'&%GetColorSuffix()&'.GIF'))
+    #DISPLAY('If you are creating new procedures with names that already exist in your application, the old procedures can be overwritten or the new procedures can be suppressed.'),AT(90,8,235,24)
+    #PROMPT('Overwrite existing procedures',CHECK),%QuickOtherWindowPromptOverwriteAll,AT(90,,235),DEFAULT(1)
+    #IMAGE('<255,1,4,127>'),AT(90,55)
+    #DISPLAY('The Window procedure will always be overwritten by the Window Wizard!'),AT(125,54,200,20)
+  #ENDTAB
+  #TAB('Window Wizard - Finally...'),FINISH(1),HLP('~TPLWizardWindow.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WAPP1' & %GetColorSuffix() & '.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('Your customizations will be saved if you check the Save changes? checkbox. If you want to save a new Theme, you can do it here.'),AT(90,8,235,30)
+    #PROMPT('Save changes?',CHECK),%QuickThemeRemember,AT(90,,235),DEFAULT(%True)
+    #DISPLAY(''),AT(90)
+    #PROMPT('Save settings to a new Theme?',CHECK),%QuickThemeSavedAs,AT(90,,235),DEFAULT(%False)
+    #ENABLE(%QuickThemeSavedAs)
+    #BOXED('New Theme Data'),AT(90,,180)
+         #PROMPT('Theme Name:',@S25),%QuickNewThemeName
+         #VALIDATE(%QuickNewThemeName<>'','The Theme name can''t be null')
+         #DISPLAY('Ex: MyTheme')
+         #PROMPT('File Name:',@S25),%QuickNewThemeFileName
+         #VALIDATE(%QuickNewThemeFileName<>'','The Theme file name can''t be null')
+         #DISPLAY('Ex: MyTheme.TFT')
+    #ENDBOXED
+    #ENDENABLE
+  #ENDTAB
+#ENDSHEET
+#!
+#IF(%QuickThemeSavedAs)
+   #CALL(%SaveAsThemeWiz,%QuickNewThemeName,%QuickNewThemeFileName)
+#ENDIF
+#! Save Theme
+#IF(%QuickThemeRemember OR %QuickThemeSavedAs)
+   #CALL(%SaveThemeOtherWindowWizard)
+#ENDIF
+#IF(%QuickProcedure)
+  #SET(%ValueConstruct,%QuickProcedure)
+#ELSE
+  #SET(%ValueConstruct,%QuickOtherWindowPromptProcedureName)
+#ENDIF
+#SET(%ReplaceExistingProcedures,%QuickOtherWindowPromptOverwriteAll)
+#ADD(%ProcedureList,%ValueConstruct)
+#SET(%QuickProcedurePrimary,'')
+#SET(%QuickProcedurePrimaryKey,'')
+#SET(%QuickProcedureType,'Clarion Window')
+#SET(%QuickProcedureDescription,'Window')
+#SET(%QuickProcedureReport,%False)
+#SET(%QuickProcedureWindow,%True)
+#INSERT(%GenerateProcedures)
+#!***************************************************************************
+#!***************************************************************************
+#!***************************************************************************
+#UTILITY(ProcessWizard,'Create a New Process Procedure'),WIZARD(Process(Clarion)),HLP('~TPLWizardProcess.htm')
+#!
+#PREPARE
+  #CALL(%DeclareTemplateSet)
+  #SET(%QuickThemeList,%GetThemeListWiz())
+  #SET(%QuickTheme,%GetFirstThemeWiz(%QuickThemeList))
+  #IF(%QuickTheme)
+      #CALL(%LoadThemeProcessWizard)
+  #ENDIF
+#ENDPREPARE
+#!
+#INSERT(%DeclareSymbols)
+#!
+#SHEET
+  #TAB('Process Wizard'),HLP('~TPLWizardProcess.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT1'&%GetColorSuffix()&'.GIF'))
+    #DISPLAY('This wizard will help you quickly create a new Process procedure.'),AT(90,8,235,24)
+    #DISPLAY('To begin creating your new Process procedure, click Next.'),AT(90,,,65)
+    #BOXED,HIDE
+       #INSERT(%TemplateSetPrompts)
+    #ENDBOXED
+  #ENDTAB
+  #TAB('Process Wizard - Theme Selection'),HLP('~TPLWizardProcess.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WAPP1' & %GetColorSuffix() & '.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('A theme determines the overall appearance of your application'),AT(90,8)
+    #DISPLAY('by providing a predefined set of icons, fonts, colors, buttons,'),AT(90)
+    #DISPLAY('and other window elements.'),AT(90)
+    #DISPLAY(''),AT(90)
+    #BOXED('AAA'),HIDE
+        #PROMPT('Theme:',@s255),%QuickThemeList
+    #ENDBOXED
+    #PROMPT('Theme:',DROP(%QuickThemeList)),%QuickTheme,AT(140),PROMPTAT(90),WHENACCEPTED(%LoadThemeProcessWizard())
+    #VALIDATE(%QuickTheme<>'','You must select a Theme from the Dropbox')
+    #DISPLAY
+    #PROMPT('Save changes?',CHECK),%QuickThemeRemember,AT(140,,235),DEFAULT(%True)
+  #ENDTAB
+  #TAB('Process Wizard - Procedure Name'),WHERE(~%QuickProcedure),HLP('~TPLWizardProcess.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT1'&%GetColorSuffix()&'.GIF'))
+    #PROMPT('What name should be used as the label of the Process procedure?',@S100),%QuickProcessPromptProcedureName,AT(90,23,235),PROMPTAT(90,8,235)
+    #VALIDATE(%QuickProcessPromptProcedureName,'You must supply a procedure name!')
+  #ENDTAB
+  #TAB('Process Wizard - File Access'),FINISH(1),HLP('~TPLWizardProcess.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WFSCH'&%GetColorSuffix()&'.GIF'))
+    #PROMPT('Which file do you want to Process?',FILE),%QuickProcessPromptPrimaryFile,AT(90,23,235),PROMPTAT(90,8,235)
+    #VALIDATE(%QuickProcessPromptPrimaryFile,'You must supply a file to Process!')
+    #BOXED,HIDE
+       #PROMPT('',FILE),%QuickProcessPromptPrimaryFileOld
+    #ENDBOXED
+  #ENDTAB
+  #TAB('Process Wizard - Key Sequence'),FINISH(1),HLP('~TPLWizardProcess.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WKEY'&%GetColorSuffix()&'.GIF'))
+    #PROMPT('A Process can use a single record key, or can run in record order.  Enter a key below, or leave the field blank to run in record order.',KEY(%QuickProcessPromptPrimaryFile)),%QuickProcessPromptPrimaryKey,AT(90,30,235),PROMPTAT(90,8,235,24)
+  #ENDTAB
+  #TAB('Process Wizard - Window and Control Customization'),HLP('~TPLWizardApplication'),FINISH(1)
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WAPP3' & %GetColorSuffix() & '.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('You can customize the way than the Process Wizard generate your windows'),AT(90,8,235,24)
+    #DISPLAY(''),AT(90)
+    #BOXED('Customization'),AT(90,,235)
+    #INSERT(%CustomizationProcessPrompts)
+    #ENDBOXED
+  #ENDTAB
+  #TAB('Process Wizard - Procedure'),FINISH(1),HLP('~TPLWizardProcess.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT1'&%GetColorSuffix()&'.GIF'))
+    #DISPLAY('If you are creating new procedures with names that already exist in your application, the old procedures can be overwritten or the new procedures can be suppressed.'),AT(90,8,235,24)
+    #PROMPT('Overwrite existing procedures',CHECK),%QuickProcessPromptOverwriteAll,AT(90,,235),DEFAULT(0)
+    #IMAGE('<255,1,4,127>'),AT(90,55)
+    #DISPLAY('The Process procedure will always be overwritten by the Process wizard!'),AT(125,54,200,20)
+  #ENDTAB
+  #TAB('Process Wizard - Finally...'),FINISH(1),HLP('~TPLWizardProcess.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WAPP1' & %GetColorSuffix() & '.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('Your customizations will be saved if you check the Save changes? checkbox. If you want to save a new Theme, you can do it here.'),AT(90,8,235,30)
+    #PROMPT('Save changes?',CHECK),%QuickThemeRemember,AT(90,,235),DEFAULT(%True)
+    #DISPLAY(''),AT(90)
+    #PROMPT('Save settings to a new Theme?',CHECK),%QuickThemeSavedAs,AT(90,,235),DEFAULT(%False)
+    #ENABLE(%QuickThemeSavedAs)
+    #BOXED('New Theme Data'),AT(90,,180)
+         #PROMPT('Theme Name:',@S25),%QuickNewThemeName
+         #VALIDATE(%QuickNewThemeName<>'','The Theme name can''t be null')
+         #DISPLAY('Ex: MyTheme')
+         #PROMPT('File Name:',@S25),%QuickNewThemeFileName
+         #VALIDATE(%QuickNewThemeFileName<>'','The Theme file name can''t be null')
+         #DISPLAY('Ex: MyTheme.TFT')
+    #ENDBOXED
+    #ENDENABLE
+  #ENDTAB
+#ENDSHEET
+#!
+#IF(%QuickThemeSavedAs)
+   #CALL(%SaveAsThemeWiz,%QuickNewThemeName,%QuickNewThemeFileName)
+#ENDIF
+#! Save Theme
+#IF(%QuickThemeRemember OR %QuickThemeSavedAs)
+   #CALL(%SaveThemeProcessWizard)
+#ENDIF
+#IF(%QuickProcedure)
+  #SET(%ValueConstruct,%QuickProcedure)
+#ELSE
+  #SET(%ValueConstruct,%QuickProcessPromptProcedureName)
+#ENDIF
+#SET(%ReplaceExistingProcedures,%QuickProcessPromptOverwriteAll)
+#ADD(%ProcedureList,%ValueConstruct)
+#SET(%QuickProcedurePrimary,%QuickProcessPromptPrimaryFile)
+#SET(%QuickProcedurePrimaryKey,%QuickProcessPromptPrimaryKey)
+#SET(%QuickProcedureType,'Clarion Process')
+#SET(%QuickProcedureDescription,'Process the ' & %QuickProcedurePrimary & ' File')
+#SET(%QuickProcedureReport,%True)
+#INSERT(%GenerateProcedures)
+#!***************************************************************************
+#!***************************************************************************
+#!***************************************************************************
+#UTILITY(ReportWizard,'Create a New Report Procedure'),WIZARD(Report(Clarion)),HLP('~TPLWizardReport')
+#!
+#PREPARE
+  #CALL(%DeclareTemplateSet)
+  #SET(%QuickThemeList,%GetThemeListWiz())
+  #SET(%QuickTheme,%GetFirstThemeWiz(%QuickThemeList))
+  #IF(%QuickTheme)
+      #CALL(%LoadThemeReportWizard)
+      #SET(%QuickLayout,%SVGetFirstTheme(%QuickLayoutList))
+      #CALL(%LoadLayoutWindowReportPrompts,%QuickLayout)
+  #ENDIF
+#ENDPREPARE
+#!
+#INSERT(%DeclareSymbols)
+#!
+#SHEET
+  #TAB('Report Wizard'),HLP('~TPLWizardReport')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT1'&%GetColorSuffix()&'.GIF'))
+    #DISPLAY('This wizard will help you quickly create a new Report procedure.'),AT(90,8,235,24)
+    #DISPLAY('To begin creating your new Report procedure, click Next.'),AT(90,,,65)
+    #BOXED,HIDE
+       #INSERT(%TemplateSetPrompts)
+    #ENDBOXED
+  #ENDTAB
+  #TAB('Report Wizard - Theme Selection'),HLP('~TPLWizardReport')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WAPP1' & %GetColorSuffix() & '.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('A theme determines the overall appearance of your application'),AT(90,8)
+    #DISPLAY('by providing a predefined set of icons, fonts, colors, buttons,'),AT(90)
+    #DISPLAY('and other window elements.'),AT(90)
+    #DISPLAY(''),AT(90)
+    #BOXED('HIDE'),HIDE
+        #PROMPT('Theme:',@s255),%QuickThemeList
+        #PROMPT('Layout:',@s255),%QuickLayoutList
+    #ENDBOXED
+    #PROMPT('Theme:',DROP(%QuickThemeList)),%QuickTheme,AT(160,,120),PROMPTAT(90,,50),WHENACCEPTED(%LoadThemeReportWizard())
+    #VALIDATE(%QuickTheme<>'','You must select a Theme from the Dropbox')
+    #PROMPT('Report Layout:',DROP(%QuickLayoutList)),%QuickLayout,AT(160,,120),PROMPTAT(90,,50),WHENACCEPTED(%LoadLayoutWindowReportPrompts(%QuickLayout))
+    #VALIDATE(%QuickLayout<>'','You must select a Layout from the Dropbox')
+    #DISPLAY
+    #PROMPT('Save changes?',CHECK),%QuickThemeRemember,AT(160,,235),DEFAULT(%True)
+  #ENDTAB
+  #TAB('Report Wizard - Procedure Name'),WHERE(~%QuickProcedure),HLP('~TPLWizardReport')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT1'&%GetColorSuffix()&'.GIF'))
+    #PROMPT('What name should be used as the label of the report procedure?',@S100),%QuickReportPromptProcedureName,AT(90,23,235),PROMPTAT(90,8,235)
+    #VALIDATE(%QuickReportPromptProcedureName,'You must supply a procedure name!')
+  #ENDTAB
+  #TAB('Report Wizard - File Access'),FINISH(1),HLP('~TPLWizardReport')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WFSCH'&%GetColorSuffix()&'.GIF'))
+    #PROMPT('Which file do you want to report?',FILE),%QuickReportPromptPrimaryFile,AT(90,23,235),PROMPTAT(90,8,235)
+    #VALIDATE(%QuickReportPromptPrimaryFile,'You must supply a file to report!')
+    #BOXED,HIDE
+       #PROMPT('',FILE),%QuickReportPromptPrimaryFileOld
+    #ENDBOXED
+  #ENDTAB
+  #TAB('Report Wizard - Key Sequence'),FINISH(1),HLP('~TPLWizardReport')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WKEY'&%GetColorSuffix()&'.GIF'))
+    #DISPLAY('A report can use a single record key, Runtime Key Selection, or can run in record order.'),AT(90,8,235,24)
+    #PROMPT('Select Sort Option:',DROP('Single Key|Runtime Key Selection|Record Order')),%QuickReportPromptSortType,DEFAULT('Single Key'),AT(180,,120),PROMPTAT(90,,90)
+    #BOXED,WHERE(%QuickReportPromptSortType='Single Key')
+       #PROMPT('Enter a key:',KEY(%QuickReportPromptPrimaryFile)),%QuickReportPromptPrimaryKey,REQ,AT(180,,120),PROMPTAT(90,,90)
+    #ENDBOXED
+  #ENDTAB
+  #TAB('Report Wizard - Columns Fields'),FINISH(1),HLP('~TPLWizardReport')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT2'&%GetColorSuffix()&'.GIF'))
+    #PREPARE
+       #IF(ITEMS(%QuickReportColumnFields)=0 OR %QuickReportPromptPrimaryFile<>%QuickReportPromptPrimaryFileOld)
+          #SET(%QuickReportPromptPrimaryFileOld,%QuickReportPromptPrimaryFile)
+          #CALL(%QuickReportLookUpAllFieldsDefaultValues,%QuickReportPromptPrimaryFile)
+       #ENDIF
+    #ENDPREPARE
+    #PROMPT('The generated report will show the data in equally sized columns. How many columns do you want the report to use?',SPIN(@n3,1,20,1)),%QuickReportColumnCount,DEFAULT(4),AT(90,30,235),PROMPTAT(90,8,235,24)
+    #DISPLAY('Select the fields you want the report to use?'),AT(90,40)
+    #!PROMPT('File Selection',FROM(%File)),%FileSelection,INLINE,SELECTION('File Selection'),AT(90,8,235)
+    #BUTTON('Fields...'),MULTI(%QuickReportColumnFields,%QuickReportColumnField&' ('&%QuickReportColumnFieldPicture&') ('&%QuickReportColumnFieldHeader&') ['&LEFT(%QuickReportColumnFieldJust,1)&']'),INLINE,AT(90,50,235)
+        #PROMPT('Field:',FIELD(%QuickReportPromptPrimaryFile)),%QuickReportColumnField,REQ
+        #PROMPT('Header:',@S50),%QuickReportColumnFieldHeader
+        #PROMPT('Picture:',PICTURE),%QuickReportColumnFieldPicture,REQ
+        #PROMPT('Justification:',DROP('Left[L]|Center[C]|Right[R]|Default[D]')),%QuickReportColumnFieldJust,DEFAULT('Left')
+        #BUTTON('Default Values'),WHENACCEPTED(%QuickReportLookUpFieldDefaultValues(%QuickReportPromptPrimaryFile,%QuickReportColumnField,%QuickReportColumnFieldPicture,%QuickReportColumnFieldHeader,%QuickReportColumnFieldJust))
+        #ENDBUTTON
+    #ENDBUTTON
+    #BUTTON('&All Fields'),WHENACCEPTED(%QuickReportLookUpAllFieldsDefaultValues(%QuickReportPromptPrimaryFile)),AT(90)
+    #ENDBUTTON
+  #ENDTAB
+  #TAB('Report Wizard - Window and Control Customization'),HLP('~TPLWizardApplication'),FINISH(1)
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WAPP3' & %GetColorSuffix() & '.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('You can customize the way than the Report Wizard generate your windows'),AT(90,8,235,24)
+    #DISPLAY(''),AT(90)
+    #BOXED('Customization'),AT(90,,235)
+    #INSERT(%CustomizationReportPrompts)
+    #ENDBOXED
+  #ENDTAB
+  #TAB('Report Wizard - Procedure'),FINISH(1),HLP('~TPLWizardReport')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WRPT1'&%GetColorSuffix()&'.GIF'))
+    #DISPLAY('If you are creating new procedures with names that already exist in your application, the old procedures can be overwritten or the new procedures can be suppressed.'),AT(90,8,235,24)
+    #PROMPT('Overwrite existing procedures',CHECK),%QuickReportPromptOverwriteAll,AT(90,,235),DEFAULT(0)
+    #IMAGE('<255,1,4,127>'),AT(90,55)
+    #DISPLAY('The report procedure will always be overwritten by the report wizard!'),AT(125,54,200,20)
+  #ENDTAB
+  #TAB('Report Wizard - Finally...'),FINISH(1),HLP('~TPLWizardReport')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WAPP1' & %GetColorSuffix() & '.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('Your customizations will be saved if you check the Save changes? checkbox. If you want to save a new Theme, you can do it here.'),AT(90,8,235,30)
+    #PROMPT('Save changes?',CHECK),%QuickThemeRemember,AT(90,,235),DEFAULT(%True)
+    #DISPLAY(''),AT(90)
+    #PROMPT('Save settings to a new Theme?',CHECK),%QuickThemeSavedAs,AT(90,,235),DEFAULT(%False)
+    #ENABLE(%QuickThemeSavedAs)
+    #BOXED('New Theme Data'),AT(90,,180)
+         #PROMPT('Theme Name:',@S25),%QuickNewThemeName
+         #VALIDATE(%QuickNewThemeName<>'','The Theme name can''t be null')
+         #DISPLAY('Ex: MyTheme')
+         #PROMPT('File Name:',@S25),%QuickNewThemeFileName
+         #VALIDATE(%QuickNewThemeFileName<>'','The Theme file name can''t be null')
+         #DISPLAY('Ex: MyTheme.TFT')
+    #ENDBOXED
+    #ENDENABLE
+    #PROMPT('Change Layout Name?',CHECK),%QuickThemeChangeLayout,AT(90,,235),DEFAULT(%False)
+    #DISPLAY(''),AT(90)
+    #BOXED('New Layout Name'),WHERE(%QuickThemeChangeLayout),AT(90,,180)
+         #PROMPT('Layout Name:',@S25),%QuickNewLayoutName
+    #ENDBOXED
+  #ENDTAB
+#ENDSHEET
+#!
+#IF(%CusReportAutoAdjustDetailSize)
+   #CALL(%ReportAdjustDetailSize,%CusReportMarginTop,%CusReportMarginBottom,%CusReportAddHeader,%CusReportHeaderMarginTop,%CusReportHeaderPosHeight,%CusReportAddFooter,%CusReportFooterMarginBottom,%CusReportFooterPosHeight)
+#ENDIF
+#!
+#IF(%QuickThemeSavedAs)
+   #CALL(%SaveAsThemeWiz,%QuickNewThemeName,%QuickNewThemeFileName)
+#ENDIF
+#! Save Theme
+#IF(%QuickThemeChangeLayout)
+   #CALL(%SVRenameThemeName,%QuickNewLayoutName,%QuickLayout,%QuickLayoutList)
+#ENDIF
+#IF(%QuickThemeRemember OR %QuickThemeChangeLayout OR %QuickThemeSavedAs)
+   #CALL(%SaveThemeReportWizard)
+#ENDIF
+#IF(%QuickProcedure)
+  #SET(%ValueConstruct,%QuickProcedure)
+#ELSE
+  #SET(%ValueConstruct,%QuickReportPromptProcedureName)
+#ENDIF
+#SET(%ReplaceExistingProcedures,%QuickReportPromptOverwriteAll)
+#ADD(%ProcedureList,%ValueConstruct)
+#SET(%QuickProcedurePrimary,%QuickReportPromptPrimaryFile)
+#IF(%QuickReportPromptSortType='Single Key')
+   #SET(%QuickProcedurePrimaryKey,%QuickReportPromptPrimaryKey)
+#ELSE
+   #SET(%QuickProcedurePrimaryKey,'')
+#ENDIF
+#SET(%QuickProcedureType,'Clarion Report')
+#SET(%QuickProcedureDescription,'Report the ' & %QuickProcedurePrimary & ' File')
+#SET(%QuickProcedureReport,%True)
+#SET(%QuickProcedureReportColumns,%QuickReportColumnCount)
+#PURGE(%QuickProcedureReportColumnFields)
+#FOR(%QuickReportColumnFields)
+   #ADD(%QuickProcedureReportColumnFields,INSTANCE(%QuickReportColumnFields))
+   #SET(%QuickProcedureReportColumnField,%QuickReportColumnField)
+   #SET(%QuickProcedureReportColumnFieldHeader,%QuickReportColumnFieldHeader)
+   #SET(%QuickProcedureReportColumnFieldPicture,%QuickReportColumnFieldPicture)
+   #SET(%QuickProcedureReportColumnFieldJust,%QuickReportColumnFieldJust)
+#ENDFOR
+#!
+#IF(%CusReportDateTime)
+   #SET(%QuickReportDateInstance,ITEMS(%QuickTemplateInstance)+1)
+   #ADD(%QuickTemplateInstance,%QuickReportDateInstance)
+   #SET(%QuickTemplateType,'ReportDate')
+   #SET(%QuickTemplateProcProp,%False)
+   #SET(%QuickReportTimeInstance,ITEMS(%QuickTemplateInstance)+1)
+   #ADD(%QuickTemplateInstance,%QuickReportTimeInstance)
+   #SET(%QuickTemplateType,'ReportTime')
+   #SET(%QuickTemplateProcProp,%False)
+#ENDIF
+#INSERT(%GenerateProcedures)
+#!*****************************************************************************
+#GROUP(%QuickReportLookUpFieldDefaultValues,%pFile,%pField,*%pFieldPicture,*%pFieldHeader,*%pFieldJust)
+      #SET(%pFieldPicture,'')
+      #SET(%pFieldHeader,'')
+      #SET(%pFieldJust,'')
+      #FIX(%File,%pFile)
+      #FIX( %Field, %pField)
+      #IF(%Field)
+         #SET(%pFieldPicture,%FieldPicture)
+         #SET(%pFieldHeader,%FieldHeader)
+         #SET(%pFieldJust,%FieldJustType)
+      #END
+#!*****************************************************************************
+#GROUP(%QuickReportLookUpAllFieldsDefaultValues,%pFile)
+      #FIX(%File,%pFile)
+      #PURGE(%QuickReportColumnFields)
+      #FOR(%Field)
+          #IF(%FieldType<>'MEMO' AND %FieldType<>'BLOB' AND %FieldType<>'GROUP' AND %FieldType<>'END')
+             #ADD(%QuickReportColumnFields,ITEMS(%QuickReportColumnFields)+1)
+             #SET(%QuickReportColumnField,%Field)
+             #CALL(%QuickReportLookUpFieldDefaultValues,%pFile,%Field,%QuickReportColumnFieldPicture,%QuickReportColumnFieldHeader,%QuickReportColumnFieldJust)
+          #ENDIF
+      #ENDFOR
+#!*****************************************************************************

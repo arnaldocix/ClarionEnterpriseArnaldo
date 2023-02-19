@@ -1,0 +1,68 @@
+#UTILITY(QuickStart,'Generate a New Application and Dictionary'),WIZARD
+#PREPARE
+  #CALL(%DeclareTemplateSet)
+  #SET(%QuickThemeList,%GetThemeListWiz())
+  #SET(%QuickTheme,%GetFirstThemeWiz(%QuickThemeList))
+  #SET(%QuickLayoutList,%SVFGetEntryFn(%QuickTheme, '%QuickLayoutList','Report Layout List','Layout1[Layout1]|Layout2[Layout2]|Layout3[Layout3]|Layout4[Layout4]'))
+  #SET(%QuickLayout,%SVGetFirstTheme(%QuickLayoutList))
+#ENDPREPARE
+#SHEET
+  #TAB('QuickStart Wizard'),HLP('~TPLWizardApplication.htm')
+    #IMAGE(''),PROP(PROP:Text,FULLNAME('WAPP1' & %GetColorSuffix() & '.GIF')),AT(,,75,115),PROP(PROP:Centered)
+    #DISPLAY('A theme determines the overall appearance of your application'),AT(90,8)
+    #DISPLAY('by providing a predefined set of icons, fonts, colors, buttons,'),AT(90)
+    #DISPLAY('and other window elements.'),AT(90)
+    #DISPLAY(''),AT(90)
+    #BOXED('HIDE'),HIDE
+        #PROMPT('Theme:',@s255),%QuickThemeList
+        #PROMPT('Layout:',@s255),%QuickLayoutList
+        #PROMPT('Save changes?',CHECK),%QuickThemeRemember,DEFAULT(%True)
+    #ENDBOXED
+    #PROMPT('Theme:',DROP(%QuickThemeList)),%QuickTheme,AT(140),PROMPTAT(90)
+    #VALIDATE(%QuickTheme<>'','You must select a Theme from the Dropbox')
+    #PROMPT('Report Layout:',DROP(%QuickLayoutList)),%QuickLayout,AT(140),PROMPTAT(90),WHENACCEPTED(%LoadLayoutWindowReportPrompts(%QuickLayout))
+    #VALIDATE(%QuickLayout<>'','You must select a Layout from the Dropbox')
+    #BOXED('Customization'),AT(90,,235),HIDE
+       #INSERT(%CustomizationFramePrompts)
+       #INSERT(%CustomizationBrowsePrompts)
+       #INSERT(%CustomizationFormPrompts)
+       #INSERT(%CustomizationReportPrompts)
+    #ENDBOXED
+    #BOXED,HIDE
+      #INSERT(%TemplateSetPrompts)
+    #ENDBOXED
+  #ENDTAB
+#ENDSHEET
+#!
+#INSERT(%DeclareSymbols)
+#!
+#DECLARE(%ControlModel)
+#SET(%ControlModel,'Toolbar')
+#DECLARE(%QuickReportPromptSortType)
+#SET(%QuickReportPromptSortType,'Single Key')
+#!DECLARE(%QuickAppGenerateAllFiles)
+#!SET(%QuickAppGenerateAllFiles,%True)
+#SET(%ValueConstruct,'Main')
+#FIX(%Procedure,%ValueConstruct)
+#ADD(%ProcedureList,%ValueConstruct)
+#SET(%QuickProcedurePrimary,'')
+#SET(%QuickProcedureType,'ABC Frame')
+#SET(%QuickProcedureDescription,'Clarion Quickstart Application for ' & %DictionaryFile)
+#SET(%QuickProcedureWindow,%True)
+#SET(%GenerateProgramSection,%True)
+#!
+#IF(%QuickTheme)
+   #CALL(%LoadThemeQuickStartWizard)
+#ENDIF
+#!
+#SET(%ProgramType,'')
+#IF(CLIP(%QuickBrowseChildHandling)='' OR %QuickBrowseChildHandling='0')
+    #SET(%ProgramType,'Simple')
+#ELSE
+    #SET(%ProgramType,'Full')
+#ENDIF
+#!
+#!
+#INSERT(%GenerateProcedures)
+#!
+#SET(%GenerateProgramSection,%False)

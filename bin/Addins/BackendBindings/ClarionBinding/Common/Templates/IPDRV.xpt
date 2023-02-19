@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<Template originator   = "SoftVelocity">
+
+	<!-- Template Header -->
+	<TemplateConfiguration>
+		<Name>IP Data Manager DLL</Name>
+		<Category>Clarion for Windows</Category>
+		<Icon>ClarionSharp.Generator.Project.DAL</Icon>
+		<Description>Appgen IP Data Manager DLL</Description>
+    <BinaryProjectGenerator chain="Clarion.IPDRV" name="DataManagerWizard" askfordct="True">/SoftVelocity/BinaryProjectGenerator/ApplicationFactoryWizard</BinaryProjectGenerator>
+  </TemplateConfiguration>
+	<Project name = "${ProjectName}" directory = "." language = "Clarion">
+		<PropertyGroup>
+			<CWOutputType>Dll</CWOutputType>
+		</PropertyGroup>
+  </Project>
+</Template>
+

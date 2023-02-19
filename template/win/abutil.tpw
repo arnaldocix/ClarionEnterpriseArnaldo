@@ -1,0 +1,268 @@
+#EXTENSION(Transaction,'Add a Transaction Manager to the Procedure'),PROCEDURE,HLP('~TPLExtensionTransactionFrame.htm')
+#PREPARE
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'Default', 'ThisTransaction', 'TransactionManager')
+#ENDPREPARE
+#BUTTON('&Transaction Manager'),AT(10,,180)
+  #INSERT(%OOPPrompts)
+  #SHEET,ADJUST
+   #TAB('&General')
+        #DISPLAY('This template will add all the tables')
+        #DISPLAY('in the Other Tables to the transaction frame.')
+        #DISPLAY('Add your transactional code to the Process Method')
+        #DISPLAY('and from the source code call ')
+        #DISPLAY(%ThisObjectName&'.Start()')
+        #DISPLAY('To start the transaction.')
+        #DISPLAY('The commit or Rollback will be called automatically')        
+        #DISPLAY('based on the return value of the Process method.')
+        #DISPLAY('Returning Level:Benign will execute the commit')
+   #ENDTAB
+   #TAB('&Class')
+    #BUTTON('TransactionManager Class'),AT(,,170),HLP('~TPLExtensionTransactionFrame.htm')
+      #WITH(%ClassItem,'Default')
+        #INSERT(%ClassPrompts)
+      #END
+    #ENDBUTTON  
+   #ENDTAB
+  #ENDSHEET
+#ENDBUTTON  
+#ATSTART
+  #CALL(%ReadABCFiles)  
+  #CALL(%SetClassDefaults, 'Default', 'ThisTransaction', 'TransactionManager')
+  #EQUATE(%ThisTransaction, %ThisObjectName)
+#ENDAT
+#AT(%GatherObjects)
+#CALL(%AddObjectList, 'Default')
+#ENDAT
+#!
+#AT(%LocalDataClasses)
+#INSERT(%GenerateClass, 'Default')
+#ENDAT
+#!
+#AT(%LocalProcedures)
+#CALL(%GenerateVirtuals, 'Default', 'Local Objects|Abc Objects|'&%ThisObjectName, '%TransactionManagerVirtuals(ABC)')
+#ENDAT
+#!
+#AT(%TransactionManagerMethodCodeSection,%ActiveTemplateInstance),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#AT(%TransactionManagerMethodCodeSection,%ActiveTemplateInstance,%BaseClassToUse(),'Start','(),BYTE'),PRIORITY(100),DESCRIPTION('Add tables to the transaction')
+#FOR(%OtherFiles)
+SELF.AddItem(Relate:%OtherFiles)            #<! Add the FILE %OtherFiles to the Transaction
+#ENDFOR
+#ENDAT
+#!
+#!
+#EXTENSION(DbAuditing,'Global Database Auditing.'),APPLICATION,HLP('~DbAuditing.htm')
+#PREPARE
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'DbAudit', 'DbAudit', %DbAuditClass)
+  #CALL(%SetClassDefaults, 'DbChangeTrigger', 'DbChangeTrigger', %DbChangeTriggerClass)
+#ENDPREPARE
+  #BOXED('Default Addressbook prompts'),HIDE
+    #INSERT(%OOPHiddenPrompts)
+  #ENDBOXED
+   #SHEET
+   #TAB('&LogFiles')
+    #BOXED('')
+     #BUTTON('Log Files'),MULTI(%LogFiles,%LogFile & '->' & %LogFileName),INLINE
+       #PROMPT('File to Log:',FROM(%File)),%LogFile,REQ,WHENACCEPTED(%FormatLogFileName())
+       #PROMPT('Log File Name:',@s80),%LogFileName,REQ
+       #BUTTON('Username Logging')
+        #PROMPT('Username variable:',@s80),%UserLogField
+        #PROMPT('Username Header:',@s80),%UserLogHeader
+        #PROMPT('Username picture:',@s10),%UserLogPicture,DEFAULT('@s20')
+       #ENDBUTTON
+       #BOXED('File Fields to Log')
+        #BUTTON('File Fields to write to logfile'),MULTI(%LogFields,%LogFieldHeader & ': ' & %LogField),INLINE
+         #PROMPT('Field:',FIELD(%LogFile)),%LogField,REQ,WHENACCEPTED(%FetchFieldSettings())
+         #PROMPT('Field Header:',@s80),%LogFieldHeader,REQ
+         #PROMPT('Field Picture:',@s50),%LogFieldPicture,REQ
+        #ENDBUTTON
+       #ENDBOXED
+       #BOXED('Miscellaneous Fields to Log')
+        #BUTTON('Misc Fields to write to logfile'),MULTI(%MiscLogFields,%MiscLogFieldHeader & ': ' & %MiscLogField),INLINE
+         #PROMPT('Field:',FIELD),%MiscLogField,REQ
+         #PROMPT('Field Header:',@s80),%MiscLogFieldHeader,REQ
+         #PROMPT('Field Picture:',@s50),%MiscLogFieldPicture,REQ
+        #ENDBUTTON
+       #ENDBOXED
+     #ENDBUTTON
+    #ENDBOXED
+   #ENDTAB
+   #TAB('&Classes')
+    #BOXED('')
+     #PROMPT('&Database Audit Manager:',FROM(%pClassName)),%DbAuditClass,DEFAULT('DbAuditManager'),REQ
+     #PROMPT('&Database Change Trigger:',FROM(%pClassName)),%DbChangeTriggerClass,DEFAULT('DbChangeManager'),REQ
+    #ENDBOXED
+    #BUTTON('Db A&udit Class'),AT(,,170),HLP('~dbAuditing.htm')
+     #WITH(%ClassItem,'DbAudit')
+      #INSERT(%GlobalClassPrompts)
+     #END
+    #ENDBUTTON
+    #BUTTON('Db &ChangeTrigger Class'),AT(,,170),HLP('~dbAuditing.htm')
+     #WITH(%ClassItem,'DbChangeTrigger')
+      #INSERT(%GlobalClassPrompts)
+     #END
+    #ENDBUTTON
+   #ENDTAB
+   #ENDSHEET
+#ATSTART
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'DbAudit', 'DbAudit', %DbAuditClass)
+  #EQUATE(%DbAuditObjectName, %ThisObjectName)
+  #CALL(%SetClassDefaults, 'DbChangeTrigger', 'DbChangeTrigger', %DbChangeTriggerClass)
+  #EQUATE(%DbChangeTriggerObjectName, %ThisObjectName)
+  #IF(%DefaultExternal='All External')
+     #ERROR('Global Database Auditing(DbAuditing) can only be used on a data DLL or in a EXE with out DLLs')
+  #ELSE
+     #FOR(%File),WHERE(%OverrideExternal = 'External')
+        #ERROR('Global Database Auditing(DbAuditing) can only be used on a data DLL or in a EXE with out DLLs')
+        #BREAK
+     #ENDFOR
+  #ENDIF
+#ENDAT
+#!
+#!
+#AT(%CustomGlobalDeclarations)
+ #FIX(%Driver,'ASCII')
+ #PROJECT(%DriverLib)
+#ENDAT
+#!
+#!
+#!AT(%ProgramSetup)
+#AT(%DbChangeTriggerMethodCodeSection,'Construct')
+#!%DbChangeTriggerObjectName.Init(%DbAuditObjectName.IDbChangeAudit)
+SELF.Init(%DbAuditObjectName.IDbChangeAudit)
+#ENDAT
+#AT(%DbAuditMethodCodeSection,'Construct')
+#IF(~%GlobalExternal)
+#!%DbAuditObjectName.Init(GlobalErrors)
+SELF.Init(GlobalErrors)
+ #FOR(%LogFiles)
+#!%DbAuditObjectName.AddLogFile('%LogFile','%LogFileName')
+SELF.AddLogFile('%LogFile','%LogFileName')
+   #IF(%UserLogField)
+SELF.AddItem('%LogFile','%UserLogField',%UserLogField,'%UserLogHeader','%UserLogPicture')
+#!%DbAuditObjectName.AddItem('%LogFile','%UserLogField',%UserLogField,'%UserLogHeader','%UserLogPicture')
+   #ENDIF
+   #FOR(%LogFields)
+#!%DbAuditObjectName.AddItem('%LogFile','%LogField',%LogField,'%LogFieldHeader','%LogFieldPicture')
+SELF.AddItem('%LogFile','%LogField',%LogField,'%LogFieldHeader','%LogFieldPicture')
+   #ENDFOR
+   #FOR(%MiscLogFields)
+#!%DbAuditObjectName.AddItem('%LogFile','%MiscLogField',%MiscLogField,'%MiscLogFieldHeader','%MiscLogFieldPicture')
+SELF.AddItem('%LogFile','%MiscLogField',%MiscLogField,'%MiscLogFieldHeader','%MiscLogFieldPicture')
+   #ENDFOR
+ #ENDFOR
+#ENDIF
+#ENDAT
+#!
+#!
+#AT(%ProgramEnd)
+#IF(~%GlobalExternal)
+#!%DbAuditObjectName.Kill()
+#!%DbChangeTriggerObjectName.Kill()
+#ENDIF
+#ENDAT
+#!
+#!
+#AT(%GlobalData)
+#!INSERT(%GenerateClass, 'DbAudit')
+#INSERT(%GenerateClass, 'DbAudit', 'DataBase Audit Manager', %False, 'THREAD')
+#!INSERT(%GenerateClass, 'DbChangeTrigger')
+#INSERT(%GenerateClass, 'DbChangeTrigger', 'DataBase Change Trigger Manager', %False, 'THREAD')
+#ENDAT
+#!
+#!
+#AT(%GatherObjects)
+  #CALL(%AddObjectList, 'DbAudit')
+  #CALL(%AddObjectList, 'DbChangeTrigger')
+#ENDAT
+#!
+#!
+#AT(%ProgramProcedures)
+    #CALL(%GenerateVirtuals, 'DbAudit', 'Global Objects|Database Auditor', '%DbAuditVirtuals(ABC)', %True)
+    #CALL(%GenerateVirtuals, 'DbChangeTrigger', 'Global Objects|Database Change Trigger', '%DbTriggerVirtuals(ABC)', %True)
+#ENDAT
+#!
+#!
+#AT(%DbAuditMethodCodeSection),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#!
+#AT(%DbChangeTriggerMethodCodeSection),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#!
+#AT(%FileManagerCodeSection),LAST
+#INSERT(%DBWatchSave)
+#INSERT(%DBWatchUpdate)
+#IF(INSTRING(', Insert',%EmbedParameters,1,1))
+%DbAuditObjectName.OnInsert('%File',%File)
+#ENDIF
+#ENDAT
+#!
+#!
+#AT(%RelationManagerCodeSection),LAST
+ #INSERT(%DBWatchSave)
+ #INSERT(%DBWatchUpdate)
+ #IF(INSTRING(', Delete',%EmbedParameters,1,1))
+%DbAuditObjectName.OnDelete('%File',%File)
+ #ENDIF
+#ENDAT
+#!
+#!
+#GROUP(%DbAuditVirtuals, %TreeText, %DataText, %CodeText)
+#EMBED(%DbAuditMethodDataSection,'Global Database Audit Method Data Section'),%pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(,%FixClassName(%FixBaseClassToUse('DbAudit'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%DbAuditMethodCodeSection,'Global Database Audit Method Executable Code Section'),%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('DbAudit'))),TREE(%TreeText & %CodeText)
+#!
+#!
+#GROUP(%DbTriggerVirtuals, %TreeText, %DataText, %CodeText)
+#EMBED(%DbChangeTriggerMethodDataSection,'Global Database Audit Method Data Section'),%pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(,%FixClassName(%FixBaseClassToUse('DbChangeTrigger'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%DbChangeTriggerMethodCodeSection,'Global Database Audit Method Executable Code Section'),%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('DbChangeTrigger'))),TREE(%TreeText & %CodeText)
+#!
+#!
+#GROUP(%DbWatchSave)
+#IF(INSTRING(', Fetch',%EmbedParameters,1,1) OR INSTRING(', TryFetch',%EmbedParameters,1,1) OR INSTRING(', Save',%EmbedParameters,1,1))
+ IF NOT DbChangeTrigger.SetThread('%File')
+    %DbChangeTriggerObjectName.AddThread('%File')
+  #FOR(%Field),WHERE(INSTRING(%FieldType,'STRINGCSTRINGBYTEDATEDECIMALLONGPDECIMALPSTRINGREALSHORTTIMEULONGUSHORT',1,1) AND %FieldDimension1 < 1)
+    DbChangeTrigger.AddItem(%Field, WHO(%FilePrefix:RECORD,WHERE(%FilePrefix:RECORD,%Field)) , '%File')
+  #ENDFOR
+ END
+ %DbChangeTriggerObjectName.Update('%File')
+#ENDIF
+#!
+#GROUP(%DBWatchUpdate)
+ #IF(INSTRING(', Update',%EmbedParameters,1,1))
+  IF NOT DbChangeTrigger.Equal('%File')
+     %DbChangeTriggerObjectName.CheckChanges('%File',%File) 
+  END
+ #ENDIF
+#!
+#GROUP(%FormatLogFileName)
+  #IF(~%LogFileName)
+    #SET(%LogFileName,%LogFile & '.log')
+  #ENDIF
+#!
+#!
+#GROUP(%FetchFieldSettings)
+ #FIX(%File,%LogFile)
+ #IF(~%File)
+  #ERROR('Error on #FIX : ' & %LogFile)
+ #ENDIF
+ #FIX(%Field,%LogField)
+ #IF(~%LogFieldHeader)
+  #SET(%LogFieldHeader,%FieldHeader)
+ #ENDIF
+ #IF(~%LogFieldPicture)
+  #SET(%LogFieldPicture,%FieldPicture)
+ #ENDIF
+#!
+#!

@@ -1,0 +1,85 @@
+<HTML>
+<head>
+<meta name="ts-control" content="list">
+<meta name="ts-capabilities" content="multicolumn,pageloaded,default">
+</head>
+<BODY>
+<FORM>
+<!-- Table.htm -- Start -->
+<TSSCRIPT value="EmbedBeforeControl" type=html>
+</TSSCRIPT>
+  <table FinalColor=Border border="0" width="100%">
+    <tr>
+      <td>
+        <table border="0" width="100%">
+          <tr FinalColor=HeaderB>
+            <th width="2">
+              &nbsp;
+            </th>
+            <TSSCRIPT repeat times="FromColumns" name=column>
+              <th>
+                <TSSCRIPT value="ColumnHeader[column-1]">
+                   HEADERTEXT
+                </TSSCRIPT>
+              </th>
+            </TSSCRIPT>
+          </tr>
+          <TSSCRIPT repeat times="FromRows" name=row phase=runtime>
+          <tr FinalColor=CellB>
+            <td width="2">
+              <TSSCRIPT tag=input attr=name replace="NAME" value="Name">
+                <TSSCRIPT tag=input attr=value value="row">
+                  <TSSCRIPT tag=input attr=checked value="1" when="Choice==row">
+                    <TSSCRIPT tag=input attr=id replace="FEQ" value="Name">
+                      <TSSCRIPT tag=input attr=id replace="ROWNO" value="row">
+                        <TSSCRIPT tag=input attr=onClick text="icSubmitForm()" when="SubmitOnChange">
+                          <input type="radio" value="ROW" name="NAME$Choice" id="FEQ$ROWNO">
+                        </TSSCRIPT>
+                      </TSSCRIPT>
+                    </TSSCRIPT>
+                  </TSSCRIPT>
+                </TSSCRIPT>
+            	</TSSCRIPT>
+            </td>
+            <TSSCRIPT repeat times="FromColumns" name=column>
+              <td>
+                <TSSCRIPT local name="curColor" value="CellForeColor[row-1][column-1]">
+                  <TSSCRIPT value="'<FONT color=' + MakeColor(curColor) + '>'" type=html when="curColor !=0"></TSSCRIPT>
+                  <TSSCRIPT tag=label attr=for replace="FEQ" value="Name">
+                    <TSSCRIPT tag=label attr=for replace="ROWNO" value="row">
+                      <LABEL FOR="FEQ$ROWNO">
+                        <TSSCRIPT value="CellText[row-1][column-1]=='' ? '&nbsp;' : CellText[row-1][column-1]" phase=runtime>
+                          CELLTEXT
+                        </TSSCRIPT>
+                      </LABEL>
+                    </TSSCRIPT>
+                  </TSSCRIPT>
+                  <TSSCRIPT text="</FONT>" type=html when="curColor!=0"></TSSCRIPT>
+                </TSSCRIPT>
+              </td>
+            </TSSCRIPT>
+          </tr>
+          </TSSCRIPT>
+        </table>
+      </td>
+    </tr>
+    <TSSCRIPT include="NavigationControls">
+    <tr>
+      <td FinalColor=HeaderB>
+        <TSSCRIPT tag=a attr=href replace="NAME" value="Name">
+          <a href="javascript:icSubmit('NAME$EventScrollTop');"><img ALT='First' WIDTH="32" HEIGHT="32" SRC="PUBLIC/wizFirst.gif" border=0></a>
+          <a href="javascript:icSubmit('NAME$EventPageUp');"><img ALT='Prior' WIDTH="32" HEIGHT="32" SRC="PUBLIC/wizPgUp.gif" border=0></a>
+          <a href="javascript:icSubmit('NAME$EventScrollUp');"><img ALT='Up' WIDTH="32" HEIGHT="32" SRC="PUBLIC/wizUp.gif" border=0></a>
+          <a href="javascript:icSubmit('NAME$EventScrollDown');"><img ALT='Down' WIDTH="32" HEIGHT="32" SRC="PUBLIC/wizDown.gif" border=0></a>
+          <a href="javascript:icSubmit('NAME$EventPageDown');"><img ALT='Next' WIDTH="32" HEIGHT="32" SRC="PUBLIC/wizPgDn.gif" border=0></a>
+          <a href="javascript:icSubmit('NAME$EventScrollBottom');"><img ALT='Last' WIDTH="32" HEIGHT="32" SRC="PUBLIC/wizLast.gif" border=0></a>
+        </TSSCRIPT>
+      </td>
+    </tr>
+    </TSSCRIPT>
+  </table>
+<TSSCRIPT value="EmbedAfterControl" type=html>
+</TSSCRIPT>
+<!-- Table.htm -- End -->
+</FORM>
+</BODY>

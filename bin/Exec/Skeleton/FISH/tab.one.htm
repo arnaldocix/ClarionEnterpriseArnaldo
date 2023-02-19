@@ -1,0 +1,79 @@
+<HTML>
+<head>
+<meta name="ts-control" content="tab">
+<meta name="ts-expand" content="off">
+<meta name="ts-hide" content="phase=='runtime' ? !Visible : false">
+<meta name="ts-style" content="fish">
+</head>
+<BODY>
+<FORM>
+<!-- Tab One.htm -->
+<TSSCRIPT local name=SelectedTab value="phase=='runtime' ? Container.Choice : ChildIndex">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <TSSCRIPT local name=ShownTabs value='0'>
+  <tr align="left"><td>
+    <table border="0" cellpadding="0" cellspacing="0" width="1%"><tr>
+      <TSSCRIPT repeat times="Container.NumTabs" name=curTab>
+        <TSSCRIPT local name=thisTab value="Container.Children[curTab-1]">
+          <TSSCRIPT omit="thisTab.Hidden">
+            <TSSCRIPT set name='ShownTabs' value='ShownTabs+1'></TSSCRIPT>
+            <TSSCRIPT include="SelectedTab==curTab">
+    <td>
+  <table border="0" cellpadding="0" cellspacing="0" bgcolor='#CCCCCC'>
+    <tr>
+      <td valign=top rowspan=2> <img src="/greybox_uplft.gif" width=8 height="9"></td>
+      <td><img src="/clearpix.gif" width="2" height="2"></td>
+      <td valign=top rowspan=2><img src="/greybox_uprt.gif" width="9" height="9"></td>
+    </tr>
+    <tr>
+      <td><nobr>
+      <b><TSSCRIPT value="thisTab.DisplayText">SELECTEDTAB</TSSCRIPT></b>
+      </nobr></td>
+    </tr>
+  </table>
+    </td>
+            </TSSCRIPT>
+            <TSSCRIPT include="SelectedTab!=curTab">
+    <td FinalColor=Border nowrap>
+              <TSSCRIPT tag=a attr=* replace="PROGRAM" value="ProgramReference">
+                <TSSCRIPT tag=a attr=* replace="NAME" value="Container.Name">
+                  <TSSCRIPT tag=a attr=* replace="CURTAB" value="curTab">
+  <table border="0" cellpadding="0" cellspacing="0" bgcolor='#CCCCCC'>
+    <tr>
+      <td valign=top rowspan=2> <img src="/greybox_uplft.gif" width=8 height="9"></td>
+      <td><img src="/clearpix.gif" width="2" height="2"></td>
+      <td valign=top rowspan=2><img src="/greybox_uprt.gif" width="9" height="9"></td>
+    </tr>
+    <tr>
+      <td>
+      <a href="javascript:icSubmit(&quot;NAME$Choice=CURTAB&quot;);">
+      <nobr><TSSCRIPT value="thisTab.DisplayText">UNSELECTEDTAB</TSSCRIPT></nobr>
+      </a>
+      </td>
+    </tr>
+  </table>
+                  </TSSCRIPT>
+                </TSSCRIPT>
+              </TSSCRIPT>
+    </td>
+            </TSSCRIPT>
+    <td bgcolor=#FFFFFF>&nbsp;</td>
+          </TSSCRIPT>
+        </TSSCRIPT>
+      </TSSCRIPT>
+  </tr>
+  </table></td></tr>
+  <tr>
+    <td>
+<table border=0 bgcolor=#CCCCCC cellpadding=4 cellspacing=0 width=100%><tr><td>
+      <IMG name="ZONE:Default:Contents[WIDTH='100%']" alt="Wizatrons will place controls in here">
+</td></tr></table>
+    </td>
+  </tr>
+  </TSSCRIPT>
+</table>
+</TSSCRIPT>
+<!-- /Tab One.htm -->
+</FORM>
+</BODY>
+</HTML>

@@ -1,0 +1,46 @@
+﻿<AddIn name        = "ImageViewerAddIn"
+       author      = "Softvelocity"
+       copyright   = "Softvelocity"
+       description = "Allows viewing .ico .jpg.jpeg.gif.bmp.png.tif.tiff.wmf.emf files inside Clarion IDE">
+	
+	<Manifest>
+		<Identity name = "Softvelocity.ImageViewerAddIn"/>
+	</Manifest>
+	
+	<Runtime>
+		<Import assembly = "ImageViewerAddIn.dll"/>
+	</Runtime>
+  <Path name = "/Workspace/Icons">
+    <Icon id         = "ExtraIcoFileIcon"
+		      extensions = ".ico"
+		      resource   = "FileIcons.Icon" />
+    <Icon id         = "ExtraImagesFileIcon"
+		      extensions = ".jpg;.jpeg;.gif;.bmp;.png;.tif;.tiff;.wmf;.emf"
+		      resource   = "FileIcons.Image" />
+  </Path>
+  <Path name = "/SharpDevelop/Workbench/FileFilter">
+    <FileFilter id = "Icons"
+		            insertbefore="AllFiles"
+		            name = "${res:SharpDevelop.FileFilter.Icons}"
+		            extensions = "*.ico"/>
+    <FileFilter id = "ImageFiles"
+		            insertbefore="AllFiles"
+		            name = "Images Files"
+		            extensions = "*.jpg;*.jpeg;*.gif;*.bmp;*.png;*.tif;*.tiff;*.wmf;*.emf"/>
+  </Path>
+
+  <Path name = "/SharpDevelop/Workbench/DisplayBindings">
+    <DisplayBinding id    = "IconViewer"
+		                class = "Softvelocity.Addins.IconViewerDisplayBinding"
+		                insertbefore    = "Text"
+		                fileNamePattern = "\.ico$"
+		                languagePattern = "^IconFiles$"/>
+  </Path>
+  <Path name = "/SharpDevelop/Workbench/DisplayBindings">
+    <DisplayBinding id    = "ImageViewer"
+		                class = "Softvelocity.Addins.ImageViewerDisplayBinding"
+		                insertbefore    = "Text"
+		                fileNamePattern = "^.*\.(jpg|jpeg|gif|bmp|png|tif|tiff|wmf|emf)$"
+		                languagePattern = "^ImageFiles$"/>
+  </Path>
+</AddIn>

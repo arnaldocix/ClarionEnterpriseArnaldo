@@ -1,0 +1,755 @@
+#!õõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõ
+#! Templates Clarion G r u p o s
+#!õõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõ
+#GROUP(%EvoPict,%EvCampo,* %evPicture, * %EvHeader)
+      #IF(NOT %evPicture AND NOT %EvHeader)
+      #SET(%evPicture,'')
+      #FIX(%File,%Primary)
+      #FIX( %Field, %EvCampo)
+      #IF(%Field)
+        #SET(%evPicture,%FieldDisplayPicture)
+      #END
+      #!IF (NOT %evPicture)
+          #FOR(%Secondary)
+            #FIX(%File,%Secondary)
+            #FIX( %Field, %evCampo)
+            #IF(%Field)
+              #SET(%evPicture,%FieldDisplayPicture)
+            #END
+          #ENDFOR
+          #IF (NOT %evPicture)
+              #FOR(%OtherFiles)
+                #FIX(%File,%OtherFiles)
+                #FIX( %Field, %evCampo)
+                #IF(%Field)
+                  #SET(%evPicture,%FieldDisplayPicture)
+                #END
+              #ENDFOR
+              #IF (NOT %evPicture)
+                  #SET(%evPicture,%FieldHeader)
+              #END
+              #IF (NOT %evPicture)
+                  #FIX(%LocalData,%evCampo)
+                  #IF(%LocalData)
+                      #SET(%evPicture,%LocalDataPicture)
+                  #END
+                  #IF (NOT %evPicture)
+                      #SET(%evPicture,'@S20')
+                  #ELSE
+                  #ENDIF
+              #ENDIF
+          #ENDIF
+          #SET(%evHeader,%FieldDescription)
+          #IF (NOT %evHeader)
+                  #IF(INSTRING(':',%evCampo))
+                     #SET(%EvHeader,SUB(%evCampo,INSTRING(':',%evCampo,1,1)+1,LEN(%evCampo)+1-INSTRING(':',%evCampo,1,1)))
+                  #ELSE
+                     #SET(%EvHeader,%evCampo)
+                  #END
+          #ENDIF
+      #!ENDIF
+      #ENDIF
+#!¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+#GROUP(%ecDeclara100)
+#CALL(%ecstart)
+#CALL(%ecdatos)
+
+EVO:QDatos               QUEUE,PRE(QDat)
+Col1                       CSTRING(100)
+Col2                       CSTRING(100)
+Col3                       CSTRING(100)
+Col4                       CSTRING(100)
+Col5                       CSTRING(100)
+Col6                       CSTRING(100)
+Col7                       CSTRING(100)
+Col8                       CSTRING(100)
+Col9                       CSTRING(100)
+Col10                      CSTRING(100)
+Col11                      CSTRING(100)
+Col12                      CSTRING(100)
+Col13                      CSTRING(100)
+Col14                      CSTRING(100)
+Col15                      CSTRING(100)
+Col16                      CSTRING(100)
+Col17                      CSTRING(100)
+Col18                      CSTRING(100)
+Col19                      CSTRING(100)
+Col20                      CSTRING(100)
+Col21                      CSTRING(100)
+Col22                      CSTRING(100)
+Col23                      CSTRING(100)
+Col24                      CSTRING(100)
+Col25                      CSTRING(100)
+Col26                      CSTRING(100)
+Col27                      CSTRING(100)
+Col28                      CSTRING(100)
+Col29                      CSTRING(100)
+Col30                      CSTRING(100)
+Col31                      CSTRING(100)
+Col32                      CSTRING(100)
+Col33                      CSTRING(100)
+Col34                      CSTRING(100)
+Col35                      CSTRING(100)
+Col36                      CSTRING(100)
+Col37                      CSTRING(100)
+Col38                      CSTRING(100)
+Col39                      CSTRING(100)
+Col40                      CSTRING(100)
+Col41                      CSTRING(100)
+Col42                      CSTRING(100)
+Col43                      CSTRING(100)
+Col44                      CSTRING(100)
+Col45                      CSTRING(100)
+Col46                      CSTRING(100)
+Col47                      CSTRING(100)
+Col48                      CSTRING(100)
+Col49                      CSTRING(100)
+Col50                      CSTRING(100)
+ END
+#CALL(%ecend)
+#!¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+#GROUP(%ecDeclara255)
+#CALL(%ecstart)
+#CALL(%ecdatos)
+
+EVO:QDatos               QUEUE,PRE(QDat)
+Col1                       CSTRING(255)
+Col2                       CSTRING(255)
+Col3                       CSTRING(255)
+Col4                       CSTRING(1000)
+Col5                       CSTRING(255)
+Col6                       CSTRING(255)
+Col7                       CSTRING(255)
+Col8                       CSTRING(255)
+Col9                       CSTRING(255)
+Col10                      CSTRING(255)
+Col11                      CSTRING(255)
+Col12                      CSTRING(255)
+Col13                      CSTRING(255)
+Col14                      CSTRING(255)
+Col15                      CSTRING(255)
+Col16                      CSTRING(255)
+Col17                      CSTRING(255)
+Col18                      CSTRING(255)
+Col19                      CSTRING(255)
+Col20                      CSTRING(255)
+Col21                      CSTRING(255)
+Col22                      CSTRING(255)
+Col23                      CSTRING(255)
+Col24                      CSTRING(255)
+Col25                      CSTRING(255)
+Col26                      CSTRING(255)
+Col27                      CSTRING(255)
+Col28                      CSTRING(255)
+Col29                      CSTRING(255)
+Col30                      CSTRING(255)
+Col31                      CSTRING(255)
+Col32                      CSTRING(255)
+Col33                      CSTRING(255)
+Col34                      CSTRING(255)
+Col35                      CSTRING(255)
+Col36                      CSTRING(255)
+Col37                      CSTRING(255)
+Col38                      CSTRING(255)
+Col39                      CSTRING(255)
+Col40                      CSTRING(255)
+Col41                      CSTRING(255)
+Col42                      CSTRING(255)
+Col43                      CSTRING(255)
+Col44                      CSTRING(255)
+Col45                      CSTRING(255)
+Col46                      CSTRING(255)
+Col47                      CSTRING(255)
+Col48                      CSTRING(255)
+Col49                      CSTRING(255)
+Col50                      CSTRING(255)
+ END
+#CALL(%ecend)
+#!¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+#GROUP(%ecDatos)
+?Exportarword  EQUATE(-1025)
+
+QHList QUEUE,PRE(QHL)
+Id                         SHORT
+Nombre                     STRING(100)
+Longitud                   SHORT
+Pict                       STRING(50)
+TextColor             SHORT
+TextBack             SHORT
+TextFont               STRING(20)
+TextFontSize      SHORT
+FTextColor             SHORT
+FTextBack             SHORT
+FTextFont               STRING(20)
+FTextFontSize      SHORT
+                         END
+Titulo                     STRING(100)
+QPAR QUEUE,PRE(Q)
+FieldPar                 CSTRING(200)
+                         END
+evo::any     ANY
+evo::envio   CSTRING(5000)
+evo::path    CSTRING(5000)
+
+Evo::Group  GROUP,PRE()
+Evo::Aplication STRING(100)
+Evo::Procedure STRING(100)
+Evo::Html   BYTE
+Evo::xls   BYTE
+Evo::doc  BYTE
+Evo::Ascii BYTE
+Evo::xml   BYTE
+Evo:typexport STRING(10)
+   END
+
+#!¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+#GROUP(%Parametros)
+CargaParametros ROUTINE
+        FREE(QHList)
+        #SET(%reg2,%false)
+        #IF(%EcAutomatic='Manual')
+          #FOR(%EvoCampos)
+           #SET(%reg2,%reg2 + 1)
+           QHL:Id      = %reg2
+           #IF(%EvoHeaderF)
+           QHL:Nombre  = %EvoHeaderF
+           #ELSE
+           QHL:Nombre  = '%EvoHeader'
+           #END
+           QHL:Longitud   = 100
+           QHL:Pict             = '%EvoPict'
+           QHL:TextColor  = %HHTextColor
+           QHL:TextBack   = %HHTextBackground
+           QHL:TextFont   = '%HHTextFont'
+           QHL:TextFontSize   = %FFTextFontSize
+           QHL:FTextColor        = %FFTextColor
+           QHL:FTextBack         = %FFTextBackground
+           QHL:FTextFont          ='%FFTextFont'
+            QHL:FTextFontSize  =%FFTextFontSize
+           ADD(QHList)
+          #ENDFOR
+        #ELSE
+          #FOR(%ReportControl)
+           #IF(%EcValidaControl() AND %ReportControlUse <> '' AND %EvoEnableControl)
+           #SET(%reg2,%reg2 + 1)
+           QHL:Id      = %reg2
+           QHL:Nombre  = '%EvoHeader2'
+           QHL:Longitud= 100
+           QHL:Pict    = '%EvoPict2'
+           QHL:TextColor  = %HHTextColor
+           QHL:TextBack   = %HHTextBackground
+           QHL:TextFont   = '%HHTextFont'
+           QHL:TextFontSize   = %FFTextFontSize
+           QHL:FTextColor        = %FFTextColor
+           QHL:FTextBack         = %FFTextBackground
+           QHL:FTextFont          ='%FFTextFont'
+            QHL:FTextFontSize  =%FFTextFontSize
+           ADD(QHList)
+           #ENDIF
+          #ENDFOR
+        #ENDIF
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        FREE(QPar)
+        #INSERT(%ExManejoCampos)
+        Q:FieldPar  = '%lista'
+        ADD(QPar)!.1.
+        Q:FieldPar  = '%SeparatorASCII'
+        ADD(QPar)!.2.
+        Q:FieldPar  = '%EcLenguaje'
+        ADD(QPar)!.3.
+        #IF (Not %PathFiles)
+        Q:FieldPar  = ''
+        #ELSE
+        Q:FieldPar  = %PathFiles
+        #END
+        ADD(QPar)!.4.
+        #IF (Not %DisablePreview)
+        Q:FieldPar  = true
+        #ELSE
+        Q:FieldPar  = false
+        #END
+        ADD(QPar)!.5.
+        #IF (Not %EcFileName)
+        Q:FieldPar  = ''
+        #ELSE
+        Q:FieldPar  = %EcFileName
+        #END
+        ADD(QPar)!.6.
+        #IF(%reg2)
+        Q:FieldPar  = %reg2
+        #ELSE
+        Q:FieldPar  = ''
+        #END
+        ADD(QPar)!.7.
+        Q:FieldPar  = 'FREE'
+        ADD(QPar)   !.8.
+        #IF(%TituloEx1)
+        Titulo = %TituloEx1
+        #ELSIF (%TituloEx)
+        Titulo = '%TituloEx'
+        #ENDIF
+        #IF(UPPER(%ProcedureTemplate) = 'UNIVABCREPORT')
+        Q:FieldPar  = 'NOPREVIEW'
+        #ELSIF(%EcNoPreview=1)
+        Q:FieldPar  = 'NOPREVIEW'
+        #ELSE
+        Q:FieldPar  = 'REPORT'
+        #ENDIF
+        ADD(QPar)   !.9.
+        Q:FieldPar  = 1 !Order
+         ADD(QPar)   !.10
+        #IF (%LineFrom<>'')
+         Q:FieldPar  = %LineFrom
+         #ELSE
+         Q:FieldPar  = 0
+         #END
+         ADD(QPar)   !.11
+         Q:FieldPar  = '%CreateFileExcel'
+         ADD(QPar)   !.12
+
+         #IF (%PathImage<>'')
+         Q:FieldPar  = %PathImage
+         #ELSE
+         Q:FieldPar  = ''
+         #END
+         ADD(QPar)   !.13
+
+         #IF (%EcHeader1<>'')
+         Q:FieldPar  = %EcHeader1
+         #ELSE
+         Q:FieldPar  = ''
+         #END
+         ADD(QPar)   !.14
+
+         #IF (%EcHeader2<>'')
+         Q:FieldPar  = %EcHeader2
+         #ELSE
+         Q:FieldPar  = ''
+         #END
+         ADD(QPar)   !.15
+
+         Q:FieldPar  = '%ECFormato'
+        ADD(QPar)   !.16
+
+        Q:FieldPar  =  %TTextColor
+        ADD(QPar)   !.17.
+        Q:FieldPar  =  %TTextBackground
+        ADD(QPar)   !.18.
+        Q:FieldPar  =  '%TTextFont'
+        ADD(QPar)   !.19.
+        Q:FieldPar  =  %TTextFontSize
+        ADD(QPar)   !.20.
+        Q:FieldPar  = 0 !Exporta a excel sin borrar
+        ADD(QPar)     !.21
+        Q:FieldPar  = 0         !Nro Pag. Desde Report (BExp)
+        ADD(QPar)     !.22
+        Q:FieldPar  = 0
+        ADD(QPar)     !.23 Caracteres Encoding para xml
+ #!IF (%EcUseOO<>'')
+ #!     Q:FieldPar   = %EcUseOO
+ #!ELSE
+        Q:FieldPar  = 1
+ #!END
+        ADD(QPar)      !24
+        Q:FieldPar  = '13021968'
+        ADD(QPar)     !.25
+  !---------------------------------------------------------------------------------------------
+!!Registration 
+        Q:FieldPar  = '%Dataemail'
+        ADD(QPar)   ! 26  
+        Q:FieldPar  =  '%DataName'
+        ADD(QPar)   ! 27  
+        Q:FieldPar  =  '%DatosSerial' 
+        ADD(QPar)   ! 28  
+        Q:FieldPar  =  'REXPORT' 
+        ADD(QPar)   ! 29 %Module
+        
+        !.30 en adelante
+        #FOR(%EcCampos)
+        #IF(%EcCampoTipo = 'Footer')
+        Q:FieldPar  = '(F)'&%EcCampo
+        #ELSE
+        Q:FieldPar  = '(H)'&%EcCampo
+        #END
+        ADD(QPar)
+        #ENDFOR
+      ! 30 en adelante
+        #FOR(%EcCampos)
+        #IF(%EcCampoTipo = 'Footer')
+        Q:FieldPar  = '(F)'&%EcCampo
+        #ELSE
+        Q:FieldPar  = '(H)'&%EcCampo
+        #END
+        ADD(QPar)
+        #ENDFOR
+        #!FOR(%EcGraficos)
+        #!Q:FieldPar  = '(G)%TipoGrafica*'&%EcNameGraf
+        #!ADD(QPar)     !.22 en adelante
+        #!ENDFOR
+
+!!! Parametros Grupo
+        Evo::Aplication          = '%Application'
+        Evo::Procedure          = GlobalErrors.GetProcedureName()& %ActiveTemplateInstance
+        Evo::Html   = %HTML
+        Evo::xls   = %Excel
+        Evo::doc   = %word
+        Evo::xml   = %xml
+        Evo::Ascii   = %ascii
+        Evo:typexport = '%TypeExport'
+
+#!¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+#GROUP(%ParametrosAutoReport)
+CargaParametros ROUTINE
+        FREE(QHList)
+        #SET(%reg2,%false)
+          #FOR(%EvoCampos)
+           #SET(%reg2,%reg2 + 1)
+           QHL:Id      = %reg2
+           QHL:Nombre  = '%EvoHeader'
+           QHL:Longitud   = 100
+           QHL:Pict             = '%EvoPict'
+           QHL:TextColor  = %HHTextColor
+           QHL:TextBack   = %HHTextBackground
+           QHL:TextFont   = '%HHTextFont'
+           QHL:TextFontSize   = %FFTextFontSize
+           QHL:FTextColor        = %FFTextColor
+           QHL:FTextBack         = %FFTextBackground
+           QHL:FTextFont          ='%FFTextFont'
+            QHL:FTextFontSize  =%FFTextFontSize
+           ADD(QHList)
+          #ENDFOR
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        FREE(QPar)
+      #DECLARE(%Contador)
+      #DECLARE(%lista)
+      #SET(%Contador,1)
+      #FOR(%EvoCampos)
+           #SET(%lista,%Lista&%Contador&',')
+           #SET(%Contador,%Contador+1)
+      #ENDFOR
+        Q:FieldPar  = '%lista'
+        ADD(QPar)!.1.
+        Q:FieldPar  = '%SeparatorASCII'
+        ADD(QPar)!.2.
+        Q:FieldPar  = '%EcLenguaje'
+        ADD(QPar)!.3.
+        #!IF (Not %PathFiles)
+        Q:FieldPar  = ''
+        #!ELSE
+        #!Q:FieldPar  = %PathFiles
+        #!END
+        ADD(QPar)!.4.
+        #!IF (Not %DisablePreview)
+        Q:FieldPar  = true
+        #!ELSE
+        #!Q:FieldPar  = false
+        #!END
+        ADD(QPar)!.5.
+        Q:FieldPar  = ''
+        ADD(QPar)!.6.
+        #IF(%reg2)
+        Q:FieldPar  = %reg2
+        #ELSE
+        Q:FieldPar  = ''
+        #END
+        ADD(QPar)!.7.
+        Q:FieldPar  = 'FREE'
+        ADD(QPar)   !.8.
+        Titulo = %Ectitulo
+        Q:FieldPar  = 'REPORT'
+        ADD(QPar)   !.9.
+        Q:FieldPar  = 1 !Order
+         ADD(QPar)   !.10
+        #IF (%LineFrom<>'')
+         Q:FieldPar  = %LineFrom
+         #ELSE
+         Q:FieldPar  = 0
+         #END
+         ADD(QPar)   !.11
+         Q:FieldPar  = '%CreateFileExcel'
+         ADD(QPar)   !.12
+
+         #!IF (%PathImage<>'')
+         #!Q:FieldPar  = %PathImage
+         #!ELSE
+         Q:FieldPar  = ''
+         #!END
+         ADD(QPar)   !.13
+
+         #!IF (%EcHeader1<>'')
+         #!Q:FieldPar  = %EcHeader1
+         #!ELSE
+         Q:FieldPar  = ''
+         #!END
+         ADD(QPar)   !.14
+
+         #!IF (%EcHeader2<>'')
+         #!Q:FieldPar  = %EcHeader2
+         #!ELSE
+         Q:FieldPar  = ''
+         #!END
+         ADD(QPar)   !.15
+
+         Q:FieldPar  = '%ECFormato'
+        ADD(QPar)   !.16
+
+#!        Q:FieldPar  =  %TTextColor
+         Q:FieldPar  = ''
+        ADD(QPar)   !.17.
+#!        Q:FieldPar  =  %TTextBackground
+         Q:FieldPar  = ''
+        ADD(QPar)   !.18.
+#!        Q:FieldPar  =  '%TTextFont'
+         Q:FieldPar  = ''
+        ADD(QPar)   !.19.
+#!        Q:FieldPar  =  %TTextFontSize
+         Q:FieldPar  = ''
+        ADD(QPar)   !.20.
+        Q:FieldPar  = 0 !Exporta a excel sin borrar
+        ADD(QPar)     !.21
+        Q:FieldPar  = 0         !Nro Pag. Desde Report (BExp)
+        ADD(QPar)     !.22
+        Q:FieldPar  = 0
+        ADD(QPar)     !.23 Caracteres Encoding para xml
+ #!IF (%EcUseOO<>'')
+ #!     Q:FieldPar   = %EcUseOO
+ #!ELSE
+        Q:FieldPar  = 1
+ #!END
+        ADD(QPar)     !24 Use Open Office
+        Q:FieldPar  = '1399999'
+        ADD(QPar)     !.25
+!---------------------------------------------------------------------------------------------
+!!Registration 
+        Q:FieldPar  = '%Dataemail'
+        ADD(QPar)   ! 26  
+        Q:FieldPar  =  '%DataName'
+        ADD(QPar)   ! 27  
+        Q:FieldPar  =  '%DatosSerial' 
+        ADD(QPar)   ! 28  
+        Q:FieldPar  =  'REXPORT' 
+        ADD(QPar)   ! 29 %Module
+!!!!!
+
+!!! Parametros Grupo
+        Evo::Aplication          = '%Application'
+        Evo::Procedure          = GlobalErrors.GetProcedureName()
+        Evo::Html   = 1
+        Evo::xls   = 1
+        Evo::doc   = 1
+        Evo::xml   = 1
+        Evo::Ascii   = 1
+        Evo:typexport = 'All'
+
+#!¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+#GROUP(%TakeRecTabla)
+        #CALL(%ecstart)
+        #SET(%reg,%false)
+        #EMBED(%CargaDatosQueueExportacion,'Templates Clarion- Process Fields the Queue Report Export')
+        #IF(%EcAutomatic='Manual')
+          #FOR(%EvoCampos)
+             #SET(%reg,%reg + 1)
+             Evo::Any &= WHAT(EVO:QDatos,%reg)
+             Evo::Any  = %EvoCampo
+          #ENDFOR
+        #ELSE
+          #FOR(%ReportControl)
+             #IF(%EcValidaControl() AND %ReportControlUse <> '' AND %EvoEnableControl)
+             #SET(%reg,%reg + 1)
+             Evo::Any &= WHAT(EVO:QDatos,%reg)
+             Evo::Any  = %ReportControlUse
+             #ENDIF
+          #ENDFOR
+        #ENDIF
+        #EMBED(%CargaQueueExportacion,'Templates Clarion- Before ADD Rows Queue Report Export')
+        ADD(EVO:QDatos)
+        ASSERT (NOT ErrorCode())
+       #CALL(%ecend)
+#!¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+#GROUP(%ObjetoRecuperar)
+#DECLARE(%Browses),Multi
+#FIX(%ActiveTemplate,'BrowseBox(ABC)')
+#IF(%ActiveTemplate)
+  #FOR(%ActiveTemplateInstance)
+    #CONTEXT(%Procedure,%ActiveTemplateInstance)
+      #FIX(%ClassItem,'Default')
+      #ADD(%Browses,%ThisObjectName)
+    #ENDCONTEXT
+  #ENDFOR
+#ENDIF
+#!¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+#GROUP(%EcStart)
+!Comienzo Codigo CW Templates
+!------------------------------------------------------------------------------------------------------------
+#!¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+#GROUP(%EcEnd)
+!Fin Codigo  CW Templates
+!------------------------------------------------------------------------------------------------------------
+#!*****************************************************************************************************
+#GROUP(%EvoImage)
+  #Image('cajaCWT.bmp')
+#DISPLAY
+#DISPLAY
+#DISPLAY
+#DISPLAY
+#DISPLAY
+#DISPLAY
+#DISPLAY('User Name    : '&%DataName)
+#DISPLAY('e-mail       : '&%Dataemail)
+#DISPLAY('Serial Number: '&%DatosSerial)
+#DISPLAY
+#DISPLAY
+#DISPLAY
+#DISPLAY
+#DISPLAY('Copyright 2015 - All Rights Reserved')
+#DISPLAY('Info@templatesclarion.com.ar')
+#DISPLAY('Author:Gustavo Olmedo  ')
+#DISPLAY('Chacabuco - Buenos Aires - Argentina')
+#DISPLAY(' Version Date (12/03/2015)')
+#DISPLAY
+
+#!*****************************************************************************************************
+#GROUP(%ExManejoCampos)
+ #DECLARE(%Contador)
+ #DECLARE(%lista)
+ #SET(%Contador,1)
+ #IF(%EcAutomatic='Manual')
+ #FOR(%EvoCampos)
+      #SET(%lista,%Lista&%Contador&',')
+      #SET(%Contador,%Contador+1)
+  #ENDFOR
+ #ELSE
+      #FOR(%ReportControl)
+      #IF(%EcValidaControl() AND %ReportControlUse <> '' AND %EvoEnableControl)
+      #SET(%lista,%Lista&%Contador&',')
+      #SET(%Contador,%Contador+1)
+      #ENDIF
+      #ENDFOR
+ #ENDIF
+#!*****************************************************************************************************
+#GROUP(%EcValidaControl),AUTO
+#DECLARE(%lReturnValue)
+#SET(%lReturnValue,%False)
+#IF(NOT %ReportControl)
+   #RETURN(%False)
+#ENDIF
+#CASE(%ReportControlType)
+#OF('LIST')
+#OROF('HEADER')
+#OROF('DETAIL')
+#OROF('FORM')
+#OROF('FOOTER')
+#OROF('BREAK')
+   #SET(%lReturnValue,%False)
+#OF('GROUP')
+#OROF('OPTION')
+   #IF(INSTRING(',BOXED',%ReportControlStatement,1,1)>0)
+       #SET(%lReturnValue,%True)
+   #ELSE
+       #SET(%lReturnValue,%False)
+   #ENDIF
+#OF('LINE')
+#OROF('BOX')
+#OROF('ELLIPSE')
+#OROF('RADIO')
+#OROF('IMAGE')
+#OROF('STRING')
+#OROF('TEXT')
+#OROF('CHECK')
+   #SET(%lReturnValue,%True)
+#ENDCASE
+#RETURN(%lReturnValue)
+
+#!*****************************************************************************************************
+#GROUP(%ExportRpt)
+    evo::path  = PATH()
+    #if( %EcversionRpt2=1)
+    EVO_RPT_Export(QHList,EVO:QDatos,QPar,0,Titulo,Evo::Group)
+    #else
+    EcRptExport(QHList,EVO:QDatos,QPar,0,Titulo,Evo::Group)
+    #end
+    SETPATH(evo::path)
+#!*****************************************************************************************************
+#GROUP(%EvoMap)
+#IF(%ApplicationLocalLibrary)
+  MODULE('%EvoLibl')
+  EcRptExport(*QUEUE,*QUEUE,*QUEUE,SHORT,STRING,*GROUP)
+  ExportarRptII(*QUEUE,*QUEUE,*QUEUE,SHORT,STRING,*GROUP,*QUEUE)
+  PDP(*QUEUE,Long)
+  END
+#ELSE
+  MODULE('%EvoDll')
+  EcRptExport(*QUEUE,*QUEUE,*QUEUE,SHORT,STRING,*GROUP)
+  ExportarRptII(*QUEUE,*QUEUE,*QUEUE,SHORT,STRING,*GROUP,*QUEUE)
+  PDP(*QUEUE,Long)
+  END
+#END
+#!*****************************************************************************************************
+#GROUP(%EvoVersion)
+ #DISPLAY(' REPORT EXPORT - V. 2.7 (12/03/2015)'),AT(0,0,193), PROP(PROP:FontColor,0800000H ),PROP(PROP:Fontstyle,700),PROP(PROP:FontName,'Verdana')
+ #DISPLAY
+#!*****************************************************************************************************
+#GROUP(%EvoFormatDet)
+      #DISPLAY()
+      #BOXED('Header')
+      #PROMPT('Text Color:',Drop('Transparent[0]|Black[1]|White[2]|Red[3]|Green[4]|Blue[5]|Yellow[6]|Magenta[7]|Cyan[8]')),%HHTextColor,DEFAULT(0)
+      #PROMPT('Background:',Drop('Transparent[0]|Black[1]|White[2]|Red[3]|Green[4]|Blue[5]|Yellow[6]|Magenta[7]|Cyan[8]')),%HHTextBackground,DEFAULT(0)
+      #PROMPT('Font Name:',Drop('MS Sans Serif|Arial|Courier New|Verdana|Arial Black|Book Antigua|Lucida Console|Tahoma|Times New Roman')),%HHTextFont,DEFAULT(2)
+      #PROMPT('Font Size:',SPIN(@n_2,0,30,1)),%HTextFontSize,DEFAULT(10)
+      #ENDBOXED
+      #DISPLAY()
+      #DISPLAY()
+      #BOXED('Fields')
+      #PROMPT('Text Color:',Drop('Transparent[0]|Black[1]|White[2]|Red[3]|Green[4]|Blue[5]|Yellow[6]|Magenta[7]|Cyan[8]')),%FFTextColor,DEFAULT(0)
+      #PROMPT('Background:',Drop('Transparent[0]|Black[1]|White[2]|Red[3]|Green[4]|Blue[5]|Yellow[6]|Magenta[7]|Cyan[8]')),%FFTextBackground,DEFAULT(0)
+      #PROMPT('Font Name:',Drop('MS Sans Serif|Arial|Courier New|Verdana|Arial Black|Book Antigua|Lucida Console|Tahoma|Times New Roman')),%FFTextFont,DEFAULT(2)
+      #PROMPT('Font Size:',SPIN(@n_2,0,30,1)),%FFTextFontSize,DEFAULT(8)
+      #ENDBOXED
+      #DISPLAY()
+      #DISPLAY()
+#GROUP(%EvoFormatDetAuto)
+      #DISPLAY()
+      #BOXED('Header')
+      #PROMPT('Text Color:',Drop('Transparent[0]|Black[1]|White[2]|Red[3]|Green[4]|Blue[5]|Yellow[6]|Magenta[7]|Cyan[8]')),%HHTextColor,DEFAULT(0)
+      #PROMPT('Background:',Drop('Transparent[0]|Black[1]|White[2]|Red[3]|Green[4]|Blue[5]|Yellow[6]|Magenta[7]|Cyan[8]')),%HHTextBackground,DEFAULT(0)
+      #PROMPT('Font Name:',Drop('MS Sans Serif|Arial|Courier New|Verdana|Arial Black|Book Antigua|Lucida Console|Tahoma|Times New Roman')),%HHTextFont,DEFAULT(2)
+      #PROMPT('Font Size:',SPIN(@n_2,0,30,1)),%HTextFontSize,DEFAULT(10)
+      #ENDBOXED
+      #BOXED('Fields')
+      #PROMPT('Text Color:',Drop('Transparent[0]|Black[1]|White[2]|Red[3]|Green[4]|Blue[5]|Yellow[6]|Magenta[7]|Cyan[8]')),%FFTextColor,DEFAULT(0)
+      #PROMPT('Background:',Drop('Transparent[0]|Black[1]|White[2]|Red[3]|Green[4]|Blue[5]|Yellow[6]|Magenta[7]|Cyan[8]')),%FFTextBackground,DEFAULT(0)
+      #PROMPT('Font Name:',Drop('MS Sans Serif|Arial|Courier New|Verdana|Arial Black|Book Antigua|Lucida Console|Tahoma|Times New Roman')),%FFTextFont,DEFAULT(2)
+      #PROMPT('Font Size:',SPIN(@n_2,0,30,1)),%FFTextFontSize,DEFAULT(8)
+      #ENDBOXED
+
+#!¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+#GROUP(%GolRtvPar, %Label, *%Value)
+#IF(~FILEEXISTS('TCW.ini'))
+  #CLEAR(%Value)
+  #RETURN
+#ENDIF
+#EQUATE(%R, %True)
+#DECLARE(%L)
+#OPEN('TCW.ini'),READ
+#READ(%L)
+#IF(%L = '[LIC]')
+  #LOOP
+    #READ(%L)
+    #IF(%L = %EOF)
+      #BREAK
+    #ELSIF(SLICE(%L, 1, LEN(%Label)+1) = %Label &'=')
+      #IF(LEN(%Label)+1 = LEN(%L))
+        #CLEAR(%Value)
+      #ELSE
+        #SET(%Value, SLICE(%L, LEN(%Label)+2, LEN(%L)))
+      #ENDIF
+      #SET(%R, %False)
+      #BREAK
+    #ENDIF
+  #ENDLOOP
+#ENDIF
+#CLOSE,READ
+#IF(%R)
+  #CLEAR(%Value)
+#ENDIF

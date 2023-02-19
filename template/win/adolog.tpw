@@ -1,0 +1,261 @@
+#control(ADOLoginControl, 'ADO Login controls'), req(ADOLoginProc), HLP('~TPLADOLoginControl')
+  CONTROLS
+       PROMPT('&User ID'),AT(,,,),USE(?PromptUserID)
+       ENTRY(@s20),AT(44,0,161,10),USE(szUserID), #link(?PromptUserID)
+       PROMPT('&Password:'),AT(,,,),USE(?PromptPassword), #link(?PromptUserID)
+       ENTRY(@s20),AT(44,0,161,10),USE(szPassword),PASSWORD, #link(?PromptUserID)
+       PROMPT('&Server:'),AT(,,,),USE(?PromptServer), #link(?PromptUserID)
+       ENTRY(@s20),AT(44,0,161,10),USE(szServer), #link(?PromptUserID)
+       CHECK('Blank Password'), at(10,0,20,10), use(ulBlankPassword), #link(?PromptUserID)
+       BUTTON('&Login'),AT(10,20,45,14),USE(?btnLogin), DEFAULT, #link(?PromptUserID)
+       BUTTON('Cancel'),AT(50,0,45,14),USE(?btnCancel), #link(?PromptUserID)
+  END
+#LOCALDATA
+szUserID        cstring(21)
+szPassword      cstring(21)
+szServer        cstring(21)
+ulBlankPassword ulong
+#ENDLOCALDATA
+#!
+#!
+#!
+#extension(ADOloginExtension, 'ADO Login Extension'), req(ADOLoginProc), HLP('~TPLADOLoginExtension')
+#sheet
+  #tab('General')
+    #prompt('Login procedure builds the Connection string from:', option), %svLoginSource, at(10)
+    #prompt('User ID, Password and Server prompt at runtime', radio), at(13)
+    #prompt('UDL File', radio), at(13)
+    #boxed('User Login'), where(%svLoginSource = 'User ID, Password and Server prompt at runtime'), clear, at(,50,,)
+      #sheet, at(8,,178,)
+        #tab('Login details')
+          #prompt('Number of retries allowed:', @n3), %svNbrOfRetry, default(3)
+          #prompt('Display a message if retries exceeded', CHECK), %svMessageIfRetriesExceeded, at(10)
+          #enable(%svMessageIfRetriesExceeded = 1), clear
+            #prompt('Message Box caption:', @s60), %svMessageCaption
+            #prompt('Message Text: ', TEXT), %svMessageText
+            #prompt('Return from procdedure after Message call:', check), %svReturnAfterMessage, at(10)
+          #endenable
+        #endtab
+        #tab('Connection string data')
+          #prompt('Build the Connection string data', option), %svBasedConnectionStr
+          #prompt('From Dictionary', radio)
+          #prompt('From UDL file', radio)
+          #prompt('Connection Builder', radio)
+          #prompt('Your Entry', radio)
+          #boxed(''), where(%svBasedConnectionStr = 'From Dictionary'), clear, at(,130,,)
+            #prepare
+              #declare(%svDCTFileList), multi
+              #purge(%svDCTFileList)
+              #for(%File)
+                #add(%svDCTFileList, %File)
+              #endfor
+            #endprepare
+            #prompt('Dictionary Table:', FROM(%svDCTFileList)), %svBaseDCTFile, whenaccepted(%ReadStringFromDCT(%svBaseDCTFile, %svBaseConnectStrFromDCT))
+            #prompt('Connection string:', TEXT), %svBaseConnectStrFromDCT, req
+          #endboxed
+          #boxed(''), where(%svBasedConnectionStr = 'From UDL file'), clear, at(,130,,)
+            #prompt('UDL Filename: ', OPENDIALOG('Pick UDL file', 'UDL File|*.UDL')), %svBaseStrUDLFileName, whenaccepted(%ReadStringFromUDL(%svBaseStrUDLFileName, %svBaseStrUDL))
+            #prompt('Connection string:', TEXT), %svBaseStrUDL, req
+          #endboxed
+          #boxed(''), where(%svBasedConnectionStr = 'Connection Builder'), clear, at(,130,,)
+            #prompt('Connection string: ', TEXT), %svBaseStrFromCnBld, req
+            #button('Call Connection Builder'), WHENACCEPTED(%OleDBConnectionBuilder(%svBaseStrFromCnBld)), at(,,160,)
+            #endbutton
+          #endboxed
+          #boxed(''), where(%svBasedConnectionStr = 'Your Entry'), at(,130,,)
+            #prompt('Connection string:', TEXT), %svBaseStrFromEntry, req
+          #endboxed
+        #endtab
+      #endsheet
+    #endboxed
+    #boxed('Data Link'), where(%svLoginSource = 'UDL File'), at(,50,,)
+      #prompt('UDL File Name:', OPENDIALOG('Pick UDL file', 'UDL File|*.UDL')), %svUDLFileName
+      #enable(0)
+      #prompt('Data Link Dialog can be displayed to the user', check), %svCanCallDataLink, default(0), at(10)
+      #endenable
+    #endboxed
+    #prompt('Call an Error procedure if Connection failed', CHECK), %svErrorOnConnFailed, at(10)
+    #enable(%svErrorOnConnFailed = 1), clear
+      #prompt('Ado Error Procedure:' , PROCEDURE), %svADOErrorProcedureName
+    #endenable
+  #endtab
+#endsheet
+#atstart
+  #declare(%svUserIDVar)
+  #declare(%svTmpStr)
+  #declare(%svpasswordVar)
+  #declare(%svLoginBtn)
+  #declare(%svConHelperBtn)
+  #declare(%svCancelLogBtn)
+  #declare(%svServerVar)
+  #declare(%svBlankPassword)
+  #for(%Control), where(%ControlUse = 'szUserID')
+    #set(%svUserIDVar, %ControlUse)
+  #endfor
+  #for(%Control), where(%ControlUse = 'szPassword')
+    #set(%svpasswordVar, %ControlUse)
+  #endfor
+  #for(%Control), where(%ControlUse = 'szServer')
+    #set(%svServerVar, %ControlUSe)
+  #endfor
+  #for(%Control), where(%Control = '?btnLogin')
+    #set(%svLoginBtn, %Control)
+  #endfor
+  #for(%Control), where(%Control = '?btnCancel')
+    #set(%svCancelLogBtn, %Control)
+  #endfor
+  #declare(%svConStrAttr), multi
+  #declare(%svConAttrKeyword, %svConStrAttr)
+  #declare(%svConAttrValue, %svConStrAttr)
+  #declare(%ndx)
+  #declare(%svValueTmp)
+  #declare(%svID)
+  #declare(%TmpStr)
+#endat
+#localdata
+TriedLogin      long
+szConnectStr    cstring(512)
+hr              HRESULT
+#endlocaldata
+#at(%GlobalMap)
+  #IF(%svLoginSource = 'UDL File')
+    #PROJECT('ClaADOtp.lib')
+    #add(%CustomGlobalMapModule, 'ClaADOtp.lib')
+    #add(%CustomGlobalMapProcedure, 'ReadStringFromUDL')
+    #set(%CustomGlobalMapProcedurePrototype, '(string pFileName), string, name(''ReadStringFromUDL'')')
+  #ENDIF
+#ENDAT
+#AT (%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(5000),DESCRIPTION('ADO Login getting info in UDL file')
+  #IF(%svLoginSource = 'UDL File')
+hr = pConn.Connect(ReadStringFromUDL('%svUDLFileName'))
+if hr = S_OK
+  retValue = RequestCompleted
+  self.SetResponse(RequestCompleted)
+  ReturnValue = Level:Notify
+else
+  #EMBED(%svNotConnectedWithUDL, 'Connection failed using Connection string from UDL File')
+  #IF(%svErrorOnConnFailed = 1)
+  %svADOErrorProcedureName(pConn)
+  #ENDIF
+  retValue = RequestCancelled
+  self.SetResponse(RequestCancelled)
+  ReturnValue = Level:Notify
+end
+  #ENDIF
+#ENDAT
+#AT(%ControlEventHandling, %svCancelLogBtn, 'Accepted')
+  #if(upper(%AppTemplateFamily) = 'ABC')
+RetValue = requestCancelled
+self.SetResponse(requestCancelled)
+  #endif
+  #if(upper(%AppTemplateFamily) = 'CLARION')
+RetValue = RequestCancelled
+Globalresponse = RequestCancelled
+post(EVENT:CloseWindow)
+  #endif
+#endat
+#at(%ControlEventHandling, %svLoginBtn, 'Accepted')
+  #case(%svBasedConnectionStr)
+  #of('From Dictionary')
+    #if(slice(%svBaseConnectStrFromDCT, 1, 1) = '''')
+      #set(%TmpStr, slice(%svBaseConnectStrFromDCT, 2, len(%svBaseConnectStrFromDCT) - 1))
+    #else
+      #set(%TmpStr, %svBaseConnectStrFromDCT)
+    #endif
+  #of('From UDL file')
+    #if(slice(%svBaseStrUDL, 1, 1) = '''')
+      #set(%TmpStr, slice(%svBaseStrUDL, 2, len(%svBaseStrUDL) - 1))
+    #else
+      #set(%TmpStr, %svBaseStrUDL)
+    #endif
+  #of('Connection Builder')
+    #if(slice(%svBaseStrFromCnBld, 1, 1) = '''')
+      #set(%TmpStr, slice(%svBaseStrFromCnBld, 2, len(%svBaseStrFromCnBld) - 1))
+    #else
+      #set(%TmpStr, %svBaseStrFromCnBld)
+    #endif
+  #of('Your Entry')
+    #if(slice(%svBaseStrFromEntry, 1, 1) = '''')
+      #set(%TmpStr, slice(%svBaseStrFromEntry, 2, len(%svBaseStrFromEntry) - 1))
+    #else
+      #set(%TmpStr, %svBaseStrFromEntry)
+    #endif
+  #endcase
+  #set(%TmpStr, clip(%TmpStr))
+  #purge(%svConStrAttr)
+  #set(%svID, 1)
+  #add(%svConStrAttr,%svID)
+  #loop, for(%ndx, 1, LEN(%TmpStr) ), BY(1)
+    #if(slice(%TmpStr,%ndx, %ndx) = '=')
+      #set(%svConAttrKeyword, %svValueTmp)
+      #set(%svValueTmp, '')
+    #else
+      #if(slice(%TmpStr, %ndx, %ndx) = ';' or %ndx = LEN(%TmpStr))
+        #if(%ndx = LEN(%TmpStr))
+          #set(%svValuetmp, %svValueTmp & slice(%TmpStr, %ndx, %ndx))
+        #endif
+        #set(%svConAttrValue, %svValueTmp)
+        #set(%svValueTmp, '')
+        #if(%ndx <> LEN(%TmpStr))
+          #set(%svID, %svID + 1)
+          #add(%svConStrAttr, %svID)
+        #endif
+      #else
+        #set(%svValuetmp, %svValueTmp & slice(%TmpStr, %ndx, %ndx))
+      #endif
+    #endif
+  #endloop
+  #for(%svConStrAttr)
+    #case(upper(%svConAttrKeyword))
+    #of('USER ID')
+    #orof('PASSWORD')
+    #orof('DATA SOURCE')
+      #delete(%svConStrAttr)
+    #endcase
+  #endfor
+  #set(%svValueTmp, '')
+  #for(%svConStrAttr)
+    #set(%svValueTmp, clip(%svValueTmp) & %svConAttrKeyword & '=' & %svConAttrValue & ';')
+  #endfor
+if ulBlankPassword
+  szConnectStr = '%svValueTmp' & 'User ID=' & szUserID & ';Data Source=' & szServer
+else
+  szConnectStr = '%svValueTmp' & 'User ID=' & szUserID & ';Password=' & szPassword & ';Data Source=' & szServer
+end
+TriedLogin += 1
+if TriedLogin > %svNbrOfRetry
+  #embed(%NbrOfRetryExceeded, 'Nbr of retry exceeded')
+  #if(%svMessageIfRetriesExceeded)
+  message('%svMessageText', '%svMessageCaption')
+    #if(%svReturnAfterMessage)
+      #if(upper(%AppTemplateFamily) = 'ABC')
+  RetValue = RequestCancelled
+  self.SetResponse(RequestCancelled)
+      #endif
+      #if(upper(%AppTemplateFamily) = 'CLARION')
+  RetValue = RequestCancelled
+  GlobalResponse = RequestCancelled
+  post(EVENT:CloseWindow)
+      #endif
+    #endif
+  #endif
+else
+  hr = pConn.Connect(szConnectStr)
+  if hr = S_OK
+  #if(upper(%AppTemplateFamily) = 'ABC')
+    retValue = RequestCompleted
+    self.SetResponse(RequestCompleted)
+  #endif
+  #if(upper(%AppTemplateFamily) = 'CLARION')
+    retValue = RequestCompleted
+    GlobalResponse = RequestCompleted
+    post(EVENT:CloseWindow)
+  #endif
+  else
+    #embed(%svLoginFailed, 'Call to connect failed')
+  #IF(%svErrorOnConnFailed = 1)
+    %svADOErrorProcedureName(pConn)
+  #ENDIF
+  end
+end
+#endat

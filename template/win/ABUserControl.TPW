@@ -1,0 +1,796 @@
+#MODULE(GENERATEDClass,'Generated Class Source Module','ClarionOOP','CLW')
+#PREEMBED('! Before Embed Point: ' & %EmbedID & ') DESC(' & %EmbedDescription & ') ARG(' & %EmbedParameters & ')',%GenerateEmbedComments)
+#POSTEMBED('! After Embed Point: ' & %EmbedID & ') DESC(' & %EmbedDescription & ') ARG(' & %EmbedParameters & ')',%GenerateEmbedComments)
+#FREE(%CustomModuleMapModule)
+#!FREE(%ModuleIncludeList)                     #! Built per module
+#FREE(%ClassDeclarations)                     #! ditto
+#FREE(%CalloutModules)                        #! ditto
+#!
+#!
+#!
+#!
+#!SET(%GenerationCompleted,'INC')
+#EQUATE(%ModuleIsGenericMember,%False)
+#EMBED(%ModuleAfterSetIsGenericMember)
+#SET(%GenerationCompleted,%False)
+#CREATE(%Buildfile)
+!ABCIncludeFile
+OMIT('_EndOfInclude_',_%ModuleBase_)
+_%ModuleBase_ EQUATE(1)
+#EMBED(%ModuleClassPrivateEquates,'Public Equates'),DATA,TREE('Public Equates{{PRIORITY(1000)}')
+#SUSPEND
+   #?MAP
+     #?MODULE('%Module')
+         #EMBED(%ModuleClassInsidePublicModule,'Inside Public Module'),TREE('Inside Public Module{{PRIORITY(2000)}')
+     #?END
+   #?END
+#RESUME
+  #FREE(%ModuleIncludeList)
+#EMBED(%ModuleBeforePublicIncludeList),HIDE
+#FOR(%ModuleIncludeList),WHERE(%ModuleIncludeList)
+  INCLUDE('%(CLIP(%ModuleIncludeList))'),ONCE
+#ENDFOR
+#FREE(%ModuleIncludeList)
+#EMBED(%ModuleClassPublicData,'Public Data'),DATA,TREE('Public Data{{PRIORITY(3000)}')
+#EMBED(%ModuleClassDeclarations,'Module Class Declarations'),HIDE
+#FOR(%ModuleProcedure)
+   #FIX(%Procedure,%ModuleProcedure)
+   #MESSAGE('Generating Class Declaration: '&%Procedure,2)
+   #GENERATE(%Procedure)
+#ENDFOR
+_EndOfInclude_
+#CLOSE(%BuildFile)
+#REPLACE(%ModuleBase & '.INC',%BuildFile)
+#!SET(%GenerationCompleted,%True)
+#EMBED(%ModuleAfterClassGeneration,'After Module Class Generation'),HIDE
+#!
+#!
+#!
+#!SET(%GenerationCompleted,'CLW')
+#CREATE(%Buildfile)
+#IF(%ModuleIsGenericMember)
+  MEMBER()  
+#ELSE
+  MEMBER('%Program')  
+#ENDIF  
+#EMBED(%ModuleCustomDeclarations,'Compile Module Declarations'),HIDE
+    #!SUSPEND
+  MAP
+  #FIX(%CustomModuleMapModule,'CURRENT MODULE')
+  #FOR(%CustomModuleMapProcedure)
+%[22]CustomModuleMapProcedure %CustomModuleMapProcedurePrototype
+  #ENDFOR
+  #FOR(%CustomModuleMapModule),WHERE(%CustomModuleMapModule <> 'CURRENT MODULE')
+                       MODULE(%CustomModuleMapModule)
+    #FOR(%CustomModuleMapProcedure)
+%[24]CustomModuleMapProcedure %CustomModuleMapProcedurePrototype
+    #ENDFOR
+                       END
+  #ENDFOR
+      #EMBED(%ModuleClassInsidePrivateMap,'Inside Private Map'),TREE('Inside Private Map{{PRIORITY(4000)}')
+  END
+#EMBED(%ModuleBeforePrivateIncludeList),HIDE
+    #ADD(%ModuleIncludeList,UPPER(%Modulebase)&'.INC')
+#FOR(%ModuleIncludeList),WHERE(%ModuleIncludeList)
+  INCLUDE('%(CLIP(%ModuleIncludeList))'),ONCE
+#ENDFOR
+#EMBED(%ModuleClassImplementation,'Module Class Implementation'),HIDE
+#EMBED(%ModuleClassPrivateData,'Private Data'),DATA
+#!,TREE('Private Data{{PRIORITY(5000)}')
+  #FOR(%ModuleProcedure)
+    #FIX(%Procedure,%ModuleProcedure)
+    #MESSAGE('Generating Class: '&%Procedure,2)
+#APPEND(%Procedure&'_PBDY.$$$'),SECTION
+#EMBED(%ModuleAfterAPPENDStatement),HIDE
+#REMOVE(%Procedure&'_PBDY.$$$')
+    #COMMENT(60)                              #! Set comment alignment to column 60
+  #ENDFOR
+#CLOSE(%BuildFile)
+#REPLACE(%Module,%BuildFile)
+#SET(%GenerationCompleted,%True)
+#!
+#!
+#!***********************************************************************
+#PROCEDURE(SourceClass,'Source Class','ClarionOOP'),WINDOW
+#DEFAULT
+NAME DefaultABCSourceClass
+[COMMON]
+DESCRIPTION 'Source Class'
+FROM ABC SourceClass
+#ENDDEFAULT
+#COMMENT(60)
+#PROMPT('Generate Member as Generic',CHECK),%GenerateMemberAsGeneric,DEFAULT(%False),AT(10)
+#BOXED('Source properties'),AT(10,,180)
+#PROMPT('Generate Open/Close Files Routines',CHECK),%GenerateOpenClose,DEFAULT(%False),AT(10)
+#ENABLE(%GenerateOpenClose=1),CLEAR
+  #PROMPT('Generate Save/Restore Files Routines',CHECK),%GenerateSaveRestore,DEFAULT(%False),AT(10)
+#ENDENABLE
+#ENDBOXED
+#EMBED(%GatherSymbols,'Gather Template Symbols'),HIDE
+#!
+#INSERT(%FileControlInitialize)
+#!
+#INSERT(%LocalMapCheck)
+#!
+#!
+#AT(%ModuleAfterSetIsGenericMember)
+#SET(%ModuleIsGenericMember,%GenerateMemberAsGeneric)
+#ENDAT
+#!
+#AT(%ModuleBeforePrivateIncludeList)
+#ADD(%ModuleIncludeList, 'Equates.CLW')
+#ENDAT
+#! local data declaration
+#AT(%ModuleClassPrivateData),PRIORITY(2500)
+#EMBED(%ClassPrivateData),LABEL
+#!!,DATA,TREE('Private Data{{PRIORITY(5000)}')
+#ENDAT
+#!
+#AT(%ClassPrivateData),DESCRIPTION('Data Declaration - Class '&%Procedure),PRIORITY(4000),WHERE(NOT %EditProcedure)
+#SUSPEND
+#?!
+#?! Class %Procedure Private Data
+#?!
+#INSERT(%GenerateClassPrivateData)
+#RESUME
+#ENDAT
+#!
+#AT(%ClassPrivateData),DESCRIPTION('Window Structure - Class '&%Procedure),PRIORITY(5000),WHERE(NOT %EditProcedure)
+#SUSPEND
+#?!
+#?! Class %Procedure Private Window Structure
+#?!
+#INSERT(%GenerateClassPrivateDataWindowStructure)
+#RESUME
+#ENDAT
+#AT(%ClassPrivateData),DESCRIPTION('Data Declaration'),PRIORITY(4000),WHERE(%EditProcedure)
+#SUSPEND
+#?!
+#?! Class %Procedure Private Data
+#?!
+#INSERT(%GenerateClassPrivateData)
+#RESUME
+#ENDAT
+#!
+#AT(%ClassPrivateData),DESCRIPTION('Window Structure'),PRIORITY(5000),WHERE(%EditProcedure)
+#SUSPEND
+#?!
+#?! Class %Procedure Private Window Structure
+#?!
+#INSERT(%GenerateClassPrivateDataWindowStructure)
+#RESUME
+#ENDAT
+#!
+#!
+#!
+#!
+#SECTION
+#CREATE(%Procedure&'_PBDY.$$$')
+#EMBED(%ClassImplementationSection,'Class Implementation'),LABEL,TREE('Class '&%Procedure&'|Implementation{{PRIORITY(4000)}')
+#CLOSE(%Procedure&'_PBDY.$$$')
+#ENDSECTION
+#!
+#!
+!!! <summary>
+!!! Generated class template - %ProcedureTemplate
+#IF(%ProcedureDescription)
+!!! %ProcedureDescription
+#ENDIF
+#IF(%ProcedureLongDescription)
+#CALL(%SVInsertMultiLineSymbolPrefix,%ProcedureLongDescription)
+#ENDIF
+!!! </summary>
+#IF(%EditProcedure)
+!
+! This is declared in the same source file just for the Embeditor
+!
+#ENDIF
+#EMBED(%ClassDeclarationSection,'Class Declaration'),LABEL,DATA,TREE('Class '&%Procedure&'|Declaration{{PRIORITY(1000)}')
+#IF(%EditProcedure)
+!
+!
+!
+#EMBED(%ClassPrivateData),LABEL,DATA,TREE('Class '&%Procedure&'|Private Data{{PRIORITY(3000)}')
+!
+!
+!
+#APPEND(%Procedure&'_PBDY.$$$'),SECTION
+#ENDIF
+#!
+#!***********************************************************************
+#!
+#! This control template is for testing only and not supposed to be the final version (WIP)
+#!
+#!
+#PROCEDURE(UserControlClass,'UserControlClass','ClarionOOP'),WINDOW,PARENT(SourceClass(ABC))
+#DEFAULT
+NAME DefaultUserControl
+CATEGORY 'UserControl'
+[COMMON]
+DESCRIPTION 'Generated UserControl Class'
+FROM ABC UserControlClass
+[WINDOW]
+UserControl WINDOW,AT(,,220,174),GRAY
+        END
+#ENDDEFAULT
+#PREPARE
+  #CALL(%ReadABCFiles(ABC))
+  #CALL(%SetClassDefaults(ABC), 'Default', 'UserControl'&%ActiveTemplateInstance, 'UserControlClass')
+#ENDPREPARE
+#BOXED('Default WindowManager prompts'),HIDE
+  #INSERT(%OOPHiddenPrompts)
+#ENDBOXED
+#!BUTTON(%GetWindowBehaviorButtonText()&' &Behavior'),AT(,,180)
+      #WITH(%ClassItem,'Default')
+        #INSERT(%ClassPrompts)
+      #ENDWITH      
+#!ENDBUTTON
+#CALL(%ReadABCFiles)
+#DECLARE(%WindowManager)
+#CALL(%SetClassDefaults(ABC), 'Default', 'UserControl'&%ActiveTemplateInstance, 'UserControlClass')
+#SET(%WindowManager, 'SELF')
+#CALL(%AddModuleIncludeFile,'UserControlClass')
+#INSERT(%FieldTemplateStandardButtonMenuPrompt)
+#INSERT(%FieldTemplateStandardEntryPrompt)
+#INSERT(%FieldTemplateStandardCheckBoxPrompt)
+#INSERT(%FieldTemplateStandardRadioButtonPrompt)
+#!
+#AT(%GatherObjects)
+#CALL(%AddObjectList, 'Default')
+#ENDAT
+#!
+#AT(%WindowManagerMethodCodeSection),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%ParentCallValid())
+  #CALL(%GenerateParentCall)
+#END
+#!
+#AT(%WindowManagerMethodCodeSection,'Init','(Window pTarget,SIGNED pParentFEQ=0,<LONG pXPos>,<LONG pYPos>),BYTE'),PRIORITY(5500),DESCRIPTION('Open Control')
+IF ReturnValue = Level:Benign
+   ReturnValue = SELF.Open(%Window,pTarget,pParentFEQ,pXPos,pYPos)
+END   
+#ENDAT
+#!
+#AT(%ControlHandling,%Control),PRIORITY(1000)#!,WHERE(%HasGeneralEvent(%Control)) Would reduce embeditor noise but stops user defined events
+#EMBED(%ControlPreEventCaseHandling,'Control Handling, before event handling'),%Control,LEGACY
+#SUSPEND
+#?CASE EVENT()
+#PRIORITY(2500)
+  #IF(NOT %ControlMenu)
+    #FOR(%ControlEvent),WHERE(~%HasSpecialistHandler(%ControlEvent))
+      #SUSPEND
+#?OF EVENT:%ControlEvent
+  #EMBED(%ControlPreEventHandling,'Control Event Handling, before generated code'),%Control,%ControlEvent,LEGACY
+  #EMBED(%ControlEventHandling,'Control Event Handling'),%Control,%ControlEvent,PRIORITY(1,4999),TREE('Control Events{{PRIORITY(4000)}|'&%Control&'|'&%ControlEvent)
+      #RESUME
+    #ENDFOR
+  #ENDIF
+  #SUSPEND
+#?ELSE
+#PRIORITY(3000)
+  #EMBED(%ControlOtherEventHandling,'Other Control Event Handling'),%Control,LEGACY
+  #RESUME
+#?END
+#RESUME
+#PRIORITY(6000)
+#SUSPEND
+#?CASE EVENT()
+#PRIORITY(7500)
+  #IF(NOT %ControlMenu)
+    #FOR(%ControlEvent),WHERE(~%HasSpecialistHandler(%ControlEvent))
+      #SUSPEND
+#?OF EVENT:%ControlEvent
+  #INSERT(%FieldTemplateStandardHandling)
+  #EMBED(%ControlEventHandling,'Control Event Handling'),%Control,%ControlEvent,PRIORITY(5000,10000),TREE('Control Events{{PRIORITY(4000)}|'&%Control&'|'&%ControlEvent)
+  #EMBED(%ControlPostEventHandling,'Control Event Handling, after generated code'),%Control,%ControlEvent,LEGACY
+      #RESUME
+    #ENDFOR
+  #ENDIF
+  #SUSPEND
+#?ELSE
+#PRIORITY(8000)
+  #RESUME
+#?END
+#RESUME
+#EMBED(%ControlPostEventCaseHandling,'Control Handling, after event handling'),%Control,LEGACY
+#ENDAT
+#!
+#AT(%ControlEventHandling),PRIORITY(4999),DESCRIPTION('Generated Code')
+#! This At is simply there to force the inclusion of the decsription in the Embed Tree
+#! This is important because without it, you have the remember the 'Magic value' of
+#! the priority
+#ENDAT
+#!
+#AT(%WindowManagerMethodDataSection,'TakeFieldEvent','(),BYTE')
+#?Looped BYTE
+#ENDAT
+#!
+#AT(%WindowManagerMethodCodeSection,'TakeFieldEvent','(),BYTE'),PRIORITY(2500)
+#?LOOP                                                          #<! This method receives all field specific events
+  #?IF Looped
+    #?RETURN Level:Notify
+  #?ELSE
+    #?Looped = 1
+  #?END
+  #PRIORITY(3000)
+  #EMBED(%AcceptLoopBeforeFieldHandling,'Accept Loop, Before CASE FIELD() handling'),LEGACY
+#SUSPEND
+#?CASE SELF.GetOriginalFEQ(FIELD())
+#PRIORITY(3100)
+#EMBED(%FieldCaseBeforeGenerated,'CASE FIELD() structure, before generated code'),LEGACY
+#FOR(%Control),WHERE(%Control)
+  #SUSPEND
+#?OF %Control
+  #EMBED(%ControlHandling,'Control Handling'),%Control,PRIORITY(0,4999),TREE('Control Events|'&%Control&'|All Events{{PRIORITY(9000)}')
+  #RESUME
+#ENDFOR
+#?END
+#RESUME
+  #PRIORITY(6000)
+#SUSPEND
+#?CASE control
+  #PRIORITY(6100)
+#FOR(%Control),WHERE(%Control)
+  #SUSPEND
+#?OF %Control
+  #EMBED(%ControlHandling,'Control Handling'),%Control,PRIORITY(5000,10000),TREE('Control Events|'&%Control&'|All Events{{PRIORITY(9000)}')
+  #RESUME
+#ENDFOR
+  #PRIORITY(6200)
+#EMBED(%FieldCaseAfterGenerated,'CASE FIELD() structure, after generated code'),LEGACY
+#?END
+#RESUME
+  #PRIORITY(7500)
+  #?RETURN ReturnValue
+#?END
+#?ReturnValue = Level:Fatal
+#ENDAT
+#!
+#AT(%WindowManagerMethodDataSection,'TakeNewSelection','(),BYTE')
+#?Looped BYTE
+#ENDAT
+#!
+#AT(%WindowManagerMethodDataSection,'TakeNewSelection','(),BYTE')
+#?Looped BYTE
+#ENDAT
+#!
+#AT(%WindowManagerMethodDataSection,'TakeAccepted','(),BYTE')
+#?Looped BYTE
+#ENDAT
+#!
+#AT(%WindowManagerMethodCodeSection,'TakeAccepted','(),BYTE'),PRIORITY(2500),DESCRIPTION('Top of CYCLE/BREAK support'),AUTO
+#SUSPEND
+#?LOOP                                                          #<! This method receive all EVENT:Accepted's
+  #?IF Looped
+    #?RETURN Level:Notify
+  #?ELSE
+    #?Looped = 1
+  #?END
+  #PRIORITY(3000),DESCRIPTION('CASE ACCEPTED()')
+  #SUSPEND
+  #?CASE SELF.GetOriginalFEQ(ACCEPTED())
+  #INSERT(%StandardAcceptedHandling,'',1)
+  #!FOR(%MenuBars)                               #! generate items that have menu bars as parents
+  #!INSERT(%StandardAcceptedHandling, %MenuBars)
+  #!ENDFOR
+    #SUSPEND
+  #PRIORITY(3050),DESCRIPTION('ELSE Clause')
+  #?ELSE
+    #EMBED(%AcceptedEventOtherHandling,'ELSE Clause of CASE ACCEPTED()'),LEGACY
+  #PRIORITY(3100)
+  #RESUME
+  #?END
+  #RESUME
+  #PRIORITY(7500)
+  #SUSPEND
+  #?CASE SELF.GetOriginalFEQ(ACCEPTED())
+  #INSERT(%StandardAcceptedHandling,'',2)
+  #?END
+  #RESUME
+  #?RETURN ReturnValue
+#?END
+#?ReturnValue = Level:Fatal
+#RESUME
+#ENDAT
+#!
+#AT(%WindowManagerMethodDataSection,'TakeSelected','(),BYTE')
+#?Looped BYTE
+#ENDAT
+#!
+#AT(%WindowManagerMethodCodeSection,'TakeSelected','(),BYTE'),PRIORITY(2500)
+#?LOOP                                                          #<! This method receives all Selected events
+  #?IF Looped
+    #?RETURN Level:Notify
+  #?ELSE
+    #?Looped = 1
+  #?END
+  #PRIORITY(3000)
+  #INSERT(%StandardSpecialistHandlingUserControl,'Selected',1)
+  #PRIORITY(7500)
+  #INSERT(%StandardSpecialistHandlingUserControl,'Selected',2)
+  #?RETURN ReturnValue
+#?END
+#?ReturnValue = Level:Fatal
+#ENDAT
+#!
+#AT(%WindowManagerMethodDataSection,'TakeRejected','(),BYTE')
+#?Looped BYTE
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'TakeRejected','(),BYTE'),PRIORITY(2500)
+#?LOOP                                                          #<! This method receives all Rejected events
+  #?IF Looped
+    #?RETURN Level:Notify
+  #?ELSE
+    #?Looped = 1
+  #?END
+  #PRIORITY(3000)
+  #EMBED(%WindowEventHandlingBeforeRejected,'Window Event Handling - Before Rejected'),LEGACY
+  #INSERT(%StandardSpecialistHandling,'Rejected',1)
+  #PRIORITY(7500)
+  #INSERT(%StandardSpecialistHandling,'Rejected',2)
+  #EMBED(%WindowEventHandlingAfterRejected,'Window Event Handling - After Rejected'),LEGACY
+  #?RETURN ReturnValue
+#?END
+#?ReturnValue = Level:Fatal
+#ENDAT
+#!
+#!
+#AT(%WindowManagerMethodDataSection,'TakeEvent','(),BYTE')
+#?Looped BYTE
+#ENDAT
+#!
+#AT(%WindowManagerMethodCodeSection,'TakeEvent','(),BYTE'),PRIORITY(2500),DESCRIPTION('Top of CYCLE/BREAK support')
+#?LOOP                                                          #<! This method receives all events
+  #?IF Looped
+    #?RETURN Level:Notify
+  #?ELSE
+    #?Looped = 1
+  #?END
+  #EMBED(%AcceptLoopBeforeEventHandling,'Accept Loop, Before TakeEvent'),LEGACY
+  #PRIORITY(7500),DESCRIPTION('Bottom of CYCLE/BREAK support')
+  #SUSPEND
+  #?IF ReturnValue THEN RETURN ReturnValue .
+  #EMBED(%AcceptLoopAfterFieldHandling,'Accept Loop, After CASE FIELD() handling'),LEGACY
+  #EMBED(%AcceptLoopAfterEventHandling,'Accept Loop, After TakeEvent'),LEGACY
+  #RESUME
+  #?RETURN ReturnValue
+#?END
+#?ReturnValue = Level:Fatal
+#ENDAT
+#!
+#AT(%ClassImplementationSection)
+#CALL(%GenerateVirtuals, 'Default', 'Local Objects|Abc Objects|Window Manager', '%UserControlVirtuals(ABC)')
+#ENDAT
+#!
+#AT(%ClassDeclarationSection)
+#INSERT(%GenerateClass, 'Default', %ProcedureDescription, %True,'MODULE('''&%Module&'''),LINK('''&%Module&''',_ABCLinkMode_),DLL(_ABCDllMode_)')
+#ENDAT
+#!
+#!****************************************************************************
+#GROUP(%GenerateClassPrivateData)
+#FOR(%LocalData)
+#IF(LEFT(%LocalDataStatement,6)='&CLASS')
+#SET(%ValueConstruct,EXTRACT(%LocalDataStatement,'&CLASS',1))
+#IF(NOT %ValueConstruct)
+    #SET(%ValueConstruct,'CLASS')
+#ENDIF
+%[20]LocalData &%ValueConstruct #<!%LocalDataDescription
+#ELSE
+%[20]LocalData %LocalDataStatement #<!%LocalDataDescription
+#ENDIF
+#ENDFOR
+#EMBED(%LocalDataClassData),LABEL,HIDE
+#!****************************************************************************
+#GROUP(%GenerateClassPrivateDataWindowStructure)
+#SUSPEND
+#MESSAGE('Standard Window Generation',3)
+#IF(NOT VAREXISTS(%NewWindowStatement))
+  #DECLARE(%NewWindowStatement)
+  #DECLARE(%FirstField)
+  #DECLARE(%LastField)
+#ENDIF
+#IF(NOT VAREXISTS(%Indentation))
+  #DECLARE(%Indentation,LONG)
+#ENDIF
+#IF(NOT VAREXISTS(%ControlSourceLine))
+  #DECLARE(%ControlSourceLine)
+  #DECLARE(%ControlFromValue)
+#ENDIF  
+#EMBED(%DataSectionBeforeWindow,'Data Section, Before Window Declaration'),DATA,LEGACY
+#IF(%WindowStatement)
+  #SET(%NewWindowStatement, %WindowStatement)
+  #IF(SUB(%WindowStatement,1,11) <> 'APPLICATION')
+      #SET(%NewWindowStatement, REPLACE(%NewWindowStatement, 'MDI', ''))
+      #SET(%NewWindowStatement, REPLACE(%NewWindowStatement, 'MODAL', ''))
+  #ENDIF
+  #IF(EXTRACT(%NewWindowStatement,'ICON') AND NOT EXTRACT(%NewWindowStatement,'IMM'))
+    #SET(%NewWindowStatement,%NewWindowStatement & ',IMM')
+  #ELSIF(EXTRACT(%NewWindowStatement,'MAX') AND NOT EXTRACT(%NewWindowStatement,'IMM'))
+    #SET(%NewWindowStatement,%NewWindowStatement & ',IMM')
+  #ENDIF
+%[20]Window %NewWindowStatement
+  #SET(%Indentation,0)
+                       #EMBED(%WindowStructureBeforeControls,'Inside Window Declaration Before Controls'),HIDE
+  #FOR(%Control)
+    #IF(%ControlIndent<%Indentation)
+      #LOOP
+        #SET(%Indentation,%Indentation-1)
+%[22+(2*%Indentation)]Null END
+        #IF(%ControlIndent=%Indentation)
+          #BREAK
+        #ENDIF
+      #ENDLOOP
+    #ENDIF
+    #SET(%ControlSourceLine,%ControlStatement)
+#EMBED(%WindowStructureForEachControls,'WindowStructure'),HIDE
+    #IF(%MessageDescription)
+      #IF(%ControlType <> 'STRING')
+        #IF(%ControlUse AND NOT EXTRACT(%ControlStatement,'MSG'))
+          #FIND(%Field,%ControlUse)
+          #IF(%FieldDescription)
+            #SET(%ControlSourceLine,%ControlSourceLine & ',MSG(''' & QUOTE(%FieldDescription) & ''')')
+          #ENDIF
+        #ENDIF
+      #ENDIF
+    #ENDIF
+    #IF(%ControlFrom AND %ControlUse)
+      #IF(SUB(%ControlFrom,1,1) = '''')
+        #FIND(%Field,%ControlUse)
+        #IF(ITEMS(%FieldValues) <> 0)
+          #SET(%ControlFromValue,'')
+          #FOR(%FieldChoices)
+            #IF(INSTANCE(%FieldChoices) > 1)
+              #SET(%ControlFromValue,%ControlFromValue & '|')
+            #ENDIF
+            #SET(%ControlFromValue,%ControlFromValue & %ExpandFrom(%FieldChoices))
+            #SELECT(%FieldValues,INSTANCE(%FieldChoices))
+            #SET(%ControlFromValue,%ControlFromValue & '|#' & %ExpandFrom(%FieldValues))
+          #ENDFOR
+          #SET(%ControlFromValue, '''' & QUOTE(%ControlFromValue) & '''')
+          #SET(%ControlSourceLine, REPLACE(%ControlSourceLine,'FROM',%ControlFromValue,1))
+        #ENDIF
+      #ENDIF
+    #ENDIF
+%[22+(2*%Indentation)]Null %ControlSourceLine
+    #CASE(%ControlType)
+    #OF('OPTION')
+    #OROF('GROUP')
+    #OROF('SHEET')
+    #OROF('TAB')
+    #OROF('OLE')
+    #OROF('MENU')
+    #OROF('MENUBAR')
+    #OROF('TOOLBAR')
+      #SET(%Indentation,%Indentation+1)
+    #ELSE
+    #IF(NOT %FirstField)
+      #IF(NOT(%ControlMenu OR %ControlTool) AND (%ControlType <> 'TOOLBAR') AND (%ControlType <> 'MENUBAR'))
+        #SET(%FirstField,%Control)
+      #ENDIF
+    #ENDIF
+    #ENDCASE
+  #ENDFOR
+  #LOOP,WHILE(%Indentation)
+    #SET(%Indentation,%Indentation-1)
+%[22+(2*%Indentation)]Null END
+  #ENDLOOP
+#EMBED(%DataSectionEndWindow,'Data Section, End of Window Declaration'),DATA,LEGACY  
+%[20]Null END
+#ENDIF
+#IF(NOT(%FirstField))
+  #SET(%FirstField,1)
+#ENDIF
+#EMBED(%DataSectionAfterWindow,'Data Section, After Window Declaration'),DATA,LEGACY
+#!IF(%ProgressWindowRequired)
+#!INSERT(%StandardProgressWindow)
+#!ENDIF
+#?
+#RESUME
+#!****************************************************************************
+#!****************************************************************************
+#EXTENSION (UserControlContainer, 'Allows user controls to be added to the window'),PROCEDURE
+#PREPARE
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'Default', 'UserControlContainer', 'UserControlContainerClass')
+#ENDPREPARE
+  #BOXED('Default UserControlContainer prompts'),HIDE
+    #INSERT(%OOPHiddenPrompts)
+  #ENDBOXED
+  #SHEET
+    #TAB('Classes')
+      #WITH(%ClassItem,'Default')
+        #INSERT(%ClassPrompts)
+      #ENDWITH
+    #ENDTAB
+  #ENDSHEET
+#!
+#ATSTART
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'Default', 'UserControlContainer', 'UserControlContainerClass')
+  #EQUATE(%UserControlContainerObjectName,%ThisObjectName)
+#ENDAT
+#!
+#AT(%GatherObjects)
+#CALL(%AddObjectList, 'Default')
+#ENDAT
+#!
+#AT(%LocalDataClasses)
+#INSERT(%GenerateClass, 'Default')
+#ENDAT
+#!
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8000),DESCRIPTION('Initialize UserControlContainer')
+%UserControlContainerObjectName.Init(%Window)
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'TakeEvent','(),BYTE'),PRIORITY(2600),DESCRIPTION('UserControlContainer TakeEvent')
+%UserControlContainerObjectName.TakeEvent()
+#ENDAT
+#!****************************************************************************
+#!****************************************************************************
+#!****************************************************************************
+#!****************************************************************************
+#CONTROL(UserControl,'User Defined Control'),MULTI,WINDOW,WRAP(GROUP),REQ(UserControlContainer)
+#PREPARE
+    #CALL(%ReadABCFiles)
+    #CALL(%SetClassDefaults, 'Default','UserControl'&%ActiveTemplateInstance,'UserControl')
+    #CALL(%FillUserControlList)
+#ENDPREPARE
+  CONTROLS
+    GROUP('UserControl'),AT(,,170,73),USE(?UserControl)
+	END
+  END
+#BUTTON('UserControl Properties'),AT(,,170)
+    #BOXED('Default UserControl prompts'),HIDE
+      #BUTTON('Posible Base Classes'),MULTI(%BaseUserControls,%BaseUserControlType& ' ' & %BaseUserControlModule &' '&%BaseUserControlProcedure)
+         #PROMPT('pUserControlType:',@S100),%BaseUserControlType
+         #PROMPT('pUserControlProcedure',@S255),%BaseUserControlProcedure
+         #PROMPT('pUserControlModule',@S255),%BaseUserControlModule
+      #ENDBUTTON
+      #INSERT(%OOPHiddenPrompts)     
+     #PROMPT('Hide UserControl ObjectName:',@S200), %UserControlControlObjectName
+    #ENDBOXED
+    #WITH(%ClassItem,'Default')
+      #PROMPT('Ob&ject Name:',@S255),%ThisObjectName,WHENACCEPTED(%FillUserControlList)
+      #PROMPT('UserControl Type:',FROM(%BaseUserControls,,%BaseUserControlType)), %UserControlControlType,WHENACCEPTED(%SetClassPromptsFromBase())
+      #BOXED('UserControl prompts'),HIDE
+      #INSERT(%ClassPrompts)
+      #ENDBOXED
+    #ENDWITH
+#ENDBUTTON
+#ATSTART  
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'Default','UserControl'&%ActiveTemplateInstance,'UserControl')
+  #!SET(%UserControlControl,%GetControlName())
+  #SET(%UserControlControlObjectName,%ThisObjectName)                                  #!Name of object
+  #DECLARE(%UserControlControl)
+  #FOR(%Control),WHERE(%ControlInstance = %ActiveTemplateInstance)
+    #SET(%UserControlControl,%Control)
+  #ENDFOR 
+  #CALL(%FillUserControlList)
+  #CALL(%SetClassPromptsFromBase)
+#ENDAT
+#AT(%GatherObjects)
+#CALL(%AddObjectList, 'Default')
+#ENDAT
+#AT(%LocalDataClasses)
+#INSERT(%GenerateClass, 'Default')
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8001)
+%UserControlContainerObjectName.AddItem(%UserControlControlObjectName, %UserControlControl)
+#ENDAT
+#!--------------------------------------------------------------------------
+#GROUP(%ClassLocalMapCheck),AUTO,PRESERVE              #!Checks which modules are called by the current procedure
+#DECLARE(%CalloutProcedures),UNIQUE
+#!IF(%CreateLocalMap)
+  #FOR(%ProcedureCalled)
+    #ADD(%CalloutProcedures,%ProcedureCalled)
+  #ENDFOR
+  #FOR(%CalloutProcedures)
+    #FIND(%ModuleProcedure,%CalloutProcedures)
+    #FIX(%Procedure,%CalloutProcedures)
+    #IF(~%ProcedureIsGlobal)
+      #IF(%ProgramExtension NOT='DLL')
+        #ADD(%CalloutModules,%Module)
+      #ELSE
+        #IF(~%ProcedureExported)                  #!Exported procedures implicitely global so don't add module to callout list
+          #ADD(%CalloutModules,%Module)
+        #ENDIF
+      #ENDIF
+    #ENDIF
+  #ENDFOR
+#!ENDIF
+#!--------------------------------------------------------------------------
+#GROUP(%ControlLocalMapCheck),AUTO,PRESERVE              #!Checks which modules are called by the current procedure
+#DECLARE(%CalloutProcedures),UNIQUE
+  #FOR(%ProcedureCalled)
+    #ADD(%CalloutProcedures,%ProcedureCalled)
+  #ENDFOR
+  #FOR(%CalloutProcedures)
+    #FIND(%ModuleProcedure,%CalloutProcedures)
+    #FIX(%Procedure,%CalloutProcedures)
+    #IF(LEFT(%ProcedureTemplate,5)='Class' AND %ProcedureLanguage='ClarionOOP')
+        #ADD(%CalloutModules,%Module)
+    #ENDIF
+  #ENDFOR
+#!--------------------------------------------------------------------------
+#GROUP(%GenEnumsCW)
+#EMBED(%BeforeGenerateCWEnums),%BeforeGenerateCWEnums,HIDE
+#IF(ITEMS(%GlobalCSEnums))
+   #CREATE('tmpcs_class.$$$')
+   #FOR(%GlobalCSEnums)
+      #FOR(%GlobalCSEnumValues)
+%GlobalCSEnumName:%GlobalCSEnumValueName EQUATE(%GlobalCSEnumValue) !  %GlobalCSEnumDescription
+      #ENDFOR
+   #ENDFOR
+   #CLOSE('tmpcs_class.$$$')
+   #REPLACE(%Application&'_Enums.EQU', 'tmpcs_class.$$$')
+   #REMOVE('tmpcs_class.$$$')
+#ENDIF
+#!
+#!--------------------------------------------------------------------------
+#GROUP(%UserControlVirtuals, %TreeText, %DataText, %CodeText)
+#EMBED(%WindowManagerMethodDataSection,'WindowManager Method Data Section'),%pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(%FixClassName(%FixBaseClassToUse('Default'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%WindowManagerMethodCodeSection,'WindowManager Method Executable Code Section'),%pClassMethod,%pClassMethodPrototype,PREPARE(%FixClassName(%FixBaseClassToUse('Default'))),TREE(%TreeText & %CodeText)
+#!--------------------------------------------------------------------------
+#GROUP(%StandardSpecialistHandlingUserControl,%SpecialEvent,%ParentSide=0)
+#SUSPEND
+#?CASE SELF.GetOriginalFEQ(FIELD())
+#FOR(%Control),WHERE(%Control)
+  #FIX(%ControlEvent,%SpecialEvent)
+  #IF(~%ControlEvent)
+    #CYCLE
+  #ENDIF
+  #SUSPEND
+#?OF %Control
+  #IF(%ParentSide<>2)
+  #EMBED(%ControlPreEventHandling,'Control Event Handling, before generated code'),%Control,%ControlEvent,LEGACY
+  #EMBED(%ControlEventHandling,'Control Event Handling'),%Control,%ControlEvent,PRIORITY(1,4999),TREE('Control Events{{PRIORITY(4000)}|'&%Control&'|'&%ControlEvent)
+  #ENDIF
+  #IF(%ParentSide<>1)
+  #INSERT(%FieldTemplateStandardHandling)
+  #EMBED(%ControlEventHandling,'Control Event Handling'),%Control,%ControlEvent,PRIORITY(5000,10000),TREE('Control Events{{PRIORITY(4000)}|'&%Control&'|'&%ControlEvent)
+  #EMBED(%ControlPostEventHandling,'Control Event Handling, after generated code'),%Control,%ControlEvent,LEGACY
+  #ENDIF
+  #RESUME
+#ENDFOR
+#?END
+#RESUME
+#!----------------------
+#GROUP(%SetClassPromptsFromBase)
+#SET(%UseDefaultABCBaseClass,%False)
+#SET(%UseABCBaseClass,%False)
+#FIND(%BaseUserControlType,%UserControlControlType)
+#SET(%ExtBaseClass,%BaseUserControlType)
+#SET(%BaseClassIncludeFile,%BaseUserControlModule)
+#!----------------------
+#GROUP(%FillUserControlList),PRESERVE,AUTO
+#DECLARE(%pCurrentProcedure)
+#SET(%pCurrentProcedure,%Procedure)
+#DECLARE(%pUserControls),UNIQUE
+#DECLARE(%pUserControlType,%pUserControls)
+#DECLARE(%pUserControlProcedure,%pUserControls)
+#DECLARE(%pUserControlModule,%pUserControls)
+#DECLARE(%pI,LONG)
+#SET(%pI,0)
+#!FOR(%Procedure),WHERE(%ProcedureTemplate='UserControlClass(ABC)')
+#FOR(%Module),WHERE(LEFT(%ModuleTemplate,14)='GENERATEDClass')
+   #FOR(%ModuleProcedure),WHERE(%ModuleProcedure<>%pCurrentProcedure)
+       #FIX(%Procedure,%ModuleProcedure)
+       #IF(LEFT(%ProcedureTemplate,16)='UserControlClass')
+			#CONTEXT(%Procedure)
+			#CALL(%SetClassItem,'Default')
+			#SET(%pI,%pI+1)
+			#ADD(%pUserControls,%pI)
+			#SET(%pUserControlType,%ThisObjectName)
+			#SET(%pUserControlProcedure,%Procedure)
+			#SET(%pUserControlModule,%Module)
+			#ENDCONTEXT
+       #ENDIF
+   #ENDFOR
+#ENDFOR
+#FREE(%BaseUserControls)
+#FOR(%pUserControls)
+   #ADD(%BaseUserControls,%pUserControls)
+   #SET(%BaseUserControlType,%pUserControlType)
+   #SET(%BaseUserControlProcedure,%pUserControlProcedure)
+   #SET(%BaseUserControlModule,LEFT(%pUserControlModule,LEN(%pUserControlModule)-3)&'INC')
+#ENDFOR
+#!

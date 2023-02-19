@@ -1,0 +1,92 @@
+﻿<DictionaryOptions 
+  name   = "Clarion Options"
+  author = "SoftVelocity Inc."
+  url    = "www.softvelocity.com"
+  description = "Default options for configuring dictionaries for use with the ABC or Clarion template chain"
+ >
+  <!-- It is recommended that you create groups for your options with the outer group being the company name
+       The next level being the product/template chain and any inner groups grouping options within the
+       product/template -->
+  <File>
+    <Group display = "SoftVelocity">
+      <Group display = "ABC and Clarion">
+        <Item
+          name = "EDITINPLACE"
+          display = "Edit In Place"
+          type = "Boolean"
+          description = "When set to true browses are generated that use edit in place"
+        />
+        <Item
+          name = "EmulateAutoNumKey"
+          display = "Emulate Auto Num Key"
+          type = "Boolean"
+          description = "Forces the File Manager to auto insert the record and recover the Identity column."
+        />
+        <Item
+          name = "DATA"
+          display = "File Declaration Mode"
+          type = "List"
+          description = "Allows a QUEUE or GROUP to be defined as a file in the dictionary"
+        >
+          <Option 
+            value="GROUP"
+            description="File is generated as a global GROUP"
+          />
+          <Option 
+            value="QUEUE"
+            description="File is generated as a global QUEUE"
+          />
+        </Item>
+      </Group>
+    </Group>
+  </File>
+  <Field>
+    <Group display = "SoftVelocity">
+      <Group display = "ABC and Clarion">
+        <Item
+          name = "INTEREST"
+          display = "Interest"
+          type = "Number"
+          description = "Set how important a field is.  The higher the number the sooner it appears on a form"
+        />
+        <Item
+          name = "DISPLAY"
+          display = "Display"
+          type = "String"
+          description = ""
+        />
+        <Item
+          name = "IsIdentity"
+          display = "Is Identity"
+          type = "Boolean"
+          description = "Specifies that this  field's new value is retrieved when the File User Option EmulateAutoNumKey is specified"
+        />
+        <Item
+          name = "ServerAutoIncColumn"
+          display = "Server Autoincrement Column "
+          type = "Number"
+          description = "Specifies that this field is the n'th column retrieved when the File User Option EmulateAutoNumKey is specified"
+        />
+        <Item
+          name = "NOPOPULATE"
+          display = "No Populate"
+          type = "String"
+          description = "Do not populate this field onto browses or forms"
+        />
+      </Group>
+    </Group>
+  </Field>
+  <Key>
+    <Group display = "SoftVelocity">
+      <Group display = "ABC and Clarion">
+        <Item
+          name = "INTEREST"
+          display = "Interest"
+          type = "Number"
+          description = "Set how important a key is.  The higher the number the sooner it appears on the tab order in a browse"
+        />
+      </Group>
+    </Group>
+  </Key>
+</DictionaryOptions>
+

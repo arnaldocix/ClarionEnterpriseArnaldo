@@ -1,0 +1,293 @@
+                    MEMBER('')
+    
+                    MAP
+!!!<summary>Gets the first record from the file (as listed in the key) which contains values matching the values in the component fields of the key.</summary>
+!!!<param name="fileLabel">The label of a FILE declaration.</param>
+!!!<param name="keyLabel">The label of a KEY or INDEX declaration.</param>
+!!!<remarks>The GET statement locates a specific record in the data file and reads it into the RECORD structure data buffer. Direct access to the record is achieved by relative record position within the file, or by matching key values. If the GET is unsuccessful, the previous content of the RECORD buffer is not affected.</remarks>
+GET                   PROCEDURE(FILE fileLabel, KEY keyLabel)
+
+!!!<summary>Gets a record from the file based on the filepointer relative position within the file. If filepointer is zero, the current record pointer is cleared and no record is retrieved.</summary>
+!!!<param name="fileLabel">The label of a FILE declaration.</param>
+!!!<param name="filePointer">A numeric constant, variable, or expression for the value returned by the POINTER(file) procedure.</param>
+!!!<param name="length">An integer constant, variable, or expression which contains the number of bytes to read from the file. The length must be greater than zero and not greater than the RECORD length. If omitted or out of range, length defaults to the length of the RECORD structure.</param>
+!!!<remarks>The GET statement locates a specific record in the data file and reads it into the RECORD structure data buffer. Direct access to the record is achieved by relative record position within the file, or by matching key values. If the GET is unsuccessful, the previous content of the RECORD buffer is not affected.
+!!! The values for filepointer and keypointer are file driver dependent. They could be: record number; relative byte position within the file; or, some other kind of "seek position" within the file. If the filepointer or keypointer value is out of range, or there are no matching key values in the data file, the "Record Not Found" error is posted.</remarks>
+GET                   PROCEDURE(FILE fileLabel, POINTER_T filePointer, <UNSIGNED length>)
+
+!!!<summary>Gets a record from the file based on the keypointer relative position within the key.</summary>
+!!!<param name="keyLabel">The label of a KEY or INDEX declaration.</param>
+!!!<param name="keyPointer">A numeric constant, variable, or expression for the value returned by the POINTER(key) procedure.</param>
+!!!<remarks>The GET statement locates a specific record in the data file and reads it into the RECORD structure data buffer. Direct access to the record is achieved by relative record position within the file, or by matching key values. If the GET is unsuccessful, the previous content of the RECORD buffer is not affected.
+!!! The values for filepointer and keypointer are file driver dependent. They could be: record number; relative byte position within the file; or, some other kind of "seek position" within the file. If the filepointer or keypointer value is out of range, or there are no matching key values in the data file, the "Record Not Found" error is posted.</remarks>
+GET                   PROCEDURE(KEY keyLabel, POINTER_T keyPointer)
+
+!!!<summary>Retrieves the entry at the relative entry position specified by the pointer value in the order the QUEUE entries were added, or last SORTed. If pointer is zero, the value returned by the POINTER procedure is set to zero.</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure.</param>
+!!!<param name="pointer">A numeric constant, variable, or numeric expression. The pointer must be in the range from 1 to the number of entries in the memory queue.</param>
+!!!<remarks>GET reads an entry into the QUEUE structure data buffer for processing. If GET does not find a match, the "Entry Not Found" error is posted.</remarks>
+GET                   PROCEDURE(QUEUE queueLabel, POINTER_T pointer)
+
+!!!<summary>Searches for the first QUEUE entry that matches the value in the key field(s). Multiple key parameters may be used (up to 16), separated by commas. If the QUEUE has not been SORTed on the field(s) used as the key parameter(s), the key indicates an "alternate sort order" which is then cached (making a subsequent SORT on those same fields very efficient).</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure.</param>
+!!!<param name="key">The label of a field declared within the QUEUE structure. If the QUEUE has a PRE attribute, the key must include the prefix.</param>
+!!!<remarks>The leading plus or minus sign may be used with key parameter(s). They specifies the key is sorted in ascending or descending sequence.
+!!! GET reads an entry into the QUEUE structure data buffer for processing. If GET does not find a match, the "Entry Not Found" error is posted.</remarks>
+GET                   PROCEDURE(QUEUE queueLabel, PARAMS KEY[] key)
+
+!!!<summary>Searches for a QUEUE entry that matches the value in the name field(s). The name string must contain the NAME attributes of the fields, separated by commas, with optional leading plus or minus signs to indicate ascending or descending sequence. If the QUEUE has not been SORTed on the named field(s), the name indicates an "alternate sort order" which is then cached (making a subsequent SORT on those same fields very efficient).</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure.</param>
+!!!<param name="name">A string constant, variable, or expression containing the NAME attribute of QUEUE fields, separated by commas, and optional leading + or - signs for each attribute. This parameter is case sensitive.</param>
+!!!<remarks>GET reads an entry into the QUEUE structure data buffer for processing. If GET does not find a match, the "Entry Not Found" error is posted.</remarks>
+GET                   PROCEDURE(QUEUE queueLabel, STRING name)
+
+!!!<summary>GET by FUNCTION will read from a positional value returned by the function. See "Additional Queue Considerations" in the Help.</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure.</param>
+!!!<param name="functionLabel">The label of the function containing two parameters of a *GROUP or named GROUP passed by address, and having a SIGNED return value. Both parameters must use the same parameter type, and cannot be omitted. The RAW, C and PASCAL attributes are not permitted in the prototype declaration.</param>
+!!!<remarks>GET reads an entry into the QUEUE structure data buffer for processing. If GET does not find a match, the "Entry Not Found" error is posted.</remarks>
+GET                   PROCEDURE(QUEUE queueLabel, *? functionLabel)
+
+!!!<summary>Reorders the QUEUE in the sequence specified by the key(s).</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure, or the label of a passed QUEUE parameter.</param>
+!!!<param name="key">The label of a field declared within the QUEUE structure. If the QUEUE has a PRE attribute, the key must include the prefix. This may not be a reference variable.</param>
+!!!<remarks>The leading plus or minus sign may be used with key parameter(s). They specifies the key will be sorted in ascending or descending sequence.
+!!! SORT reorders the entries in a QUEUE. QUEUE entries with identical key values maintain their relative position.</remarks>
+SORT                  PROCEDURE(QUEUE queueLabel, PARAMS KEY[] key)
+
+!!!<summary>Reorders the QUEUE in the sequence specified by the name string.</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure, or the label of a passed QUEUE parameter.</param>
+!!!<param name="name">A string constant, variable, or expression containing the NAME attribute of QUEUE fields, separated by commas, and optional leading + or - signs for each attribute. This parameter is case sensitive and may not contain any reference variables.</param>
+!!!<remarks>SORT reorders the entries in a QUEUE. QUEUE entries with identical key values maintain their relative position.</remarks>
+SORT                  PROCEDURE(QUEUE queueLabel, STRING name)
+
+!!!<summary>Reorders the QUEUE in the sequence specified by the value returned by the function.</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure, or the label of a passed QUEUE parameter.</param>
+!!!<param name="functionLabel">The label of the function containing two parameters of a *GROUP or named GROUP passed by address, and having a SIGNED return value. Both parameters must use the same parameter type, and cannot be omitted. The RAW, C and PASCAL attributes are not permitted in the prototype declaration.</param>
+!!!<remarks>SORT reorders the entries in a QUEUE. QUEUE entries with identical key values maintain their relative position.</remarks>
+SORT                  PROCEDURE(QUEUE queueLabel, *? functionLabel)
+
+!!!<summary>Writes back the last record accessed with NEXT, PREVIOUS, GET, or ADD. If the values in the key variables were changed, the KEYs are updated.</summary>
+!!!<param name="fileLabel">The label of a FILE declaration.</param>
+!!!<remarks>If a record was not accessed with NEXT, PREVIOUS, GET, REGET, ADD, or was deleted, the "Record Not Available" error is posted. PUT also posts the "Creates Duplicate Key" error. If any error is posted, the record is not written to the file.</remarks>
+PUT                   PROCEDURE(FILE fileLabel)
+
+!!!<summary>Writes the record to the filepointer location in the file and the KEYs are updated.</summary>
+!!!<param name="fileLabel">The label of a FILE declaration.</param>
+!!!<param name="filePointer">A numeric constant, variable, or expression for the value returned by the POINTER(file) procedure.</param>
+!!!<remarks>If a record was not accessed with NEXT, PREVIOUS, GET, REGET, ADD, or was deleted, the "Record Not Available" error is posted. PUT also posts the "Creates Duplicate Key" error. If any error is posted, the record is not written to the file.</remarks>
+PUT                   PROCEDURE(FILE fileLabel, POINTER_T filePointer)
+
+!!!<summary>Writes length bytes to the filepointer location in the file and the KEYs are updated.</summary>
+!!!<param name="fileLabel">The label of a FILE declaration.</param>
+!!!<param name="filePointer">A numeric constant, variable, or expression for the value returned by the POINTER(file) procedure.</param>
+!!!<param name="length">An integer constant, variable, or expression containing the number of bytes to write to the file. This must be greater than zero and not greater than the RECORD length. If omitted or out of range, the RECORD length is used.</param>
+!!!<remarks>If a record was not accessed with NEXT, PREVIOUS, GET, REGET, ADD, or was deleted, the "Record Not Available" error is posted. PUT also posts the "Creates Duplicate Key" error. If any error is posted, the record is not written to the file.</remarks>
+PUT                   PROCEDURE(FILE fileLabel, POINTER_T filePointer, <UNSIGNED length>)
+
+!!!<summary>Writes the data buffer back to the same relative position within the QUEUE of the last successful GET or ADD.</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure.</param>
+!!!<remarks>PUT writes the contents of the data buffer back to the QUEUE (after a successful GET or ADD) to the position returned by the POINTER procedure. If no previous GET or ADD was executed, the "Entry Not Found" error is posted.</remarks>
+PUT                   PROCEDURE(QUEUE queueLabel)
+
+!!!<summary>Writes an entry to a sorted memory queue after a successful GET or ADD, maintaining the sort order if any key fields have changed value. The entry is inserted immediately after all other entries with matching key values.</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure.</param>
+!!!<param name="key">The label of a field declared within the QUEUE structure. If the QUEUE has a PRE attribute, the key must include the prefix.</param>
+!!!<remarks>Multiple key parameters may be used (up to 16), separated by commas, with optional leading plus or minus signs to indicate ascending or descending sequence.
+!!! PUT writes the contents of the data buffer back to the QUEUE (after a successful GET or ADD) to the position returned by the POINTER procedure. If no previous GET or ADD was executed, the "Entry Not Found" error is posted.</remarks>
+PUT                   PROCEDURE(QUEUE queueLabel, PARAMS KEY[] key)
+
+!!!<summary>Writes an entry to a sorted memory queue after a successful GET or ADD, maintaining the sort order if any key fields have changed value. The entry is inserted immediately after all other entries with matching field values.</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure.</param>
+!!!<param name="name">A string constant, variable, or expression containing the NAME attribute of QUEUE fields, separated by commas, and optional leading + or - signs for each attribute. This parameter is case sensitive.</param>
+!!!<remarks>PUT writes the contents of the data buffer back to the QUEUE (after a successful GET or ADD) to the position returned by the POINTER procedure. If no previous GET or ADD was executed, the "Entry Not Found" error is posted.</remarks>
+PUT                   PROCEDURE(QUEUE queueLabel, STRING name)
+
+!!!<summary>Using PUT by FUNCTION will write from a positional value returned by the function.</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure.</param>
+!!!<param name="functionLabel">The label of the function containing two parameters of a *GROUP or named GROUP passed by address, and having a SIGNED return value. Both parameters must use the same parameter type, and cannot be omitted. The RAW, C and PASCAL attributes are not permitted in the prototype declaration.</param>
+!!!<remarks>If the function returns zero (0) the queue record of the first parameter is treated as equal to the second. In this case, no record is written, since the values are equal. If the function returns a negative value, the PUT of the record passed as a first parameter is treated as having less value than record passed as second parameter and is written accordingly. If the function returns a positive value, the PUT of the record passed as a first parameter is treated as having a greater value than record passed as second parameter and is written accordingly.
+!!! PUT writes the contents of the data buffer back to the QUEUE (after a successful GET or ADD) to the position returned by the POINTER procedure. If no previous GET or ADD was executed, the "Entry Not Found" error is posted.</remarks>
+PUT                   PROCEDURE(QUEUE queueLabel, *? functionLabel)
+
+!!!<summary>Writes a record back to a VIEW.</summary>
+!!!<param name="viewLabel">The label of a VIEW declaration.</param>
+!!!<remarks>The PUT statement writes the current values in the VIEW structure's primary file's data buffer to a previously accessed primary file record in the view. If the record was held, it is automatically released. PUT writes to the last record accessed with the REGET, NEXT, or PREVIOUS statements. If the values in the key variables were changed, then the KEYs are updated.
+!!! PUT only writes to the primary file in the VIEW because the VIEW structure performs both relational Project and Join operations at the same time. Therefore, it is possible to create a VIEW structure that, if all its component files were updated, would violate the Referential Integrity rules set for the database. The common solution to this problem in SQL-based database products is to write only to the Primary file. Therefore, Clarion has adopted this same industry standard solution.
+!!! If a record was not accessed with REGET, NEXT, or PREVIOUS statements, or was deleted, then the "Record Not Available" error is posted. PUT also posts the "Creates Duplicate Key" error. If any error is posted, then the record is not written to disk.</remarks>
+PUT                   PROCEDURE(VIEW viewLabel)
+
+!!!<summary>Adds a new record to the file by writing the entire contents of the data file's record buffer to disk.</summary>
+!!!<param name="fileLabel">The label of a FILE declaration.</param>
+!!!<remarks>All KEYs associated with the file are also updated during each ADD. If there is no room for the record on disk, the "Access Denied" error is posted. If an error is posted, no record is added to the file.</remarks>
+ADD                   PROCEDURE(FILE fileLabel)
+
+!!!<summary>Adds a new record to the file by writing length number of bytes from the data file's record buffer to disk. This form of ADD is not supported by all file drivers - check your file driver documentation.</summary>
+!!!<param name="fileLabel">The label of a FILE declaration.</param>
+!!!<param name="length">An integer constant, variable, or expression which contains the number of bytes in the RECORD buffer to write to the file. If omitted or out of range, length defaults to the length of the RECORD structure.</param>
+!!!<remarks>All KEYs associated with the file are also updated during each ADD. If there is no room for the record on disk, the "Access Denied" error is posted. If an error is posted, no record is added to the file.</remarks>
+ADD                   PROCEDURE(FILE fileLabel, UNSIGNED length)
+
+!!!<summary>Appends a new entry to the end of the QUEUE.</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure, or the label of a passed QUEUE parameter.</param>
+!!!<remarks>ADD writes a new entry from the QUEUE structure data buffer to the QUEUE. If there is not enough memory to ADD a new entry, the "Insufficient Memory" error is posted.
+!!! If the QUEUE contains any reference variables or fields with the ANY data type, you must first CLEAR the QUEUE entry before assigning new values to the component fields of the QUEUE. This avoids possible memory leaks, since these data types automatically allocate memory.</remarks>
+ADD                   PROCEDURE(QUEUE queueLabel)
+
+!!!<summary>Inserts a new entry in a sorted memory queue. The entry is inserted immediately after all other entries with matching key values. Using only this form of ADD will build the QUEUE in sorted order.</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure, or the label of a passed QUEUE parameter.</param>
+!!!<param name="key">The label of a field declared within the QUEUE structure. If the QUEUE has a PRE attribute, the key must include the prefix. Multiple key parameters may be used (up to 16), separated by commas, with optional leading plus or minus signs to indicate ascending or descending sequence.</param>
+!!!<remarks>ADD writes a new entry from the QUEUE structure data buffer to the QUEUE. If there is not enough memory to ADD a new entry, the "Insufficient Memory" error is posted.
+!!! If the QUEUE contains any reference variables or fields with the ANY data type, you must first CLEAR the QUEUE entry before assigning new values to the component fields of the QUEUE. This avoids possible memory leaks, since these data types automatically allocate memory.</remarks>
+ADD                   PROCEDURE(QUEUE queueLabel, PARAMS KEY[] key)
+
+!!!<summary>Inserts a new queue entry in a sorted memory queue. The entry is inserted immediately after all other entries with matching field values. If there are no entries, ADD(queue,name) may be used to build the QUEUE in sorted order.</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure, or the label of a passed QUEUE parameter.</param>
+!!!<param name="name">A string constant, variable, or expression containing the NAME attribute of QUEUE fields, separated by commas, and optional leading + or - signs for each attribute. This parameter is case sensitive.</param>
+!!!<remarks>ADD writes a new entry from the QUEUE structure data buffer to the QUEUE. If there is not enough memory to ADD a new entry, the "Insufficient Memory" error is posted.
+!!! If the QUEUE contains any reference variables or fields with the ANY data type, you must first CLEAR the QUEUE entry before assigning new values to the component fields of the QUEUE. This avoids possible memory leaks, since these data types automatically allocate memory.</remarks>
+ADD                   PROCEDURE(QUEUE queueLabel, STRING name)
+
+!!!<summary>Places a new entry at the relative position specified by the pointer parameter.</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure, or the label of a passed QUEUE parameter.</param>
+!!!<param name="pointer">A numeric constant, variable, or numeric expression. The pointer must be in the range from 1 to the number of entries in the memory queue.</param>
+!!!<remarks>If there is an entry already at the relative pointer position, it is "pushed down" to make room for the new entry. All following pointers are readjusted to account for the new entry. For example, an entry added at position 10 pushes entry 10 to position 11, entry 11 to position 12, etc. If pointer is zero or greater than the number of entries in the QUEUE, the entry is added at the end.
+!!! ADD writes a new entry from the QUEUE structure data buffer to the QUEUE. If there is not enough memory to ADD a new entry, the "Insufficient Memory" error is posted.
+!!! If the QUEUE contains any reference variables or fields with the ANY data type, you must first CLEAR the QUEUE entry before assigning new values to the component fields of the QUEUE. This avoids possible memory leaks, since these data types automatically allocate memory.</remarks>
+ADD                   PROCEDURE(QUEUE queueLabel, POINTER_T pointer)
+
+!!!<summary>Using ADD by FUNCTION will write from a positional value returned by the function.</summary>
+!!!<param name="queueLabel">The label of a QUEUE structure, or the label of a passed QUEUE parameter.</param>
+!!!<param name="functionLabel">The label of the function containing two parameters of a *GROUP or named GROUP passed by address, and having a SIGNED return value. Both parameters must use the same parameter type, and cannot be omitted. The RAW, C and PASCAL attributes are not permitted in the prototype declaration.</param>
+!!!<remarks>If the function returns zero (0) the queue record of the first parameter is treated as equal to the second. In this case, no record is added, since the values are equal. If the function returns a negative value, the ADD of the record passed as a first parameter is treated as having less value than record passed as second parameter and is written accordingly. If the function returns a positive value, the ADD of the record passed as a first parameter is treated as having a greater value than record passed as second parameter and is written accordingly.
+!!! ADD writes a new entry from the QUEUE structure data buffer to the QUEUE. If there is not enough memory to ADD a new entry, the "Insufficient Memory" error is posted.
+!!! If the QUEUE contains any reference variables or fields with the ANY data type, you must first CLEAR the QUEUE entry before assigning new values to the component fields of the QUEUE. This avoids possible memory leaks, since these data types automatically allocate memory.</remarks>
+ADD                   PROCEDURE(QUEUE queueLabel, *? functionLabel)
+
+!!!<summary>Clears the value from a variable.</summary>
+!!!<param name="label">The label of a variable (except BLOB types), GROUP, RECORD, QUEUE, CLASS, or FILE structure. If the variable has a DIM attribute, the entire array is cleared.</param>
+!!!<param name="n">A numeric constant; either 1 or -1. If omitted, numeric variables are cleared to zero, STRING variables are cleared to spaces, and PSTRING and CSTRING variables are set to zero length.</param>
+!!!<remarks>The presence of the n parameter indicates a cleared value other than zero or blank. If n is 1, the label variable is set to the highest possible value for that data type. For the STRING, PSTRING and CSTRING data types, that is all ASCII 255. If n is -1, the label variable is set to the lowest possible value for that data type. For the STRING data type, that is all ASCII zeroes (0). For the PSTRING and CSTRING data types, that is a zero length string.
+!!! If the label parameter names a GROUP, RECORD, or QUEUE structure, all variables in the structure are cleared and all reference variables in the structure are set to NULL. If the label parameter names a FILE structure and the n parameter is omitted, all variables in the FILE structure (including any MEMO and/or BLOB fields) are cleared. If the label parameter names a CLASS structure or an object derived from a CLASS, all variables in the object are cleared and all reference variables are set to NULL.
+!!! If the variable has a DIM attribute, a single element can be cleared (i.e., CLEAR(MyName[n])), or the entire array is cleared if just the array name is specified (i.e., CLEAR(MyName)). For a STRING, it is possible to clear a range of elements by using string slicing (i.e., CLEAR(MyString[n:m)).</remarks>
+CLEAR                 PROCEDURE(?* label, <SIGNED n>)
+
+!!!<summary>Returns a formatted numeric string.</summary>
+!!!<param name="value">A numeric expression for the value to be formatted.</param>
+!!!<param name="picture">A picture token or the label of a STRING variable or expression containing a picture token.</param>
+!!!<returns>Returns a numeric string formatted according to the picture parameter.</returns>
+FORMAT                PROCEDURE(LONG value, PICTURE picture), STRING
+
+!!!<summary>Removes formatting characters from a numeric string.</summary>
+!!!<param name="numericString">A string expression containing a numeric string.</param>
+!!!<param name="picture">A picture token, or the label of a CSTRING variable containing a picture token. If omitted, the picture for the string parameter is used. If the string parameter was not declared with a picture token, the return value will contain only characters that are valid for a numeric constant.</param>
+!!!<returns>The DEFORMAT procedure removes formatting characters from a numeric string, returning only the numbers contained in the string. When used with a date or time picture (except those containing alphabetic characters), it returns a STRING containing the Clarion Standard Date or Time.</returns>
+DEFORMAT              PROCEDURE(STRING numericString, <PICTURE picture>), STRING
+
+!!!<summary>Returns memory address of a variable.</summary>
+!!!<param name="variable">The label of a data item or PROCEDURE.</param>
+!!!<returns>The ADDRESS procedure returns the address of the specified data item or PROCEDURE.</returns>
+!!!<remarks>The ADDRESS procedure allows you to pass the address of a variable or procedure to external libraries written in other languages, or to reference assign the address to a reference variable.</remarks>
+ADDRESS               PROCEDURE(variable), LONG
+
+!!!<summary>Returns absolute value.</summary>
+!!!<param name="expression">A constant, variable, or expression.</param>
+!!!<returns>The ABS procedure returns the absolute value of an expression. The absolute value of a number is always positive (or zero).</returns>
+ABS                   PROCEDURE(expression), REAL
+
+!!!<summary>Returns elapsed time.</summary>
+!!!<param name="birthDate">A numeric expression for a standard date.</param>
+!!!<param name="baseDate">A numeric expression for a standard date. If this parameter is omitted, the operating system date is used for the computation.</param>
+!!!<returns>String data.</returns>
+!!!<remarks>The AGE procedure returns a string containing the time elapsed between two dates. The age return string is in the following format:
+!!! 1 to 60 days - 'nn DAYS'; 61 days to 24 months - 'nn MOS'; (2 years + 1 month) to 999 years - 'nnn YRS'.</remarks>
+AGE                   PROCEDURE(LONG birthDate, <LONG baseDate>), STRING
+
+!!!<summary>Calculates principal, interest, and remaining balance for a payment or payments.</summary>
+!!!<param name="balance">A numeric constant or variable containing the loan balance.</param>
+!!!<param name="rate">A numeric constant or variable containing the periodic interest rate applied for a single period.</param>
+!!!<param name="payment">A numeric constant or variable containing the desired payment (a negative number).</param>
+!!!<param name="totalPayments">A numeric constant or variable containing the number of payments to amortize.</param>
+!!!<param name="principal">The label of a DECIMAL variable to receive the portion of the payment(s) applied to pay back the loan (a negative number).</param>
+!!!<param name="interest">The label of a DECIMAL variable to receive the portion of the payment(s) applied towards loan interest (a negative number).</param>
+!!!<param name="endBalance">The label of a DECIMAL variable to receive the remaining loan balance.</param>
+!!!<remarks>The AMORTIZE procedure shows precisely which portion of a loan payment, or payments, constitutes interest and which portion constitutes repayment of the 
+!!! principal amount borrowed. The computed amounts are based upon a loan balance (balance), a periodic interest rate (rate), the payment amount (payment) and the number 
+!!! of payments (totalpayments). The remaining balance (endbalance) is also calculated. 
+!!! Periodic rate may be calculated as follows: PeriodicRate = AnnualInterestRate / (PeriodsPerYear * 100)</remarks>
+AMORTIZE              PROCEDURE(DECIMAL balance, DECIMAL rate, DECIMAL payment, DECIMAL totalPayments, LABEL principal, LABEL interest, LABEL endBalance)
+
+!!!<summary>Writes a new record to a FILE.</summary>
+!!!<param name="fileLabel">The label of a FILE declaration.</param>
+!!!<param name="length">An integer constant, variable, or expression which contains the number of bytes to write to the file. The length must be greater than zero and not greater than the length of the RECORD. If omitted or out of range, length defaults to the length of the RECORD structure.</param>
+!!!<remarks>The APPEND statement writes a new record from the RECORD structure data buffer to the data file. No KEYs associated with the file are updated during an APPEND. After APPENDing records, the KEYs must be rebuilt with the BUILD command. 
+!!! APPEND is usually used in batch processes, to speed the process of adding a large number of records at one time to the file. For most every file system, it is much faster to add 5000 records to a file using APPEND (and then issue BUILD atthe end of the process to rebuild all the keys at once) than it is to use ADD to add the same 5000 records (which automatically updates the keys with each new record added).
+!!! If an error is posted, no record is added to the file. If there is no room for the record on disk, the "Access Denied" error is posted.</remarks>
+APPEND                PROCEDURE(FILE fileLabel, <LONG length>)
+
+!!!<summary>Annual percentage rate.</summary>
+!!!<param name="rate">A numeric constant or variable containing the contracted interest rate.</param>
+!!!<param name="periods">A numeric constant or variable containing the number of compounding periods per year.</param>
+!!!<returns>Returns the effective annual interest rate.</returns>
+!!!<remarks>The APR function determines the effective annual rate of interest based upon the contracted interest rate (rate) and the number of compounding periods (periods) per year. For example, periods = 2 results in semi-annual compounding. The contracted interest rate is a 'non-compounded annual interest rate.'</remarks>
+APR                   PROCEDURE(DECIMAL rate, DECIMAL periods), DECIMAL
+
+!!!<summary>Specifies an assumption for debugging purposes.</summary>
+!!!<param name="expression">A Boolean expression that should always evaluate as true (any value other than blank or zero).</param>
+!!!<param name="message">An optional string expression (up to 64K) which displays in the dialog window.</param>
+!!!<remarks>The ASSERT statement specifies an expression to evaluate at the exact point in the program where the ASSERT is placed. This may be any kind of Boolean expression and should be formulated such that the expected evaluation result is always true (any value other than blank or zero). The purpose of ASSERT is to catch erroneous assumptions for the programmer.
+!!! If debug is on and the expression is false (blank or zero), an error message displays indicating the specific line number and source code module where the asserted expression was false. The user is invited to GPF the program at that point, which allows Clarion's post-mortem debuggers to activate.
+!!! If debug is off, the expression is still evaluated, but no error message is displayed if the result is false. To activate error messages in release build (debug is off), you can add the following project define to your application</remarks>
+ASSERT                PROCEDURE(LONG expression, <STRING message>)
+
+!!!<summary>Performs bitwise AND operation.</summary>
+!!!<param name="value">A numeric constant, variable, or expression for the bit value to be compared to the bit mask. The value is converted to a LONG data type prior to the operation, if necessary.</param>
+!!!<param name="mask">A numeric constant, variable, or expression for the bit mask. The mask is converted to a LONG data type prior to the operation, if necessary.</param>
+!!!<remarks>The BAND procedure compares the value to the mask, performing a Boolean AND operation on each bit. The return value is a LONG integer with a one (1) in the bit positions where the value and the mask both contain one (1), and zeroes in all other bit positions.
+!!! BAND is usually used to determine whether an individual bit, or multiple bits, are on (1) or off (0) within a variable.</remarks>
+BAND                  PROCEDURE(LONG value, LONG mask), LONG
+
+!!!<summary>Identifies variables allowed to be used in dynamic expressions.</summary>
+!!!<param name="name">A string constant containing the identifier used in the dynamic expression. This may be the same as the variable or procedure label.</param>
+!!!<param name="label">The label of any variable (including fields in FILE, GROUP, or QUEUE structures) or passed parameter. If it is an array, it must have only one dimension.
+!!! Or the label of a Clarion language PROCEDURE which returns a STRING, REAL, or LONG value. If parameters are passed to the procedure, they must be STRING value-parameters (passed by value, not by address) and may not be omittable.</param>
+!!!<remarks>The BIND statement declares the logical name used to identify a variable, EQUATE, or user-defined procedure in runtime expression strings. A variable or user-defined procedure must be identified with the BIND statement before it can be used in an expression string for either the EVALUATE procedure or a VIEW structure's FILTER attribute.
+!!! The specified name is used in the expression in place of the label of the variable or procedure.</remarks>
+BIND                  PROCEDURE(STRING name, LABEL label)
+
+!!!<summary>Identifies variables allowed to be used in dynamic expressions.</summary>
+!!!<param name="groupLabel">The label of a GROUP, RECORD, or QUEUE structure declared with the BINDABLE attribute.</param>
+!!!<remarks>The BIND statement declares the logical name used to identify a variable, EQUATE, or user-defined procedure in runtime expression strings. A variable or user-defined procedure must be identified with the BIND statement before it can be used in an expression string for either the EVALUATE procedure or a VIEW structure's FILTER attribute.
+!!! Declares all the variables within the GROUP, RECORD, or QUEUE (with the BINDABLE attribute) available for use in a dynamic expression. The contents of each variable's NAME attribute is the logical name used in the dynamic expression. If no NAME attribute is present, the label of the variable (including prefix) is used.</remarks>
+BIND                  PROCEDURE(GROUP groupLabel)
+
+!!!<summary>Performs bitwise OR operation.</summary>
+!!!<param name="value">A numeric constant, variable, or expression for the bit value to be compared to the bit mask. The value is converted to a LONG data type prior to the operation, if necessary.</param>
+!!!<param name="mask">A numeric constant, variable, or expression for the bit mask. The mask is converted to a LONG data type prior to the operation, if necessary.</param>
+!!!<remarks>The BOR procedure compares the value to the mask, performing a Boolean OR operation on each bit. The return value is a LONG integer with a one (1) in the bit positions where the value, or the mask, or both, contain a one (1), and zeroes in all other bit positions.
+!!! BOR is usually used to unconditionally turn on (set to one), an individual bit, or multiple bits, within a variable.</remarks>
+BOR                   PROCEDURE(LONG value, LONG mask), LONG
+
+!!!<summary>Performs the bit shift operation.</summary>
+!!!<param name="value">A numeric constant, variable, or expression. The value is converted to a LONG data type prior to the operation, if necessary.</param>
+!!!<param name="count">A numeric constant, variable, or expression for the number of bit positions to be shifted. If count is positive, value is shifted left. If count is negative, value is shifted right.</param>
+!!!<remarks>The BSHIFT procedure shifts a bit value by a bit count. The bit value may be shifted left (toward the high order), or right (toward the low order). Zero bits are supplied to fill vacated bit positions when shifting.</remarks>
+BSHIFT                PROCEDURE(LONG value, LONG count), LONG
+
+!!!<summary>Performs bitwise exclusive OR operation.</summary>
+!!!<param name="value">A numeric constant, variable, or expression for the bit value to be compared to the bit mask. The value is converted to a LONG data type prior to the operation, if necessary.</param>
+!!!<param name="mask">A numeric constant, variable, or expression for the bit mask. The mask is converted to a LONG data type prior to the operation, if necessary.</param>
+!!!<remarks>The BXOR procedure compares the value to the mask, performing a Boolean XOR operation on each bit. The return value is a LONG integer with a one (1) in the bit positions where either the value or the mask contain a one (1), but not both. Zeroes are returned in all bit positions where the bits in the value and mask are alike.
+!!! BXOR is usually used to toggle on (1) or off (0) an individual bit, or multiple bits, within a variable.</remarks>
+BXOR                 PROCEDURE(LONG value, LONG mask), LONG
+
+!!!<summary>Creates an empty data file.</summary>
+!!!<param name="fileLabel">The label of the FILE to be created.</param>
+!!!<remarks>The CREATE statement adds an empty data file to the operating system directory. If the file already exists, it is deleted and recreated as an empty file. The file must be closed, or the "File Already Open" error is posted. CREATE does not open the file for access.</remarks>
+CREATE                PROCEDURE(FILE fileLabel)
+!!!<summary>Initiates transaction processing.</summary>
+!!!<param name="timeout"">A numeric constant or variable specifying the number of seconds to attempt to begin the transaction for a file before aborting the transaction and posting an error
+!!!<param name="fileLabel1">The label of a FILE declaration. There may be multiple file parameters, separated by commas, in the parameter list (up to 100). If no file is specified, all files in the transaction must have been previously named using PROP:Logout.</param>
+!!!<remarks>The LOGOUT statement initiates transaction processing for a specified set of files. All files in the transaction set must have the same file driver and must already be open.</remarks>
+LOGOUT                PROCEDURE(LONG timeout , FILE fileLabel1, FILE fileLabel2)
+                    END
+

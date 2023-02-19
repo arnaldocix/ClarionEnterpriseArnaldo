@@ -1,0 +1,35 @@
+<html>
+<head>
+<meta name="ts-control" content="sheet">
+<meta name="ts-capabilities" content="dropselector">
+</head>
+<body>
+<form>
+  <table border="1" cellpadding="0" cellspacing="0" width="100%">
+    <tr align="middle">
+      <td>
+        <TSSCRIPT tag=select attr=name replace="NAME" value="Name">
+        <select name="NAME$Choice" size="0" onchange="icSubmitForm()">
+          <TSSCRIPT repeat times="NumTabs" name=curTab>
+          <TSSCRIPT tag=option attr=value value=curTab>
+          <TSSCRIPT tag=option attr=selected value=1 when="choice==curTab">
+          <option value="VALUE">
+          </TSSCRIPT>
+          </TSSCRIPT>
+          </TSSCRIPT>
+          &nbsp;&nbsp;
+          CELLTEXT
+          &nbsp; 
+        </select>
+        </TSSCRIPT>
+      </td>
+    </tr>
+    <tr>
+      <td><img width="500" height="261" name="ZONE:Contents" alt="Wizatrons will place controls in here"></td>
+    </tr>
+  </table>
+</form>
+
+</body>
+
+</html>

@@ -1,0 +1,278 @@
+#GROUP(%ReplaceCharacter,%OldCharacter,%NewCharacter)
+#DECLARE(%CharacterLocation)
+#DECLARE(%StringLength)
+#DECLARE(%RemainderLength)
+#DECLARE(%ConstructedString)
+#SET(%CharacterLocation,INSTRING(%OldCharacter,%ValueConstruct,1,1))
+#IF(%CharacterLocation)
+  #SET(%StringLength,%CharacterLocation-1)
+  #SET(%RemainderLength,LEN(%ValueConstruct) - %CharacterLocation)
+  #SET(%ConstructedString,SUB(%ValueConstruct,1,%StringLength) & %NewCharacter & SUB(%ValueConstruct,%CharacterLocation+1,%RemainderLength))
+  #SET(%ValueConstruct,%ConstructedString)
+  #INSERT(%ReplaceCharacter,%OldCharacter,%NewCharacter)
+#ENDIF
+#!
+#GROUP(%CleanDimensions)
+#INSERT(%ReplaceCharacter,'[','_')
+#INSERT(%ReplaceCharacter,',','_')
+#INSERT(%ReplaceCharacter,']','')
+#!
+#!
+#!-------------------------------------------------------------------------
+#GROUP(%ComputeFieldSyntax,*%Target,STRING %NameOfField,STRING %NameOfFile),PRESERVE
+#FIX(%File,%NameOfFile)
+#DECLARE(%GroupName),MULTI
+#SET(%Target,%NameOfField)
+#FOR (%Field)
+  #IF (%FieldId = %NameOfField)
+    #FOR (%GroupName)
+      #SET(%Target,%GroupName & '.' & %Target)
+    #ENDFOR
+    #BREAK
+  #ENDIF
+  #IF (%FieldType = 'GROUP')
+    #ADD(%GroupName,%FieldId,1)
+  #ELSIF(%FieldStatement = 'END')
+    #DELETE(%GroupName,1)
+  #ENDIF
+#ENDFOR
+#FREE(%GroupName)
+#!-------------------------------------------------------------------------
+#!----------------------------------------------------------------------------
+#GROUP(%StandardFormula,%RequestedClass)
+  #FOR(%Formula),WHERE(%FormulaClass = %RequestedClass)
+#INSERT(%ExpandFormula,1)
+  #ENDFOR
+#!-------------------------------------------------------------------------
+#GROUP(%ExpandFormula,%CurrentElement)
+  #DECLARE(%LastElement)
+  #SET(%LastElement,INSTANCE(%FormulaExpression))
+  #SELECT(%FormulaExpression,%CurrentElement)
+  #CASE(%FormulaExpressionType)
+  #OF('=')
+    #IF(%FormulaExpression)
+%Formula = %FormulaExpression
+    #ELSE
+CLEAR(%Formula)
+    #ENDIF
+  #OF('IF')
+IF (%FormulaExpression)
+  #INSERT(%ExpandFormula,%FormulaExpressionTrue)
+ELSE
+  #INSERT(%ExpandFormula,%FormulaExpressionFalse)
+END
+  #OF('CASE')
+CASE (%FormulaExpression)
+#INSERT(%ExpandFormulaCase,%FormulaExpressionCase)
+END
+  #ENDCASE
+#SELECT(%FormulaExpression,%LastElement)
+#!-------------------------------------------------------------------------
+#GROUP(%ExpandFormulaCase,%CurrentElement)
+  #SELECT(%FormulaExpression,%CurrentElement)
+  #LOOP WHILE(%CurrentElement)
+    #IF(%CurrentElement=0)
+      #BREAK
+    #ENDIF
+    #SET(%CurrentElement,%FormulaExpressionCase)
+    #IF(%FormulaExpression)
+OF %FormulaExpression
+    #ELSE
+ELSE
+    #ENDIF
+  #INSERT(%ExpandFormula,%FormulaExpressionOf)
+#SELECT(%FormulaExpression,%FormulaExpressionCase)
+  #ENDLOOP
+#!-------------------------------------------------------------------------
+#GROUP(%StandardThreadInitialize,%ThreadProcedure,%InitThreadName)
+  #IF(%InitThreadName)
+    #FIND(%ThreadName,%InitThreadName)
+  #ENDIF
+START(%ThreadProcedure)
+#!-------------------------------------------------------------------------
+#GROUP(%StandardProgressWindow)
+Progress:Thermometer BYTE
+ProgressWindow WINDOW('Progress...'),AT(,,142,59),CENTER,TIMER(1),GRAY,DOUBLE
+       PROGRESS,USE(Progress:Thermometer),AT(15,15,111,12),RANGE(0,100)
+       STRING(''),AT(0,3,141,10),USE(?Progress:UserString),CENTER
+       STRING(''),AT(0,30,141,10),USE(?Progress:PctText),CENTER
+       BUTTON('Cancel'),AT(45,42,50,15),USE(?Progress:Cancel)
+     END
+#!-------------------------------------------------------------------------
+#GROUP(%StandardValueAssignment,%AssignTo,%AssignValue)
+#IF(%AssignValue)
+%AssignTo = %(%StripPling(%AssignValue))
+#ENDIF
+#!-------------------------------------------------------------------------
+#GROUP(%StripPling,%Incoming)
+  #IF(SUB(%Incoming,1,1)='!')
+    #RETURN(SUB(%Incoming,2))
+  #ELSIF(SUB(%Incoming,1,1)='=')
+    #RETURN('EVALUATE(' & %StripPling(SUB(%Incoming, 2)) & ')')
+  #ELSIF(UPPER(%Incoming)='TRUE' OR UPPER(%Incoming)='FALSE')
+    #RETURN(%Incoming)
+  #ELSIF(UPPER(%Incoming)='''TRUE''' OR UPPER(%Incoming)='''FALSE''')
+    #RETURN(%Incoming)
+  #ELSE
+    #RETURN( '''' & QUOTE(%Incoming) & '''' )
+  #ENDIF
+#!-------------------------------------------------------------------------
+#GROUP(%StandardGlobalSetup),AUTO
+#INSERT(%FileControlSetFlags)
+#DECLARE(%VBXClassString)
+#DECLARE(%EndOfConstruct)
+#IF(%Window)
+  #FOR(%Control),WHERE(%ControlType='VBX')
+    #SET(%VBXClassString,EXTRACT(%ControlStatement,'CLASS'))
+    #SET(%VBXClassString,SUB(%VBXClassString,8,LEN(%VBXClassString)))
+    #SET(%VBXClassString,SUB(%VBXClassString,1,INSTRING(',',%VBXClassString,1,1)-2))
+    #ADD(%VBXList,%VBXClassString)
+  #ENDFOR
+  #FOR(%Control),WHERE(%ControlType='OLE')
+    #SET(%OLENeeded,%True)
+    #SET(%ValueConstruct,EXTRACT(%ControlStatement,'CREATE',1))
+    #INSERT(%StandardOLEExtraction)
+    #SET(%ValueConstruct,EXTRACT(%ControlStatement,'CREATE',2))
+    #INSERT(%StandardOLEExtraction)
+    #SET(%ValueConstruct,EXTRACT(%ControlStatement,'OPEN',1))
+    #INSERT(%StandardOLEExtraction)
+    #SET(%ValueConstruct,EXTRACT(%ControlStatement,'DOCUMENT',1))
+    #INSERT(%StandardOLEExtraction)
+  #ENDFOR
+#ENDIF
+#IF(%Report)
+  #FOR(%ReportControl),WHERE(%ReportControlType='VBX')
+    #SET(%VBXClassString,EXTRACT(%ReportControlStatement,'CLASS'))
+    #SET(%VBXClassString,SUB(%VBXClassString,8,LEN(%VBXClassString)))
+    #SET(%VBXClassString,SUB(%VBXClassString,1,INSTRING(',',%VBXClassString,1,1)-2))
+    #ADD(%VBXList,%VBXClassString)
+  #ENDFOR
+  #FOR(%ReportControl),WHERE(%ReportControlType='OLE')
+    #SET(%OLENeeded,%True)
+    #SET(%ValueConstruct,EXTRACT(%ControlStatement,'CREATE',1))
+    #INSERT(%StandardOLEExtraction)
+    #SET(%ValueConstruct,EXTRACT(%ControlStatement,'CREATE',2))
+    #INSERT(%StandardOLEExtraction)
+    #SET(%ValueConstruct,EXTRACT(%ControlStatement,'OPEN',1))
+    #INSERT(%StandardOLEExtraction)
+    #SET(%ValueConstruct,EXTRACT(%ControlStatement,'DOCUMENT',1))
+    #INSERT(%StandardOLEExtraction)
+  #ENDFOR
+#ENDIF
+#!-------------------------------------------------------------------------
+#GROUP(%StandardOLEExtraction)
+#IF(%ValueConstruct)
+  #SET(%EndOfConstruct,INSTRING('\!',%ValueConstruct,1,1))
+  #IF(%EndOfConstruct)
+    #SET(%ValueConstruct,SUB(%ValueConstruct,1,%EndOfConstruct-1))
+  #ENDIF
+  #IF(SUB(%ValueConstruct,1,1) = '''')
+    #SET(%ValueConstruct,SUB(%ValueConstruct,2,LEN(%ValueConstruct)-1))
+  #ENDIF
+  #IF(SUB(%ValueConstruct,LEN(%ValueConstruct),1) = '''')
+    #SET(%ValueConstruct,SUB(%ValueConstruct,1,LEN(%ValueConstruct)-1))
+  #ENDIF
+  #ADD(%OCXList,%ValueConstruct)
+#ENDIF
+#!-------------------------------------------------------------------------
+#GROUP(%StandardAddIconToProject,%CurrentIcon)
+#IF(UPPER(SUB(%CurrentIcon,1,5)) = 'ICON:')
+#ELSIF(SUB(%CurrentIcon,1,1) = '!')
+#ELSIF(SUB(%CurrentIcon,1,1) = '~')
+#ELSE
+  #PROJECT(%CurrentIcon)
+#ENDIF
+#!-------------------------------------------------------------------------
+#GROUP(%StandardReturnIconName,%CurrentIcon)
+#IF(UPPER(SUB(%CurrentIcon,1,5)) = 'ICON:')
+  #RETURN(%CurrentIcon)
+#ELSIF(SUB(%CurrentIcon,1,1) = '!')
+  #RETURN(SUB(%CurrentIcon,2,LEN(%CurrentIcon)-1))
+#ELSIF(SUB(%CurrentIcon,1,1) = '~')
+  #RETURN(''''&%CurrentIcon&'''')
+#ELSE
+  #RETURN('''~'&%CurrentIcon&'''')
+#ENDIF
+#!
+#!
+#GROUP(%ConstructView),AUTO
+#DECLARE(%PreviouslyProjectedField),MULTI
+#FIX(%File,%Primary)
+%[20]ListView VIEW(%Primary)
+#CALL(%ProjectQueueFields)
+#CALL(%ConstructSecondaries, %Primary)
+%[20]Null END
+#!
+#!
+#GROUP(%ConstructSecondaries, %To)
+#FOR(%Secondary),WHERE(%SecondaryTo = %To)
+  #FIX(%File,%Secondary)
+  #FIX(%Relation,%To)
+  #FOR(%RelationKeyField),WHERE(%RelationKeyFieldLink <> '' AND %RelationKeyField <> '' AND INLIST(%RelationKeyField, %QueueField) = 0 AND %PreviouslyProjected(%RelationKeyField) = 0)
+%[22]Null PROJECT(%RelationKeyField)
+  #ENDFOR
+#ENDFOR
+#FOR(%Secondary),WHERE(%SecondaryTo = %To)
+  #INSERT(%ConstructViewJoinSecondary, %To, %Secondary, %SecondaryInner)
+#ENDFOR
+#!
+#!
+#GROUP(%ProjectQueueFields)
+  #DECLARE(%Lb,LONG)
+  #DECLARE(%QField)
+  #FOR(%QueueField)
+    #SET(%Lb, INSTRING ('[',%QueueFieldAssignment,1,1))
+    #IF(%Lb > 1)
+      #SET(%QField, SLICE(%QueueFieldAssignment,1,%Lb-1))
+    #ELSE
+      #SET(%QField, %QueueFieldAssignment)
+    #ENDIF
+    #IF(INLIST(%QField, %Field) > 0 AND %PreviouslyProjected(%QField) = 0)
+%[22]Null PROJECT(%QField)
+    #ENDIF
+  #ENDFOR
+#!
+#!
+#GROUP(%PreviouslyProjected, %Fld)
+  #EQUATE(%RVal, INLIST(%Fld, %PreviouslyProjectedField))
+  #IF(~%RVal)
+    #ADD(%PreviouslyProjectedField, %Fld)
+  #ENDIF
+  #RETURN(%RVal)
+#!
+#!
+#GROUP(%ConstructViewJoinSecondary,%CurrentPrimary,%CurrentSecondary,%IsInner)
+#EQUATE(%JoinDeclaration, 'JOIN(')
+#FIX(%File,%CurrentSecondary)
+#IF(%SecondaryCustomJoin)
+  #SET(%JoinDeclaration,%JoinDeclaration&%CurrentSecondary&','''&QUOTE(%SecondaryCustomText)&'''')
+#ELSE
+  #FIX(%Relation,%CurrentPrimary)
+  #SET(%JoinDeclaration,%JoinDeclaration & %FileKey)
+  #FOR(%RelationKeyField),WHERE(%RelationKeyFieldLink AND %RelationKeyField)
+    #SET(%JoinDeclaration,%JoinDeclaration & ',' & %RelationKeyField)
+    #IF(%FileRelationType = '1:MANY')
+      #IF(%InstancePrefix)
+        #SET(%ValueConstruct,%RelationKeyFieldLink)
+        #IF(~INLIST(%ValueConstruct,%QueueField))
+          #ADD(%QueueField,%ValueConstruct)
+          #SET(%QueueFieldAssignment,%RelationKeyFieldLink)
+          #SET(%QueueFieldComment,'Related join file key field')
+        #ENDIF
+      #ENDIF
+    #ENDIF
+  #ENDFOR
+#ENDIF
+#IF(%JoinDeclaration = 'JOIN(')
+  #ASSERT(%False, %Procedure & ': Bad JOIN statement generated between ' & %CurrentPrimary & ' and ' & %CurrentSecondary & ', section will be omitted from generated code. Check file relationships for NOLINKS!')
+#ELSE
+  #SET(%JoinDeclaration,%JoinDeclaration & CHOOSE(NOT %IsInner, ')', '),INNER'))
+%[20]Null %JoinDeclaration
+#CALL(%ProjectQueueFields)
+#CALL(%ConstructSecondaries, %CurrentSecondary)
+%[20]Null END
+#ENDIF
+#!
+#!
+#!
+#!

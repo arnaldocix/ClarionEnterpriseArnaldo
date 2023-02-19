@@ -1,0 +1,44 @@
+<HTML>
+<head>
+<meta name="ts-control" content="combo">
+<meta name="ts-capabilities" content="drop">
+</head>
+<BODY>
+<FORM>
+<!--Combo.htm NB: A trivial implementation at the moment -- Start -->
+<TSSCRIPT value="EmbedBeforeControl" type=html>
+</TSSCRIPT>
+<TSSCRIPT include="Disabled || ReadOnly">
+  <TSINCLUDE Name="displayText.htm">
+</TSSCRIPT>
+<TSSCRIPT omit="Disabled || ReadOnly">
+  <TSSCRIPT tag=input attr=name value="Name">
+  <TSSCRIPT tag=input attr=value value="DisplayText">
+  <TSSCRIPT tag=input attr=type text="Password" when="Password">
+  <TSSCRIPT tag=input attr=size value="(Width+2)/4">
+  <TSSCRIPT tag=input attr=onChange text="icSubmitForm()" when="SubmitOnChange">
+  <TSSCRIPT tag=input attr=onFocus text="this.select()" when=SelectOnFocus>
+    <TSSCRIPT include="Req">
+      <table border="0" bgcolor="#FF0000" cellspacing="1" cellpadding="0">
+        <tr><td>
+          <input name="Entry">
+        </td></tr>
+      </table>
+    </TSSCRIPT>
+    <TSSCRIPT omit="Req">
+      <input name="Entry">
+    </TSSCRIPT>
+  </TSSCRIPT>
+  </TSSCRIPT>
+  </TSSCRIPT>
+  </TSSCRIPT>
+  </TSSCRIPT>
+  </TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT value="EmbedAfterControl" type=html>
+</TSSCRIPT>
+<!--Combo.htm -- End -->
+</FORM>
+</BODY>
+</HTML>
+

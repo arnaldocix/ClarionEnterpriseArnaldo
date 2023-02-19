@@ -1,0 +1,585 @@
+#!------------------------------------------------------------------------------
+#GROUP(%FieldTemplateStandardButtonMenuPrompt)
+#FIELD WHERE(%ControlType = 'BUTTON' OR (%ControlType = 'ITEM' AND NOT EXTRACT(%ControlStatement,'SEPARATOR')))
+  #BOXED('Menu/Button Control Prompts'),SECTION
+    #PROMPT('When Pressed',DROP('No Special Action|Call a Procedure|Run a Program')),%ButtonAction,DEFAULT('No Special Action')
+    #DISPLAY('')
+    #BOXED('Program Definition'),WHERE(%ButtonAction = 'Run a Program'),AT(,20),CLEAR
+      #PROMPT('Program Name:',@S40),%ButtonRunName,REQ
+      #PROMPT('Parameters:',EXPR),%ButtonRunParameters
+    #ENDBOXED
+    #BOXED('Procedure Definition'),WHERE(%ButtonAction = 'Call a Procedure'),AT(,20)
+      #ENABLE(%ButtonAction = 'Call a Procedure'),CLEAR
+        #PROMPT('Procedure Name:',PROCEDURE),%ButtonProcedure,REQ,PROP(PROP:DropWidth,140)
+        #PROMPT('Initiate Thread',CHECK),%ButtonThread
+      #ENDENABLE
+      #ENABLE(%ButtonThread)
+        #PROMPT('Thread Stack:',SPIN(@n7,5000,64000,500)),%ButtonThreadStack,DEFAULT(25000)
+      #ENDENABLE
+      #BOXED,SECTION
+        #BOXED('Non Threaded Procedure Call Definition'),WHERE(%ButtonAction = 'Call a Procedure' AND NOT %ButtonThread),AT(8,0),SECTION,CLEAR
+          #PROMPT('Parameters:',EXPR),%ButtonParameters
+          #PROMPT('&Return Value Variable:', FIELD),%ButtonReturnValueAssignment
+          #ENABLE(%ButtonReturnValueAssignment <> ''),CLEAR
+             #PROMPT('Re&ference Assign', CHECK),%ButtonReturnValueReferenceAssign
+          #ENDENABLE
+          #PROMPT('Requested File Action:',DROP('None|Insert|Change|Delete|Select')),%ButtonRequest,DEFAULT('None')
+        #ENDBOXED
+        #BOXED('Theaded Procedure Call Definition'),WHERE(%ButtonAction = 'Call a Procedure' AND %ButtonThread),AT(8,0),SECTION,CLEAR
+          #PROMPT('&Parameters:', EXPR),%ButtonThreadParameters
+          #PROMPT('&Return Thread Variable:', FIELD),%ButtonThreadReturnValueAssignment
+        #ENDBOXED
+      #ENDBOXED
+    #ENDBOXED
+  #ENDBOXED
+#ENDFIELD
+#!------------------------------------------------------------------------------
+#GROUP(%FieldTemplateStandardButtonMenuHandling),AUTO
+#DECLARE(%Params)
+#IF(%ControlEvent = 'Accepted')
+  #IF (UPPER(%ProcedureTemplate)<>'FRAME')
+#?DO SyncWindow
+  #ENDIF
+  #IF(%ButtonAction = 'Call a Procedure')
+    #IF(%ButtonProcedure)
+      #IF(%ButtonThread)
+        #SET(%ValueConstruct, CHOOSE(%ButtonThreadReturnValueAssignment = '', '', %ButtonThreadReturnValueAssignment & ' = ') & 'START(' & %ButtonProcedure & ', ' & %ButtonThreadStack)
+        #IF(%ButtonThreadParameters)
+          #SET(%ValueConstruct, %ValueConstruct & ', ' & %ButtonThreadParameters)
+        #ENDIF
+        #SET(%ValueConstruct, %ValueConstruct & ')')
+%ValueConstruct
+      #ELSE
+        #IF(%ButtonRequest AND UPPER(%ButtonRequest) <> 'NONE')
+GlobalRequest = %(%ButtonRequest)Record
+        #ENDIF
+        #SET(%Params, %SVGetWithParentesis(%ButtonParameters))
+        #IF(%ButtonReturnValueAssignment)
+%ButtonReturnValueAssignment %(CHOOSE(NOT %ButtonReturnValueReferenceAssign, '= ', '&= ') & %ButtonProcedure & %Params)
+        #ELSE
+%ButtonProcedure%Params
+        #ENDIF
+      #ENDIF
+    #ENDIF
+    #IF (UPPER(%ProcedureTemplate)<>'FRAME')
+LocalRequest = OriginalRequest
+DO RefreshWindow
+    #ENDIF
+  #ELSIF(%ButtonAction = 'Run a Program')
+RUN('%ButtonRunName %ButtonRunParameters')
+ForceRefresh = True
+LocalRequest = OriginalRequest
+DO RefreshWindow
+  #ENDIF
+#ENDIF
+#!------------------------------------------------------------------------------
+#GROUP(%FieldTemplateStandardEntryPrompt)
+#FIELD WHERE(%ControlType = 'ENTRY' OR %ControlType = 'SPIN')
+  #BOXED('Entry Control Prompts')
+    #BOXED('When the Control Is Selected')
+      #PROMPT('Lookup Key',KEY),%PreLookupKey
+      #ENABLE(%PreLookupKey),CLEAR
+        #PROMPT('Lookup Field',COMPONENT(%PreLookupKey)),%PreLookupField,REQ
+        #PROMPT('Lookup Procedure',PROCEDURE),%PreLookupProcedure,REQ,PROP(PROP:DropWidth,140)
+        #PROMPT('Procedure Parameters',EXPR),%PreLookupProcedureParameters
+      #ENDENABLE
+      #PROMPT('Advanced...',EMBEDBUTTON(%ControlPostEventHandling,%Control,'Selected')),AT(100)
+    #ENDBOXED
+    #BOXED('When the Control Is Accepted')
+      #PROMPT('Lookup Key',KEY),%PostLookupKey
+      #ENABLE(%PostLookupKey),CLEAR
+        #PROMPT('Lookup Field',COMPONENT(%PostLookupKey)),%PostLookupField,REQ
+        #PROMPT('Lookup Procedure',PROCEDURE),%PostLookupProcedure,REQ,PROP(PROP:DropWidth,140)
+        #PROMPT('Procedure Parameters',EXPR),%PostLookupProcedureParameters
+        #PROMPT('Perform Lookup during Non-Stop Select',CHECK),%PostLookupDuringValidate,DEFAULT(1),AT(10,,180)
+      #ENDENABLE
+      #PROMPT('Advanced...',EMBEDBUTTON(%ControlPostEventHandling,%Control,'Accepted')),AT(100)
+    #ENDBOXED
+    #BUTTON('More Field Assignments...'),Multi(%LookupAssign,%MoreTarget&'  =  '&%MoreField),AT(95,,90)
+      #PROMPT('Target field:',FIELD),%MoreTarget,REQ
+      #PROMPT('Field to fill from:',EXPR),%MoreField,REQ
+      #!PROMPT('Field to fill from:',EDIT(256)),%MoreField,REQ,WHENACCEPTED(%SVExpresionEditor(%MoreField))
+    #ENDBUTTON
+    #PROMPT('Force Window Refresh when Accepted',CHECK),%ForceWindowRefresh,AT(20,,160)
+  #ENDBOXED
+#ENDFIELD
+#GROUP(%ControlEventHandlingGeneratePosLookUp),AUTO
+#DECLARE(%ReturnValue)
+#SET(%ReturnValue,%True)
+#EMBED(%ControlEventHandlingGeneratePosLookUp),%Control,HIDE
+#RETURN(%ReturnValue)
+#GROUP(%ControlEventHandlingGeneratePreLookUp),AUTO
+#DECLARE(%ReturnValue)
+#SET(%ReturnValue,%True)
+#EMBED(%ControlEventHandlingGeneratePreLookUp),%Control,HIDE
+#RETURN(%ReturnValue)
+#!------------------------------------------------------------------------------
+#GROUP(%MoreAssign)
+#FOR(%LookupAssign)
+%MoreTarget = %MoreField
+#ENDFOR
+#!------------------------------------------------------------------------------
+#GROUP(%FieldTemplateStandardEntryHandling),AUTO
+#CASE(%ControlEvent)
+#OF('Selected')
+ #IF(%ControlEventHandlingGeneratePreLookUp())
+  #IF(%PreLookupKey)
+    #FIND(%Field,%ControlUse)
+    #FOR(%Relation),WHERE(%RelationKey = %PreLookupKey)
+      #IF(%FileRelationType = 'MANY:1')
+        #FOR(%FileKeyField),WHERE(%FileKeyFieldLink)
+          #IF(%FileKeyFieldLink = %PreLookupField)
+            #BREAK
+          #ENDIF
+%FileKeyFieldLink = %FileKeyField
+        #ENDFOR
+      #ENDIF
+    #ENDFOR
+    #FIND(%Key,%PreLookupKey)
+    #IF(%Key)
+%PreLookupField = %ControlUse
+GET(%File,%Key)
+IF ERRORCODE()
+  GlobalRequest = SelectRecord
+  #IF(%PreLookupProcedureParameters)
+  %PreLookupProcedure(%PreLookupProcedureParameters)
+  #ELSE
+  %PreLookupProcedure
+  #ENDIF
+  LocalResponse = GlobalResponse
+  GlobalResponse = RequestCancelled
+  IF LocalResponse = RequestCompleted
+    #FIND(%Field,%ControlUse)
+    #FOR(%Relation),WHERE(%RelationKey = %PreLookupKey)
+      #IF(%FileRelationType = 'MANY:1')
+        #FOR(%FileKeyField),WHERE(%FileKeyFieldLink)
+          #IF(%FileKeyFieldLink = %PreLookupField)
+            #BREAK
+          #ENDIF
+    %FileKeyField = %FileKeyFieldLink
+        #ENDFOR
+      #ENDIF
+    #ENDFOR
+    #INSERT(%MoreAssign)
+    %ControlUse = %PreLookupField
+  END
+END
+LocalRequest = OriginalRequest
+DO RefreshWindow
+    #ENDIF
+  #ENDIF
+ #ENDIF
+#OF('Accepted')
+ #IF(%ControlEventHandlingGeneratePosLookUp())
+  #IF(%PostLookupKey)
+    #FIND(%Key,%PostLookupKey)
+    #IF(%Key)
+      #FIND(%Field,%ControlUse)
+      #IF(%PostLookupDuringValidate)
+        #IF(%FieldLookup)
+#INSERT(%GeneratePostLookupFieldCode)
+        #ELSE
+IF %ControlUse OR %Control{PROP:Req}
+  #INSERT(%GeneratePostLookupFieldCode)
+END
+        #ENDIF
+      #ELSE
+IF NOT %Window{PROP:AcceptAll}
+        #IF(%FieldLookup)
+  #INSERT(%GeneratePostLookupFieldCode)
+        #ELSE
+  IF %ControlUse OR %Control{Prop:Req}
+    #INSERT(%GeneratePostLookupFieldCode)
+  END
+        #ENDIF
+END
+      #ENDIF
+      #IF(%ForceWindowRefresh)
+ForceRefresh = True
+      #ENDIF
+LocalRequest = OriginalRequest
+DO RefreshWindow
+    #ELSIF(%ForceWindowRefresh)
+ForceRefresh = True
+LocalRequest = OriginalRequest
+DO RefreshWindow
+    #ENDIF
+  #ELSIF(%ForceWindowRefresh)
+ForceRefresh = True
+LocalRequest = OriginalRequest
+DO RefreshWindow
+  #ENDIF
+ #ENDIF
+#ENDCASE
+#!------------------------------------------------------------------------------
+#GROUP(%GeneratePostLookupFieldCode)
+  #FOR(%Relation),WHERE(%RelationKey = %PostLookupKey)
+    #IF(%FileRelationType = 'MANY:1')
+      #FOR(%FileKeyField),WHERE(%FileKeyFieldLink)
+        #IF(%FileKeyFieldLink = %PostLookupField)
+          #BREAK
+        #ENDIF
+%FileKeyFieldLink = %FileKeyField
+      #ENDFOR
+    #ENDIF
+  #ENDFOR
+%PostLookupField = %ControlUse
+#FIND(%Key,%PostLookupKey)
+GET(%File,%Key)
+IF ERRORCODE()
+  GlobalRequest = SelectRecord
+  #IF(%PostLookupProcedureParameters)
+  %PostLookupProcedure(%PostLookupProcedureParameters)
+  #ELSE
+  %PostLookupProcedure
+  #ENDIF
+  LocalResponse = GlobalResponse
+  GlobalResponse = RequestCancelled
+  IF LocalResponse = RequestCompleted
+  #FIND(%Field,%ControlUse)
+  #FOR(%Relation),WHERE(%RelationKey = %PostLookupKey)
+    #IF(%FileRelationType = 'MANY:1')
+      #FOR(%FileKeyField),WHERE(%FileKeyFieldLink)
+        #IF(%FileKeyFieldLink = %PostLookupField)
+          #BREAK
+        #ENDIF
+    %FileKeyField = %FileKeyFieldLink
+      #ENDFOR
+    #ENDIF
+  #ENDFOR
+    #INSERT(%MoreAssign)
+    %ControlUse = %PostLookupField
+  ELSE
+    SELECT(%Control)
+    CYCLE
+  END
+END
+#!------------------------------------------------------------------------------
+#GROUP(%FieldTemplateStandardCheckBoxPrompt)
+#FIELD WHERE(%ControlType = 'CHECK')
+  #BOXED('Checkbox Control Prompts')
+    #BOXED('When the Checkbox is Checked')
+      #BUTTON('Assign Values'),MULTI(%CheckedAssigns,%CheckedAssignVariable & ' = ' & %CheckedAssignValue),AT(20,,160),HLP('~Check.htm#Values')
+        #DISPLAY('Values to assign when the check box is checked')
+        #DISPLAY('')
+        #PROMPT('Variable to Assign',FIELD),%CheckedAssignVariable,REQ
+        #PROMPT('Value to Assign',@S40),%CheckedAssignValue,REQ
+      #ENDBUTTON
+      #BUTTON('Hide/Unhide Controls'),MULTI(%CheckedHides,%CheckedControl & ' - ' & %CheckedControlAction),AT(20,,160)
+        #DISPLAY('Controls to hide/unhide when the check box is checked')
+        #DISPLAY('')
+        #PROMPT('Control to hide/unhide:',CONTROL),%CheckedControl,REQ
+        #PROMPT('Hide or unhide control',DROP('Hide|Unhide')),%CheckedControlAction,REQ
+      #ENDBUTTON
+      #BUTTON('Enable/Disable Controls'),MULTI(%CheckedDisables,%CheckedDisableControl & ' - ' & %CheckedDisableControlAction),AT(20,,160),HLP('~TPLFieldCheckBox_CheckedDisableEnable.htm')
+        #DISPLAY('Controls to Enable/Disable when the check box is checked')
+        #DISPLAY('')
+        #PROMPT('Control to Enable/Disable:',CONTROL),%CheckedDisableControl,REQ
+        #PROMPT('Enable or Disable control',DROP('Enable|Disable')),%CheckedDisableControlAction,REQ
+      #ENDBUTTON
+    #ENDBOXED
+    #BOXED('When the Checkbox is Unchecked')
+      #BUTTON('Assign Values'),MULTI(%UncheckedAssigns,%UncheckedAssignVariable & ' = ' & %UncheckedAssignValue),AT(20,,160),HLP('~TPLFieldCheck.htm#Values')
+        #DISPLAY('Values to assign when the check box is unchecked')
+        #DISPLAY('')
+        #PROMPT('Variable to Assign',FIELD),%UncheckedAssignVariable,REQ
+        #PROMPT('Value to Assign',@S40),%UncheckedAssignValue,REQ
+      #ENDBUTTON
+      #BUTTON('Hide/Unhide Controls'),MULTI(%UnCheckedHides,%UnCheckedControl & ' - ' & %UnCheckedControlAction),AT(20,,160)
+        #DISPLAY('Controls to hide/unhide when the check box is unchecked')
+        #DISPLAY('')
+        #PROMPT('Control to hide/unhide:',CONTROL),%UnCheckedControl,REQ
+        #PROMPT('Hide or unhide control',DROP('Hide|Unhide')),%UnCheckedControlAction,REQ
+      #ENDBUTTON
+      #BUTTON('Enable/Disable Controls'),MULTI(%UnCheckedDisables,%UnCheckedDisableControl & ' - ' & %UnCheckedDisableControlAction),AT(20,,160),HLP('~TPLFieldCheckBox_CheckedDisableEnable.htm')
+        #DISPLAY('Controls to Enable/Disable when the check box is unchecked')
+        #DISPLAY('')
+        #PROMPT('Control to Enable/Disable:',CONTROL),%UnCheckedDisableControl,REQ
+        #PROMPT('Enable or Disable control',DROP('Enable|Disable')),%UnCheckedDisableControlAction,REQ
+      #ENDBUTTON
+    #ENDBOXED
+  #ENDBOXED
+#ENDFIELD
+#!------------------------------------------------------------------------------
+#GROUP(%FieldTemplateStandardCheckBoxHandling)
+#IF(%ControlEvent='Accepted')
+  #SUSPEND
+    #IF(ITEMS(%CheckedAssigns) OR ITEMS(%CheckedHides) OR ITEMS(%CheckedDisables))
+IF %Control{PROP:Checked}
+      #FOR(%CheckedAssigns),WHERE(%CheckedAssignVariable)
+  %CheckedAssignVariable = %CheckedAssignValue
+      #ENDFOR
+      #FOR(%CheckedHides)
+        #IF(%CheckedControlAction='Hide')
+  %CheckedControl{PROP:Hide} = TRUE
+        #ELSE
+  %CheckedControl{PROP:Hide} = FALSE
+        #ENDIF
+      #ENDFOR
+      #FOR(%CheckedDisables)
+        #IF(%CheckedDisableControlAction='Disable')
+  %CheckedDisableControl{PROP:Disable} = TRUE
+        #ELSE
+  %CheckedDisableControl{PROP:Disable} = FALSE
+        #ENDIF
+      #ENDFOR
+END
+    #ENDIF
+    #IF(ITEMS(%UncheckedAssigns) OR ITEMS(%UncheckedHides) OR ITEMS(%UnCheckedDisables))
+IF NOT %Control{PROP:Checked}
+      #FOR(%UncheckedAssigns),WHERE(%UncheckedAssignVariable)
+  %UncheckedAssignVariable = %UncheckedAssignValue
+      #ENDFOR
+      #FOR(%UncheckedHides)
+        #IF(%UncheckedControlAction='Hide')
+  %UncheckedControl{PROP:Hide} = TRUE
+        #ELSE
+  %UncheckedControl{PROP:Hide} = FALSE
+        #ENDIF
+      #ENDFOR
+      #FOR(%UnCheckedDisables)
+        #IF(%UnCheckedDisableControlAction='Disable')
+  %UnCheckedDisableControl{PROP:Disable} = TRUE
+        #ELSE
+  %UnCheckedDisableControl{PROP:Disable} = FALSE
+        #ENDIF
+      #ENDFOR
+END
+    #ENDIF
+#?DO RefreshWindow
+  #RESUME
+#ENDIF
+#!------------------------------------------------------------------------------
+#GROUP(%FieldTemplateStandardCheckBoxSetup)
+#IF(ITEMS(%CheckedAssigns) OR ITEMS(%CheckedHides) OR ITEMS(%CheckedDisables))
+IF %Control{PROP:Checked}
+  #FOR(%CheckedAssigns),WHERE(%CheckedAssignVariable)
+  %CheckedAssignVariable = %CheckedAssignValue
+  #ENDFOR
+  #FOR(%CheckedHides)
+    #IF(%CheckedControlAction='Hide')
+  %CheckedControl{PROP:Hide} = TRUE
+    #ELSE
+  %CheckedControl{PROP:Hide} = FALSE
+    #ENDIF
+  #ENDFOR
+  #FOR(%CheckedDisables)
+    #IF(%CheckedDisableControlAction='Disable')
+  %CheckedDisableControl{PROP:Disable} = TRUE
+    #ELSE
+  %CheckedDisableControl{PROP:Disable} = FALSE
+    #ENDIF
+  #ENDFOR
+END
+#ENDIF
+#IF(ITEMS(%UncheckedAssigns) OR ITEMS(%UncheckedHides) OR ITEMS(%UnCheckedDisables))
+IF NOT %Control{PROP:Checked}
+  #FOR(%UncheckedAssigns),WHERE(%UncheckedAssignVariable)
+  %UncheckedAssignVariable = %UncheckedAssignValue
+  #ENDFOR
+  #FOR(%UncheckedHides)
+    #IF(%UncheckedControlAction='Hide')
+  %UncheckedControl{PROP:Hide} = TRUE
+    #ELSE
+  %UncheckedControl{PROP:Hide} = FALSE
+    #ENDIF
+  #ENDFOR
+  #FOR(%UnCheckedDisables)
+    #IF(%UnCheckedDisableControlAction='Disable')
+  %UnCheckedDisableControl{PROP:Disable} = TRUE
+    #ELSE
+  %UnCheckedDisableControl{PROP:Disable} = FALSE
+    #ENDIF
+  #ENDFOR
+END
+#ENDIF
+#!------------------------------------------------------------------------------
+#GROUP(%FieldTemplateStandardRadioButtonPrompt)
+#FIELD WHERE(%ControlType = 'RADIO')
+  #BOXED('Radio Button Control Prompts')
+    #BOXED('When the Radio Button is Checked')
+      #BUTTON('Assign Values'),MULTI(%CheckedAssigns,%CheckedAssignVariable & ' = ' & %CheckedAssignValue),AT(20,,160),HLP('~Check.htm#Values')
+        #DISPLAY('Values to assign when the Radio Button is checked')
+        #DISPLAY('')
+        #PROMPT('Variable to Assign',FIELD),%CheckedAssignVariable,REQ
+        #PROMPT('Value to Assign',@S40),%CheckedAssignValue,REQ
+      #ENDBUTTON
+      #BUTTON('Hide/Unhide Controls'),MULTI(%CheckedHides,%CheckedControl & ' - ' & %CheckedControlAction),AT(20,,160)
+        #DISPLAY('Controls to hide/unhide when the Radio Button is checked')
+        #DISPLAY('')
+        #PROMPT('Control to hide/unhide:',CONTROL),%CheckedControl,REQ
+        #PROMPT('Hide or unhide control',DROP('Hide|Unhide')),%CheckedControlAction,REQ
+      #ENDBUTTON
+      #BUTTON('Enable/Disable Controls'),MULTI(%CheckedDisables,%CheckedDisableControl & ' - ' & %CheckedDisableControlAction),AT(20,,160),HLP('~TPLFieldCheckBox_CheckedDisableEnable')
+        #DISPLAY('Controls to Enable/Disable when the Radio Button is checked')
+        #DISPLAY('')
+        #PROMPT('Control to Enable/Disable:',CONTROL),%CheckedDisableControl,REQ
+        #PROMPT('Enable or Disable control',DROP('Enable|Disable')),%CheckedDisableControlAction,REQ
+      #ENDBUTTON
+    #ENDBOXED
+    #BOXED('When the Radio Button is Unchecked')
+      #BUTTON('Assign Values'),MULTI(%UncheckedAssigns,%UncheckedAssignVariable & ' = ' & %UncheckedAssignValue),AT(20,,160),HLP('~TPLFieldCheckBox_CheckedAssignValues')
+        #DISPLAY('Values to assign when the Radio Button is unchecked')
+        #DISPLAY('')
+        #PROMPT('Variable to Assign',FIELD),%UncheckedAssignVariable,REQ
+        #PROMPT('Value to Assign',@S40),%UncheckedAssignValue,REQ
+      #ENDBUTTON
+      #BUTTON('Hide/Unhide Controls'),MULTI(%UnCheckedHides,%UnCheckedControl & ' - ' & %UnCheckedControlAction),AT(20,,160)
+        #DISPLAY('Controls to hide/unhide when the Radio Button is unchecked')
+        #DISPLAY('')
+        #PROMPT('Control to hide/unhide:',CONTROL),%UnCheckedControl,REQ
+        #PROMPT('Hide or unhide control',DROP('Hide|Unhide')),%UnCheckedControlAction,REQ
+      #ENDBUTTON
+      #BUTTON('Enable/Disable Controls'),MULTI(%UnCheckedDisables,%UnCheckedDisableControl & ' - ' & %UnCheckedDisableControlAction),AT(20,,160),HLP('~TPLFieldCheckBox_CheckedDisableEnable.htm')
+        #DISPLAY('Controls to Enable/Disable when the Radio Button is unchecked')
+        #DISPLAY('')
+        #PROMPT('Control to Enable/Disable:',CONTROL),%UnCheckedDisableControl,REQ
+        #PROMPT('Enable or Disable control',DROP('Enable|Disable')),%UnCheckedDisableControlAction,REQ
+      #ENDBUTTON
+    #ENDBOXED
+  #ENDBOXED
+#ENDFIELD
+#!------------------------------------------------------------------------------
+#GROUP(%FieldTemplateStandardOptionGroupHandling),PRESERVE,AUTO
+#DECLARE(%lOptionControl)
+#DECLARE(%lOptionControlUse)
+#DECLARE(%lRadioValue)
+#SET(%lOptionControl,%Control)
+#SET(%lOptionControlUse,%ControlUse)
+#IF(%ControlEvent='Accepted')
+  #SUSPEND
+    #FOR(%Control),WHERE(%ControlType='RADIO' AND %ControlParent=%lOptionControl)
+        #SET(%lRadioValue,EXTRACT(%ControlStatement,'VALUE',1))
+        #IF(NOT %lRadioValue)
+            #SET(%lRadioValue,%ControlParameter)
+        #ENDIF
+        #IF(ITEMS(%CheckedAssigns) OR ITEMS(%CheckedHides) OR ITEMS(%CheckedDisables))
+IF %lOptionControlUse = %lRadioValue
+          #FOR(%CheckedAssigns),WHERE(%CheckedAssignVariable)
+   %CheckedAssignVariable = %CheckedAssignValue
+          #ENDFOR
+          #FOR(%CheckedHides)
+            #IF(%CheckedControlAction='Hide')
+   %CheckedControl{PROP:Hide} = TRUE
+            #ELSE
+   %CheckedControl{PROP:Hide} = FALSE
+            #ENDIF
+          #ENDFOR
+          #FOR(%CheckedDisables)
+            #IF(%CheckedDisableControlAction='Disable')
+   %CheckedDisableControl{PROP:Disable} = TRUE
+            #ELSE
+   %CheckedDisableControl{PROP:Disable} = FALSE
+            #ENDIF
+          #ENDFOR
+END
+        #ENDIF
+        #IF(ITEMS(%UncheckedAssigns) OR ITEMS(%UncheckedHides) OR ITEMS(%UnCheckedDisables))
+IF %lOptionControlUse <> %lRadioValue
+          #FOR(%UncheckedAssigns),WHERE(%UncheckedAssignVariable)
+   %UncheckedAssignVariable = %UncheckedAssignValue
+          #ENDFOR
+          #FOR(%UncheckedHides)
+            #IF(%UncheckedControlAction='Hide')
+   %UncheckedControl{PROP:Hide} = TRUE
+            #ELSE
+   %UncheckedControl{PROP:Hide} = FALSE
+            #ENDIF
+          #ENDFOR
+          #FOR(%UnCheckedDisables)
+            #IF(%UnCheckedDisableControlAction='Disable')
+   %UnCheckedDisableControl{PROP:Disable} = TRUE
+            #ELSE
+   %UnCheckedDisableControl{PROP:Disable} = FALSE
+            #ENDIF
+          #ENDFOR
+END
+        #ENDIF
+    #ENDFOR
+#?DO RefreshWindow
+  #RESUME
+#ENDIF
+#!-------------------------------------------------------------------------
+#GROUP(%FieldTemplateStandardOptionGroupSetup),PRESERVE,AUTO
+#DECLARE(%lOptionControl)
+#DECLARE(%lOptionControlUse)
+#DECLARE(%lRadioValue)
+#SET(%lOptionControl,%Control)
+#SET(%lOptionControlUse,%ControlUse)
+    #FOR(%Control),WHERE(%ControlType='RADIO' AND %ControlParent=%lOptionControl)
+        #SET(%lRadioValue,EXTRACT(%ControlStatement,'VALUE',1))
+        #IF(NOT %lRadioValue)
+            #SET(%lRadioValue,%ControlParameter)
+        #ENDIF
+        #IF(ITEMS(%CheckedAssigns) OR ITEMS(%CheckedHides) OR ITEMS(%CheckedDisables))
+IF %lOptionControlUse = %lRadioValue
+          #FOR(%CheckedAssigns),WHERE(%CheckedAssignVariable)
+   %CheckedAssignVariable = %CheckedAssignValue
+          #ENDFOR
+          #FOR(%CheckedHides)
+            #IF(%CheckedControlAction='Hide')
+   %CheckedControl{PROP:Hide} = TRUE
+            #ELSE
+   %CheckedControl{PROP:Hide} = FALSE
+            #ENDIF
+          #ENDFOR
+          #FOR(%CheckedDisables)
+            #IF(%CheckedDisableControlAction='Disable')
+   %CheckedDisableControl{PROP:Disable} = TRUE
+            #ELSE
+   %CheckedDisableControl{PROP:Disable} = FALSE
+            #ENDIF
+          #ENDFOR
+END
+        #ENDIF
+        #IF(ITEMS(%UncheckedAssigns) OR ITEMS(%UncheckedHides) OR ITEMS(%UnCheckedDisables))
+IF %lOptionControlUse <> %lRadioValue
+          #FOR(%UncheckedAssigns),WHERE(%UncheckedAssignVariable)
+   %UncheckedAssignVariable = %UncheckedAssignValue
+          #ENDFOR
+          #FOR(%UncheckedHides)
+            #IF(%UncheckedControlAction='Hide')
+   %UncheckedControl{PROP:Hide} = TRUE
+            #ELSE
+   %UncheckedControl{PROP:Hide} = FALSE
+            #ENDIF
+          #ENDFOR
+          #FOR(%UnCheckedDisables)
+            #IF(%UnCheckedDisableControlAction='Disable')
+   %UnCheckedDisableControl{PROP:Disable} = TRUE
+            #ELSE
+   %UnCheckedDisableControl{PROP:Disable} = FALSE
+            #ENDIF
+          #ENDFOR
+END
+        #ENDIF
+    #ENDFOR
+#!------------------------------------------------------------------------------
+#GROUP(%FieldTemplateStandardHandling)
+#CASE(%ControlType)
+#OF('ITEM')
+  #IF(NOT EXTRACT(%ControlStatement,'SEPARATOR'))
+#INSERT(%FieldTemplateStandardButtonMenuHandling)
+  #ENDIF
+#OF('ENTRY')
+#INSERT(%FieldTemplateStandardEntryHandling)
+#OF('CHECK')
+#INSERT(%FieldTemplateStandardCheckboxHandling)
+#OF('BUTTON')
+  #IF(INSTRING('?TBarBrw',%Control,1,1)<>1)
+#INSERT(%FieldTemplateStandardButtonMenuHandling)
+  #ENDIF
+#OF('SHEET')
+DO RefreshWindow
+#OF('OPTION')
+#INSERT(%FieldTemplateStandardOptionGroupHandling)
+#ENDCASE
+#!-------------------------------------------------------------------------
+#GROUP(%FieldTemplateWindowSetup)
+#CASE(%ControlType)
+#OF('CHECK')
+#INSERT(%FieldTemplateStandardCheckboxSetup)
+#OF('OPTION')
+#INSERT(%FieldTemplateStandardOptionGroupSetup)
+#ENDCASE
+#!-------------------------------------------------------------------------

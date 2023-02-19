@@ -1,0 +1,1092 @@
+#CONTROL(FileDrop,'File-Loaded Drop Box'),PRIMARY(%TableSchematicsDescription&' - File Loaded Drop Box',OPTKEY),DESCRIPTION('File Loaded Drop Box on ' & %Primary & ' (' & %TableSchematicsDescription &')'),WINDOW,MULTI,HLP('~TPLControlFileDrop.htm'),WRAP(DropList)
+#PREPARE
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'Default','FDB'&%ActiveTemplateInstance,%FileDropManagerType)
+#ENDPREPARE
+   CONTROLS
+     LIST,DROP(5),FROM(Queue:FileDrop)
+   END
+#BUTTON('File Drop Properties'),AT(10,,180)
+  #BOXED('Default Resizer prompts'),HIDE
+    #INSERT(%OOPHiddenPrompts)
+  #ENDBOXED
+  #SHEET,ADJUST
+    #TAB('&General'),HLP('~TPLControlFileDrop.htm#General')
+      #DISPLAY
+      #BOXED('Table Schematics Description'),SECTION
+         #PROMPT('',@S255),%TableSchematicsDescription,DEFAULT(''),AT(10,3,173)
+      #ENDBOXED
+      #INSERT(%FileDropGeneralTab)
+    #ENDTAB
+    #TAB('&Range Limits'),WHERE(%PrimaryKey),HLP('~TPLControlFileDrop.htm#Range_Limits')
+      #INSERT(%FileDropRangeLimitsTab)
+    #ENDTAB
+    #TAB('&Range Limits'),WHERE(NOT %PrimaryKey),HLP('~TPLControlFileDrop_Range_Limits')
+      #DISPLAY('To use a range limit, your FileDrop must use a key. You will not be able to specify a range limit until you''ve specified the FileDrop''s key.'),AT(10,,175,30)
+    #ENDTAB
+    #TAB('&Colors'),WHERE(%ControlHasColor),HLP('~TPLControlFileDrop.htm#Colors')
+      #INSERT(%FileDropColorsTab)
+    #ENDTAB
+    #TAB('&Colors'),WHERE(NOT %ControlHasColor),HLP('~TPLControlFileDrop.htm#Colors')
+      #INSERT(%FileDropHasNotColors)
+    #ENDTAB
+    #TAB('&Icons'),WHERE(%ControlHasIcon),HLP('~TPLControlFileDrop.htm#Icons')
+      #INSERT(%FileDropIconsTab)
+    #ENDTAB
+    #TAB('&Icons'),WHERE(NOT %ControlHasIcon),HLP('~TPLControlFileDrop.htm#Icons')
+      #INSERT(%FileDropHasNotIcons)
+    #ENDTAB
+    #TAB('St&yles'),WHERE(%ControlHasStyle),HLP('~TPLControlFileDrop.htm#Styles')
+      #INSERT(%FileDropStylesTab)
+    #ENDTAB
+    #TAB('St&yles'),WHERE(NOT %ControlHasStyle),HLP('~TPLControlFileDrop.htm#Styles')
+      #INSERT(%FileDropHasNotStyles)
+    #ENDTAB
+    #TAB('Toolti&ps'),WHERE(%ControlHasTip),HLP('~TPLControlFileDrop.htm#Tips')
+      #INSERT(%FileDropTipsTab)
+    #ENDTAB
+    #TAB('Toolti&ps'),WHERE(NOT %ControlHasTip),HLP('~TPLControlFileDrop.htm#Tips')
+      #INSERT(%FileDropHasNotTips)
+    #ENDTAB
+    #TAB('&Hot Fields'),HLP('~TPLControlFileDrop.htm#HotFields')
+      #INSERT(%FileDropHotFieldsTab)
+    #ENDTAB
+    #TAB('&Sort Fields'),HLP('~TPLControlFileDrop.htm#SortFields')
+      #INSERT(%SortFieldsTab)
+    #ENDTAB
+    #TAB('Cl&asses'),HLP('~TPLControlFileDrop.htm')
+      #WITH(%ClassItem,'Default')
+        #INSERT(%ClassPrompts)
+      #ENDWITH
+    #ENDTAB
+  #ENDSHEET
+#ENDBUTTON
+#!
+#AT(%CustomGlobalDeclarations)
+  #INSERT(%FileDropCustomGlobalDeclarations)
+#ENDAT
+#!
+#ATSTART
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults,'Default','FDB'&%ActiveTemplateInstance,%FileDropManagerType)
+  #EQUATE(%FileDropObjectName,%ThisObjectName)
+  #DECLARE(%DropControl)
+  #DECLARE(%ListQueue)
+  #DECLARE(%IconList),UNIQUE
+  #DECLARE(%IconListType,%IconList)
+  #DECLARE(%IconNameValue)
+  #DECLARE(%QueueField),MULTI
+  #DECLARE(%QueueFieldAssignment,%QueueField)
+  #DECLARE(%QueueFieldComment,%QueueField)
+  #DECLARE(%QueueFieldHasColor,%QueueField)
+  #DECLARE(%QueueFieldHasIcon,%QueueField)
+  #DECLARE(%QueueFieldHasTree,%QueueField)
+  #DECLARE(%QueueFieldHasStyle,%QueueField)
+  #DECLARE(%QueueFieldHasTip,%QueueField)
+  #EQUATE(%InstancePrefix,'FDB' & %ActiveTemplateInstance & ':')
+  #EQUATE(%ListView,%InstancePrefix & ':View:FileDrop')
+  #INSERT(%FileDropAtStart)
+  #IF(%RecordFilter)
+    #CALL(%ProcedureBindParseText,%RecordFilter)
+  #ENDIF
+#ENDAT
+#!
+#AT(%GatherObjects)
+#CALL(%AddObjectList, 'Default')
+#ENDAT
+#!
+#AT(%DataSection),PRIORITY(3500),DESCRIPTION('Drop - View for ' & %Primary)
+#INSERT(%ConstructView)
+#ENDAT
+#!
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(4400)
+#FIX(%Control,%DropControl)
+#INSERT(%FileDropBindFields)
+#ENDAT
+#!
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8500)
+#FIX(%Control,%DropControl)
+%FileDropObjectName.Init(%DropControl,%ListQueue.ViewPosition,%ListView,%ListQueue,Relate:%Primary,%WindowManagerObject)
+#IF(NOT %UseMRP)
+%FileDropObjectName.SetUseMRP(False)
+#ENDIF
+#INSERT(%FileDropAfterWindowOpening)
+#IF(%DropIncludeEmpty)
+%FileDropObjectName.IncludeEmpty = TRUE
+#ENDIF
+#IF(%DropIncludeAll)
+%FileDropObjectName.IncludeAll = TRUE
+#ENDIF
+#ENDAT
+#!
+#!
+#AT(%FileDropMethodCodeSection,%ActiveTemplateInstance),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#AT(%LocalProcedures)
+#CALL(%SetClassItem,'Default')
+#INSERT(%MakeDeclr,24,%OOPConstruct,'Q','&'&%ListQueue)
+#INSERT(%MakeDeclr,55,%OOPConstruct,%OOPConstruct,'!Reference to display queue')
+#ADD(%ClassLines,%OOPConstruct)
+#CALL(%GenerateVirtuals, 'Default', 'Local Objects|Abc Objects|FileDrop on ' & %Primary & ' using ' & %DropControl, '%FDVirtuals(ABC)')
+#ENDAT
+#!
+#!
+#AT(%FileDropMethodCodeSection,%ActiveTemplateInstance,'ApplyRange','(),BYTE'),PRIORITY(4000),DESCRIPTION('Assign Higher Key Values')
+  #IF(%RangeField)
+#INSERT(%GenerateHigherKeyCodeComponent,'',%PrimaryKey)
+  #ENDIF
+#ENDAT
+#!
+#AT(%FileDropMethodCodeSection,%ActiveTemplateInstance,'SetQueueRecord','()'),PRIORITY(2500)
+#SUSPEND
+#EMBED(%FormatFileDrop,'FileDrop, Format an Element of the Queue'),%ActiveTemplateInstance,MAP(%ActiveTemplateInstance,%ActiveTemplateInstanceDescription),LEGACY
+#PRIORITY(6000)
+#INSERT(%FormatDropQueue)
+#EMBED(%EndOfFormatFileDrop,'FileDrop, End of Format an Element of the Queue'),%ActiveTemplateInstance,MAP(%ActiveTemplateInstance,%ActiveTemplateInstanceDescription),LEGACY
+#RESUME
+#ENDAT
+#!
+#AT(%DataSection),PRIORITY(3510),DESCRIPTION('Drop - Queue for ' & %Primary)
+#EMBED(%BeforeConstructingBrowseQueue, ''),%ActiveTemplateInstance,HIDE
+#FIX(%Control,%Dropcontrol)
+#INSERT(%ConstructQueue)
+#ENDAT
+#!
+#AT(%LocalDataClasses)
+#INSERT(%GenerateClass, 'Default', 'File drop manager')
+#ENDAT
+#!
+#!
+#!
+#AT(%FileDropMethodDataSection,%ActiveTemplateInstance,'ResetQueue','(BYTE Force=0),LONG')
+  #IF(%BrowseHasGreenBarColor() OR %BrowseHasGreenBarStyle())
+GreenBarIndex   LONG,AUTO
+  #ENDIF
+#ENDAT
+#!
+#AT(%FileDropMethodCodeSection,%ActiveTemplateInstance,'ResetQueue','(BYTE Force=0),LONG'),PRIORITY(9500)
+#INSERT(%BrowseRoutineFillGreenBar)
+#ENDAT
+#!
+#GROUP(%FDVirtuals, %TreeText, %DataText, %CodeText)
+#EMBED(%FileDropMethodDataSection,'FileDrop Method Data Section'),%ActiveTemplateInstance,%pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(,%FixClassName(%FixBaseClassToUse('Default'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%FileDropMethodCodeSection,'FileDrop Method Executable Code Section'),%ActiveTemplateInstance,%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('Default'))),TREE(%TreeText & %CodeText)
+#!
+#!-----------------------------------------------------------------------------------------------------------
+#!-----------------------------------------------------------------------------------------------------------
+#!
+#!-----------------------------------------------------------------------------------------------------------
+#!-----------------------------------------------------------------------------------------------------------
+#!
+#CONTROL(FileDropCombo,'File-Loaded Drop Combo'),PRIMARY(%TableSchematicsDescription&' - File Loaded Drop Combo',OPTKEY),DESCRIPTION('File Loaded Drop Combo on ' & %Primary & ' (' & %TableSchematicsDescription &')'),WINDOW,MULTI,HLP('~TPLControlFileDropCombo.htm'),WRAP(DropCombo)
+#PREPARE
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'Default','FDCB'&%ActiveTemplateInstance,%FileDropComboManagerType)
+#ENDPREPARE
+   CONTROLS
+     COMBO(@s20),DROP(5),FROM(Queue:FileDropCombo),IMM
+   END
+#BUTTON('File Drop Combo Properties'),AT(10,,180)
+  #BOXED('Default Resizer prompts'),HIDE
+    #INSERT(%OOPHiddenPrompts)
+  #ENDBOXED
+  #SHEET,ADJUST
+    #TAB('&General'),HLP('~TPLControlFileDropCombo.htm')
+      #DISPLAY
+      #BOXED('Table Schematics Description'),SECTION
+         #PROMPT('',@S255),%TableSchematicsDescription,DEFAULT(''),AT(10,3,173)
+      #ENDBOXED
+      #INSERT(%FileDropGeneralTab)
+      #PROMPT('R&emove duplicate entries',CHECK),%RemoveDuplicates,AT(10)
+      #PROMPT('&Keep View synchronized with Selection',CHECK),%KeepViewSync,AT(10),DEFAULT(%True)
+      #PROMPT('&Automatic Entry Field Completion',CHECK),%EntryCompletion,AT(10),DEFAULT(%True)
+      #ENABLE(%EntryCompletion)
+        #PROMPT('&Case Sensitive Matches',CHECK),%CaseSensitive,AT(10),DEFAULT(%False)
+      #ENDENABLE
+    #ENDTAB
+    #TAB('&Range Limits'),WHERE(%PrimaryKey),HLP('~TPLControlFileDropCombo.htm#Range_Limits')
+      #INSERT(%FileDropRangeLimitsTab)
+    #ENDTAB
+    #TAB('&Range Limits'),WHERE(NOT %PrimaryKey),HLP('~TPLControlFileDropCombo.htm#Range_Limits')
+      #DISPLAY('To use a range limit, your FileDropCombo must use a key. You will not be able to specify a range limit until you''ve specified the FileDropCombo''s key.'),AT(10,,175,30)
+    #ENDTAB
+    #TAB('&Colors'),WHERE(%ControlHasColor),HLP('~TPLControlFileDropCombo.htm#Colors')
+      #INSERT(%FileDropColorsTab)
+    #ENDTAB
+    #TAB('&Colors'),WHERE(NOT %ControlHasColor),HLP('~TPLControlFileDropCombo.htm#Colors')
+      #INSERT(%FileDropHasNotColors)
+    #ENDTAB
+    #TAB('&Icons'),WHERE(%ControlHasIcon),HLP('~TPLControlFileDropCombo.htm#Icons')
+      #INSERT(%FileDropIconsTab)
+    #ENDTAB
+    #TAB('&Icons'),WHERE(NOT %ControlHasIcon),HLP('~TPLControlFileDropCombo.htm#Icons')
+      #INSERT(%FileDropHasNotIcons)
+    #ENDTAB
+    #TAB('St&yles'),WHERE(%ControlHasStyle),HLP('~TPLControlFileDropCombo.htm#Styles')
+      #INSERT(%FileDropStylesTab)
+    #ENDTAB
+    #TAB('St&yles'),WHERE(NOT %ControlHasStyle),HLP('~TPLControlFileDropCombo.htm#Styles')
+      #INSERT(%FileDropHasNotStyles)
+    #ENDTAB
+    #TAB('Toolti&ps'),WHERE(%ControlHasTip),HLP('~TPLControlFileDropCombo.htm#Tips')
+      #INSERT(%FileDropTipsTab)
+    #ENDTAB
+    #TAB('Toolti&ps'),WHERE(NOT %ControlHasTip),HLP('~TPLControlFileDropCombo.htm#Tips')
+      #INSERT(%FileDropHasNotTips)
+    #ENDTAB
+    #TAB('&Update Behavior'),HLP('~TPLControlFileDropCombo.htm')
+      #PROMPT('&Allow updates',CHECK),%AllowUpdate
+      #ENABLE(%AllowUpdate)
+        #PROMPT('&Update procedure:',PROCEDURE),%UpdateProcedure,PROP(PROP:DropWidth,140)
+        #ENABLE(NOT %UpdateProcedure),CLEAR
+          #PROMPT('Silent Automatic Add',CHECK),%SilentAutoAdd,DEFAULT(%False)
+        #ENDENABLE
+      #ENDENABLE
+    #ENDTAB
+    #TAB('&Hot Fields'),HLP('~TPLControlFileDropCombo.htm#HotFields')
+      #INSERT(%FileDropHotFieldsTab)
+    #ENDTAB
+    #TAB('&Sort Fields'),HLP('~TPLControlFileDropCombo.htm#SortFields')
+      #INSERT(%SortFieldsTab)
+    #ENDTAB
+    #TAB('Cl&asses'),HLP('~TPLControlFileDropCombo.htm')
+      #WITH(%ClassItem,'Default')
+        #INSERT(%ClassPrompts)
+      #ENDWITH
+    #ENDTAB
+  #ENDSHEET
+#ENDBUTTON
+#!
+#AT(%CustomGlobalDeclarations)
+  #INSERT(%FileDropCustomGlobalDeclarations)
+#ENDAT
+#!
+#ATSTART
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'Default','FDCB'&%ActiveTemplateInstance,%FileDropComboManagerType)
+  #EQUATE(%FileDropObjectName,%ThisObjectName)
+  #DECLARE(%DropControl)
+  #DECLARE(%ListQueue)
+  #DECLARE(%IconList),UNIQUE
+  #DECLARE(%IconListType,%IconList)
+  #DECLARE(%IconNameValue)
+  #DECLARE(%QueueField),MULTI
+  #DECLARE(%QueueFieldAssignment,%QueueField)
+  #DECLARE(%QueueFieldComment,%QueueField)
+  #DECLARE(%QueueFieldHasColor,%QueueField)
+  #DECLARE(%QueueFieldHasIcon,%QueueField)
+  #DECLARE(%QueueFieldHasTree,%QueueField)
+  #DECLARE(%QueueFieldHasStyle,%QueueField)
+  #DECLARE(%QueueFieldHasTip,%QueueField)
+  #EQUATE(%InstancePrefix,'FDCB'&%ActiveTemplateInstance&':')
+  #EQUATE(%ListView,%InstancePrefix&':View:FileDropCombo')
+  #INSERT(%FileDropAtStart)
+  #IF(%RecordFilter)
+    #CALL(%ProcedureBindParseText,%RecordFilter)
+  #ENDIF
+#ENDAT
+#!
+#AT(%GatherObjects)
+#CALL(%AddObjectList, 'Default')
+#ENDAT
+#!
+#AT(%DataSection),PRIORITY(3500),DESCRIPTION('DropCombo - View for ' & %Primary)
+#INSERT(%ConstructView)
+#ENDAT
+#!
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(4400)
+#FIX(%Control,%DropControl)
+#INSERT(%FileDropBindFields)
+#ENDAT
+#!
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8500)
+#FIX(%Control,%DropControl)
+#IF(~EXTRACT(%ControlStatement,'USE',1) OR SUB(EXTRACT(%ControlStatement,'USE',1),1,1)='?')
+  #ERROR('Drop Combo control requires a Use Variable!')
+#ENDIF
+%FileDropObjectName.Init(%(EXTRACT(%ControlStatement,'USE',1)),%DropControl,%ListQueue.ViewPosition,%ListView,%ListQueue,Relate:%Primary,%WindowManagerObject,GlobalErrors,%AllowUpdate,%KeepViewSync,%CaseSensitive)
+#IF(NOT %UseMRP)
+%FileDropObjectName.SetUseMRP(False)
+#ENDIF
+#IF(%AllowUpdate AND %SilentAutoAdd)
+%FileDropObjectName.SetConfirmAutoAdd(False)
+#ENDIF
+#IF(~%EntryCompletion)
+%FileDropObjectName.EntryCompletion = FALSE
+#ENDIF
+#IF(%RemoveDuplicates)
+%FileDropObjectName.RemoveDuplicatesFlag = TRUE
+#ENDIF
+#IF(%AllowUpdate AND %UpdateProcedure)
+  #ADD(%ProcsCalled,%UpdateProcedure)
+%FileDropObjectName.AskProcedure = %(INSTANCE(%ProcsCalled))
+#ENDIF
+#INSERT(%FileDropAfterWindowOpening)
+#IF(%DropIncludeEmpty)
+%FileDropObjectName.IncludeEmpty = TRUE
+#ENDIF
+#IF(%DropIncludeAll)
+%FileDropObjectName.IncludeAll = TRUE
+#ENDIF
+#ENDAT
+#!
+#AT(%FileDropComboMethodCodeSection,%ActiveTemplateInstance),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#AT(%LocalProcedures)
+#CALL(%SetClassItem,'Default')
+#INSERT(%MakeDeclr,24,%OOPConstruct,'Q','&'&%ListQueue)
+#INSERT(%MakeDeclr,55,%OOPConstruct,%OOPConstruct,'!Reference to browse queue type')
+#ADD(%ClassLines,%OOPConstruct)
+#CALL(%GenerateVirtuals, 'Default', 'Local Objects|Abc Objects|FileDrop on ' & %Primary & ' using ' & %DropControl, '%FDCVirtuals(ABC)')
+#ENDAT
+#!
+#AT(%FileDropComboMethodCodeSection,%ActiveTemplateInstance,'ApplyRange','(),BYTE'),PRIORITY(4000),DESCRIPTION('Assign Higher Key Values')
+    #IF(%RangeField)
+#INSERT(%GenerateHigherKeyCodeComponent,'',%PrimaryKey)
+    #ENDIF
+#ENDAT
+#!
+#AT(%FileDropComboMethodCodeSection,%ActiveTemplateInstance,'Ask','(),BYTE'),WHERE(%AllowUpdate AND %UpdateProcedure),PRIORITY(2500)
+#EMBED(%BeforeUpdateFileDropComboVirtual,'FileDropCombo, Before calling update procedure'),%ActiveTemplateInstance,MAP(%ActiveTemplateInstance,%ActiveTemplateInstanceDescription),WHERE(%AllowUpdate AND %UpdateProcedure),LEGACY
+#PRIORITY(7500)
+#EMBED(%AfterUpdateFileDropComboVirtual,'FileDropCombo, After calling update procedure'),%ActiveTemplateInstance,MAP(%ActiveTemplateInstance,%ActiveTemplateInstanceDescription),WHERE(%AllowUpdate AND %UpdateProcedure),LEGACY
+#ENDAT
+#!
+#AT(%FileDropComboMethodCodeSection,%ActiveTemplateInstance,'SetQueueRecord','()'),PRIORITY(2500)
+#SUSPEND
+#EMBED(%FormatFileDropCombo,'FileDropCombo, Format an Element of the Queue'),%ActiveTemplateInstance,MAP(%ActiveTemplateInstance,%ActiveTemplateInstanceDescription),LEGACY
+#PRIORITY(6000)
+#INSERT(%FormatDropQueue)
+#EMBED(%EndOfFormatFileDropCombo,'FileDropCombo, End of Format an Element of the Queue'),%ActiveTemplateInstance,MAP(%ActiveTemplateInstance,%ActiveTemplateInstanceDescription),LEGACY
+#RESUME
+#ENDAT
+#!
+#AT(%FileDropComboMethodDataSection,%ActiveTemplateInstance,'ResetQueue','(BYTE Force=0),LONG')
+  #IF(%BrowseHasGreenBarColor() OR %BrowseHasGreenBarStyle())
+GreenBarIndex   LONG,AUTO
+  #ENDIF
+#ENDAT
+#!
+#AT(%FileDropComboMethodCodeSection,%ActiveTemplateInstance,'ResetQueue','(BYTE Force=0),LONG'),PRIORITY(9500)
+#INSERT(%BrowseRoutineFillGreenBar)
+#ENDAT
+#!
+#!
+#AT(%DataSection),PRIORITY(3510),DESCRIPTION('DropCombo - Queue for ' & %Primary)
+#FIX(%Control,%Dropcontrol)
+#INSERT(%ConstructQueue)
+#ENDAT
+#!
+#AT(%LocalDataClasses)
+#INSERT(%GenerateClass, 'Default', 'File drop combo manager')
+#ENDAT
+#!
+#!
+#AT(%ControlEventHandling,%DropControl,'Accepted'),PRIORITY(6000)
+  #IF(%AllowUpdate)
+%FileDropObjectName.TakeAccepted()
+  #ENDIF
+#ENDAT
+#!
+#!
+#GROUP(%FDCVirtuals, %TreeText, %DataText, %CodeText)
+#EMBED(%FileDropComboMethodDataSection,'FileDropCombo Method Data Section'),%ActiveTemplateInstance,%pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(,%FixClassName(%BaseClassToUse('Default'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%FileDropComboMethodCodeSection,'FileDropCombo Method Executable Code Section'),%ActiveTemplateInstance,%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%BaseClassToUse('Default'))),TREE(%TreeText & %CodeText)
+#!
+#!
+#!
+#!
+#!---------------------------------------------------------------------------------
+#!---------------------------------------------------------------------------------
+#!    File Drop Common Groups
+#!---------------------------------------------------------------------------------
+#!---------------------------------------------------------------------------------
+#!
+#!
+#GROUP(%FileDropGeneralTab)
+  #BOXED('Background Action')
+    #PROMPT('Field to &fill from:',FIELD(%Primary)),%FillField
+    #ENABLE(%FillField)
+      #PROMPT('&Target field:',FIELD),%TargetField
+    #ENDENABLE
+    #ENABLE(%FillField AND %TargetField)
+      #BUTTON('More Field Assignments...'),Multi(%MoreAssignments,%MoreTarget&'  <<--  '&%MoreField),AT(95,,90)
+        #PROMPT('Field to fill from:',FIELD),%MoreField,REQ
+        #PROMPT('Target field:',FIELD),%MoreTarget,REQ
+      #ENDBUTTON
+    #ENDENABLE
+  #ENDBOXED
+  #PROMPT('&Record filter:',EDIT),%RecordFilter,WHENACCEPTED(%SVExpresionEditor(%RecordFilter))
+  #PROMPT('Default to first entry if USE variable empty',CHECK),%DefaultFill,AT(10,,180)
+  #PROMPT('Do not include Primary key in view', CHECK),%DropDoNotIncludePrimaryKey,AT(10),DEFAULT(%False)
+  #PROMPT('Include Blank Choice',CHECK),%DropIncludeEmpty,AT(10),DEFAULT(%False)
+  #PROMPT('Include ''All'' Choice', CHECK),%DropIncludeAll,AT(10),DEFAULT(%False)
+  #BUTTON('&IPDRV Options'),AT(,,175)
+    #PROMPT('Use MRP (Multiple Request Packet)',CHECK),%UseMRP,AT(10),DEFAULT(%True)
+  #ENDBUTTON
+#!
+#GROUP(%FileDropRangeLimitsTab)
+  #PREPARE
+    #CALL(%LoadHigherKeysComponets,%Primary,%PrimaryKey,%RangeField,%RangeLimitType)
+  #ENDPREPARE
+  #ENABLE(%PrimaryKey)
+    #PROMPT('Range Limit &Field:',COMPONENT(%PrimaryKey)),%RangeField,WHENACCEPTED(%LoadHigherKeysComponets(%Primary,%PrimaryKey,%RangeField,%RangeLimitType))
+  #ENDENABLE
+  #ENABLE(%RangeField)
+    #PROMPT('Range Limit &Type:',DROP('Current Value|Single Value|Range of Values|File Relationship')),%RangeLimitType,DEFAULT('Current Value'),WHENACCEPTED(%LoadHigherKeysComponets(%Primary,%PrimaryKey,%RangeField,%RangeLimitType))
+    #BOXED,HIDE
+      #BUTTON('HigherKeys'),MULTI(%HigherKeys,%HigherKey)
+        #PROMPT('Higher Field',COMPONENT(%PrimaryKey)),%HigherKey
+      #ENDBUTTON
+    #ENDBOXED
+    #BOXED,WHERE((%RangeLimitType='Single Value' OR %RangeLimitType='Range of Values'))
+      #ENABLE(ITEMS(%HigherKeys))
+        #BUTTON('Higher Key Component'),FROM(%HigherKeys,%HigherKeyField&' = '&CHOOSE(%HigherKeyValueType,'Current Value',%HigherKeyValueVariable,%HigherKeyValueFixed)),AT(,,175),HLP('~TPLHigherKeyComponent.htm')
+          #ENABLE(%False)
+            #PROMPT ('Key Field:', FIELD),%HigherKeyField,DEFAULT(%HigherKey)
+          #ENDENABLE
+          #PROMPT('Value Type:',DROP('Current Value|Variable Value|Fixed Value')),%HigherKeyValueType,CHOICE,DEFAULT(1)
+          #BOXED,WHERE(%HigherKeyValueType=2),AT(,30)
+            #PROMPT ('Value:', FIELD),%HigherKeyValueVariable
+          #ENDBOXED
+          #BOXED,WHERE(%HigherKeyValueType=3),AT(,30)
+            #PROMPT ('Value:', EXPR),%HigherKeyValueFixed
+          #ENDBOXED
+        #ENDBUTTON
+      #ENDENABLE
+    #ENDBOXED
+    #BOXED,SECTION
+      #BOXED('Range Limit Boundary:'),WHERE(%RangeLimitType='Single Value'),AT(,0)
+        #PROMPT('&Range Limit Value:',FIELD),%RangeLimit
+      #ENDBOXED
+      #BOXED('Range Limit Boundaries:'),WHERE(%RangeLimitType='Range of Values'),AT(,0)
+        #PROMPT('&Low Limit Value:',FIELD),%RangeLow
+        #PROMPT('&High Limit Value:',FIELD),%RangeHigh
+      #ENDBOXED
+      #BOXED('Range limiting file'),WHERE(%RangeLimitType='File Relationship'),AT(,0)
+        #PROMPT('&Related file:',FILE),%RangeFile
+      #ENDBOXED
+    #ENDBOXED
+  #ENDENABLE
+#!
+#GROUP(%FileDropColorsTab)
+  #PREPARE
+    #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+  #ENDPREPARE
+  #PROMPT('Use same color for all columns',CHECK),%UseSameColorForAll,DEFAULT(%False),AT(10)
+  #BOXED,SECTION
+    #BOXED,WHERE(NOT %UseSameColorForAll),AT(,0)
+      #BUTTON('Customize Colors'),FROM(%ControlField,%ControlField),AT(,0),INLINE,WHERE(%ControlFieldHasColor),HLP('~TPLControlFileDrop.htm#Colors')
+        #PREPARE
+          #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+        #ENDPREPARE
+        #PROMPT('Create Greenbar Effect',CHECK),%ControlGreenBarColor,DEFAULT(%False),AT(10)
+        #BOXED,SECTION
+          #BOXED,WHERE(%ControlGreenBarColor),AT(,0)
+            #BOXED('First Colors')
+              #PROMPT('&Foreground Normal:',COLOR),%GreenBarOnForegroundNormal,DEFAULT(-1)
+              #PROMPT('&Background Normal:',COLOR),%GreenBarOnBackgroundNormal,DEFAULT(-1)
+              #PROMPT('&Foreground Selected:',COLOR),%GreenBarOnForegroundSelected,DEFAULT(-1)
+              #PROMPT('&Background Selected:',COLOR),%GreenBarOnBackgroundSelected,DEFAULT(-1)
+            #ENDBOXED
+            #BOXED('Second Colors')
+              #PROMPT('&Foreground Normal:',COLOR),%GreenBarOffForegroundNormal,DEFAULT(-1)
+              #PROMPT('&Background Normal:',COLOR),%GreenBarOffBackgroundNormal,DEFAULT(-1)
+              #PROMPT('&Foreground Selected:',COLOR),%GreenBarOffForegroundSelected,DEFAULT(-1)
+              #PROMPT('&Background Selected:',COLOR),%GreenBarOffBackgroundSelected,DEFAULT(-1)
+            #ENDBOXED
+          #ENDBOXED
+          #BOXED,WHERE(NOT %ControlGreenBarColor),AT(,0)
+            #BOXED('Default Colors')
+              #PROMPT('&Foreground Normal:',COLOR),%ControlFieldForegroundNormal,DEFAULT(-1)
+              #PROMPT('&Background Normal:',COLOR),%ControlFieldBackgroundNormal,DEFAULT(-1)
+              #PROMPT('&Foreground Selected:',COLOR),%ControlFieldForegroundSelected,DEFAULT(-1)
+              #PROMPT('&Background Selected:',COLOR),%ControlFieldBackgroundSelected,DEFAULT(-1)
+            #ENDBOXED
+            #BOXED('Conditional Color Assignments')
+              #BUTTON('Conditional Color Assignments'),MULTI(%ConditionalColors,%ColorCondition),INLINE,HLP('~TPLControlFileDrop.htm#Colors')
+                #PROMPT('&Condition:',EDIT),%ColorCondition,WHENACCEPTED(%SVExpresionEditor(%ColorCondition))
+                #PROMPT('&Foreground Normal:',COLOR),%ConditionalControlFieldForegroundNormal,DEFAULT(-1)
+                #PROMPT('&Background Normal:',COLOR),%ConditionalControlFieldBackgroundNormal,DEFAULT(-1)
+                #PROMPT('&Foreground Selected:',COLOR),%ConditionalControlFieldForegroundSelected,DEFAULT(-1)
+                #PROMPT('&Background Selected:',COLOR),%ConditionalControlFieldBackgroundSelected,DEFAULT(-1)
+              #ENDBUTTON
+            #ENDBOXED
+          #ENDBOXED
+        #ENDBOXED
+      #ENDBUTTON
+    #ENDBOXED
+    #BOXED,WHERE(%UseSameColorForAll),AT(,0)
+      #BOXED,SECTION
+        #PROMPT('Create Greenbar Effect',CHECK),%AllControlGreenBarColor,DEFAULT(%False),AT(10,0)
+        #ENABLE(%AllControlGreenBarColor)
+          #PROMPT('Alternate columns',CHECK),%AllControlGreenBarColorAlternate,DEFAULT(%False),AT(110,0,80)
+        #ENDENABLE
+      #ENDBOXED
+      #BOXED,SECTION
+        #BOXED,WHERE(NOT %AllControlGreenBarColor),AT(,0)
+          #BOXED('Default Colors')
+            #PROMPT('&Foreground Normal:',COLOR),%AllControlFieldForegroundNormal,DEFAULT(-1)
+            #PROMPT('&Background Normal:',COLOR),%AllControlFieldBackgroundNormal,DEFAULT(-1)
+            #PROMPT('&Foreground Selected:',COLOR),%AllControlFieldForegroundSelected,DEFAULT(-1)
+            #PROMPT('&Background Selected:',COLOR),%AllControlFieldBackgroundSelected,DEFAULT(-1)
+          #ENDBOXED
+          #BOXED('Conditional Color Assignments')
+            #BUTTON('Conditional Color Assignments'),MULTI(%ConditionalColorsAll,%ColorConditionAll),INLINE,HLP('~TPLControlBrowseBox.htm#Colors')
+              #PROMPT('&Condition:',EDIT),%ColorConditionAll,WHENACCEPTED(%SVExpresionEditor(%ColorConditionAll))
+              #PROMPT('&Foreground Normal:',COLOR),%ConditionalAllControlFieldForegroundNormal,DEFAULT(-1)
+              #PROMPT('&Background Normal:',COLOR),%ConditionalAllControlFieldBackgroundNormal,DEFAULT(-1)
+              #PROMPT('&Foreground Selected:',COLOR),%ConditionalAllControlFieldForegroundSelected,DEFAULT(-1)
+              #PROMPT('&Background Selected:',COLOR),%ConditionalAllControlFieldBackgroundSelected,DEFAULT(-1)
+            #ENDBUTTON
+          #ENDBOXED
+        #ENDBOXED
+        #BOXED,WHERE(%AllControlGreenBarColor),AT(,0)
+          #BOXED('First Colors')
+            #PROMPT('&Foreground Normal:',COLOR),%AllGreenBarOnForegroundNormal,DEFAULT(-1)
+            #PROMPT('&Background Normal:',COLOR),%AllGreenBarOnBackgroundNormal,DEFAULT(-1)
+            #PROMPT('&Foreground Selected:',COLOR),%AllGreenBarOnForegroundSelected,DEFAULT(-1)
+            #PROMPT('&Background Selected:',COLOR),%AllGreenBarOnBackgroundSelected,DEFAULT(-1)
+          #ENDBOXED
+          #BOXED('Second Colors')
+            #PROMPT('&Foreground Normal:',COLOR),%AllGreenBarOffForegroundNormal,DEFAULT(-1)
+            #PROMPT('&Background Normal:',COLOR),%AllGreenBarOffBackgroundNormal,DEFAULT(-1)
+            #PROMPT('&Foreground Selected:',COLOR),%AllGreenBarOffForegroundSelected,DEFAULT(-1)
+            #PROMPT('&Background Selected:',COLOR),%AllGreenBarOffBackgroundSelected,DEFAULT(-1)
+          #ENDBOXED
+        #ENDBOXED
+      #ENDBOXED
+    #ENDBOXED
+  #ENDBOXED
+#!
+#GROUP(%FileDropHasNotColors)
+  #PREPARE
+    #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+  #ENDPREPARE
+  #DISPLAY('Your FileDrop is not set to use custom colors. To activate custom colors for your FileDrop, follow these steps.'),AT(10,,175,24)
+  #DISPLAY('1.  If you aren''t in the window formatter, go there.'),AT(10,,175)
+  #DISPLAY('2.  Right-click on the FileDrop control, and select "List Box Format..."'),AT(10,,175,16)
+  #DISPLAY('3.  Select the column you want to "colorize" from the left hand list.'),AT(10,,175,16)
+  #DISPLAY('4.  Set the "HasColor" property to TRUE.'),AT(10,,175)
+  #DISPLAY('5.  Repeat steps 3 and 4 as necessary.'),AT(10,,175)
+  #DISPLAY('6.  When you call up the FileDrop actions window, this tab will show the columns you''ve colored.'),AT(10,,175,24)
+#!
+#GROUP(%FileDropIconsTab)
+  #PREPARE
+    #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+  #ENDPREPARE
+  #BUTTON('&Customize FileDrop Icons'),FROM(%ControlField,%ControlField & ' - ' & %ControlFieldIcon),HLP('~TPLControlFileDrop.htm#Icons'),INLINE,WHERE(%ControlFieldHasIcon)
+    #PREPARE
+      #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+    #ENDPREPARE
+    #BOXED('Default Icon')
+      #PROMPT('Icon:',ICON),%ControlFieldIcon
+      #ENABLE(SUB(%ControlFieldIcon,1,1) = '!'),CLEAR
+        #PROMPT('The expression is a number',CHECK),%ControlFieldIconIsNumber
+      #ENDENABLE
+    #ENDBOXED
+    #BOXED('Conditional Icon Usage')
+      #BUTTON('&Conditional Icon Usage'),MULTI(%ConditionalIcons,%IconCondition),INLINE,HLP('~TPLControlFileDrop.htm#Icons')
+        #PROMPT('&Condition:',EDIT),%IconCondition,REQ,WHENACCEPTED(%SVExpresionEditor(%IconCondition))
+        #PROMPT('Icon:',ICON),%ConditionalControlFieldIcon
+        #ENABLE(SUB(%ConditionalControlFieldIcon,1,1) = '!'),CLEAR
+          #PROMPT('The expression is a number',CHECK),%ConditionalControlFieldIconIsNumber
+        #ENDENABLE
+      #ENDBUTTON
+    #ENDBOXED
+  #ENDBUTTON
+#!
+#GROUP(%FileDropHasNotIcons)
+  #PREPARE
+    #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+  #ENDPREPARE
+  #DISPLAY('Your FileDrop is not set to use icons. To activate icons for your FileDrop, follow these steps.'),AT(10,,175,24)
+  #DISPLAY('1.  If you aren''t in the window formatter, go there.'),AT(10,,175)
+  #DISPLAY('2.  Right-click on the FileDrop control, and select "List Box Format..."'),AT(10,,175,16)
+  #DISPLAY('3.  Select the column you want to use an icon with from the left hand list.'),AT(10,,175,16)
+  #DISPLAY('4.  Set the "Icon" property to either "Normal" or "Transparent".'),AT(10,,175,16)
+  #DISPLAY('5.  Repeat steps 3-4 as necessary.'),AT(10,,175)
+  #DISPLAY('6.  When you call up the FileDrop actions window, this tab will show the columns you''ve added icons to.'),AT(10,,175,24)
+#!
+#GROUP(%FileDropStylesTab)
+  #PREPARE
+    #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+  #ENDPREPARE
+  #PROMPT('Use same Style for all columns',CHECK),%UseSameStyleForAll,DEFAULT(%False),AT(10)
+  #BOXED,WHERE(NOT %UseSameStyleForAll),AT(,30)
+    #BUTTON('&Customize BrowseBox Styles'),FROM(%ControlField,%ControlField & ' - ' & %ControlFieldStyle),HLP('~TPLControlBrowseBox.htm#Styles'),INLINE,WHERE(%ControlFieldHasStyle)
+      #PREPARE
+        #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+      #ENDPREPARE
+      #PROMPT('Create Greenbar Effect',CHECK),%ControlGreenBarStyle,DEFAULT(%False),AT(10)
+      #BOXED,SECTION
+        #BOXED,WHERE(%ControlGreenBarStyle),AT(,0)
+          #BOXED('First Style')
+            #PROMPT('Style Type:',DROP('Local List|Style Number')),%GreenBarOnStyleType,DEFAULT('Local List')
+            #BOXED,SECTION
+              #BOXED,WHERE(%GreenBarOnStyleType='Local List'),AT(0,0)
+                #PROMPT('Style:',FROM(%WindowStyles,,INSTANCE(%WindowStyles)&'-'&CHOOSE(%WindowStyleFontNameIsVariable,%WindowStyleFontNameVariable,%WindowStyleFontName)&','&CHOOSE(%WindowStyleFontSizeIsVariable,%WindowStyleFontSizeVariable,%WindowStyleFontSize))),%GreenBarOnStyleLocalList
+              #ENDBOXED
+              #BOXED,WHERE(%GreenBarOnStyleType='Style Number'),AT(0,0)
+                #PROMPT('Style Number:',SPIN(@n6,0,65535)),%GreenBarOnStyle
+              #ENDBOXED
+            #ENDBOXED
+          #ENDBOXED
+          #BOXED('Second Style')
+            #PROMPT('Style Type:',DROP('Local List|Style Number')),%GreenBarOffStyleType,DEFAULT('Local List')
+            #BOXED,SECTION
+              #BOXED,WHERE(%GreenBarOffStyleType='Local List'),AT(0,0)
+                #PROMPT('Style:',FROM(%WindowStyles,,INSTANCE(%WindowStyles)&'-'&CHOOSE(%WindowStyleFontNameIsVariable,%WindowStyleFontNameVariable,%WindowStyleFontName)&','&CHOOSE(%WindowStyleFontSizeIsVariable,%WindowStyleFontSizeVariable,%WindowStyleFontSize))),%GreenBarOffStyleLocalList
+              #ENDBOXED
+              #BOXED,WHERE(%GreenBarOffStyleType='Style Number'),AT(0,0)
+                #PROMPT('Style Number:',SPIN(@n6,0,65535)),%GreenBarOffStyle
+              #ENDBOXED
+            #ENDBOXED
+          #ENDBOXED
+        #ENDBOXED
+        #BOXED,WHERE(NOT %ControlGreenBarStyle),AT(,0)
+          #BOXED('Default Style')
+            #PROMPT('Style Type:',DROP('Local List|Style Number')),%ControlFieldStyleType,DEFAULT('Local List')
+            #BOXED,SECTION
+              #BOXED,WHERE(%ControlFieldStyleType='Local List'),AT(0,0)
+                #PROMPT('Style:',FROM(%WindowStyles,,INSTANCE(%WindowStyles)&'-'&CHOOSE(%WindowStyleFontNameIsVariable,%WindowStyleFontNameVariable,%WindowStyleFontName)&','&CHOOSE(%WindowStyleFontSizeIsVariable,%WindowStyleFontSizeVariable,%WindowStyleFontSize))),%ControlFieldStyleLocalList
+              #ENDBOXED
+              #BOXED,WHERE(%ControlFieldStyleType='Style Number'),AT(0,0)
+                #PROMPT('Style Number:',SPIN(@n6,0,65535)),%ControlFieldStyle
+              #ENDBOXED
+            #ENDBOXED
+          #ENDBOXED
+          #BOXED('Conditional Styles')
+            #BUTTON('&Conditional Styles'),MULTI(%ConditionalStyles,%StyleCondition),INLINE,HLP('~TPLControlBrowseBox.htm#Styles')
+              #PROMPT('&Condition:',EDIT),%StyleCondition,WHENACCEPTED(%SVExpresionEditor(%StyleCondition))
+              #PROMPT('Style Type:',DROP('Local List|Style Number')),%ConditionalControlFieldStyleType,DEFAULT('Local List')
+              #BOXED,SECTION
+                #BOXED,WHERE(%ConditionalControlFieldStyleType='Local List'),AT(0,0)
+                  #PROMPT('Style:',FROM(%WindowStyles,,INSTANCE(%WindowStyles)&'-'&CHOOSE(%WindowStyleFontNameIsVariable,%WindowStyleFontNameVariable,%WindowStyleFontName)&','&CHOOSE(%WindowStyleFontSizeIsVariable,%WindowStyleFontSizeVariable,%WindowStyleFontSize))),%ConditionalControlFieldStyleLocalList
+                #ENDBOXED
+                #BOXED,WHERE(%ConditionalControlFieldStyleType='Style Number'),AT(0,0)
+                  #PROMPT('Style Number:',SPIN(@n6,0,65535)),%ConditionalControlFieldStyle
+                #ENDBOXED
+              #ENDBOXED
+            #ENDBUTTON
+          #ENDBOXED
+        #ENDBOXED
+      #ENDBOXED
+    #ENDBUTTON
+  #ENDBOXED
+  #BOXED,WHERE(%UseSameStyleForAll),AT(,30)
+    #BOXED,SECTION
+      #PROMPT('Create Greenbar Effect',CHECK),%AllControlGreenBarStyle,DEFAULT(%False),AT(10,0)
+      #ENABLE(%AllControlGreenBarStyle)
+        #PROMPT('Alternate columns',CHECK),%AllControlGreenBarStyleAlternate,DEFAULT(%False),AT(110,0,80)
+      #ENDENABLE
+    #ENDBOXED
+    #BOXED,SECTION
+      #BOXED,WHERE(NOT %AllControlGreenBarStyle),AT(,0)
+        #BOXED('Default Style')
+          #PROMPT('Style Type:',DROP('Local List|Style Number')),%AllControlFieldStyleType,DEFAULT('Local List')
+          #BOXED,SECTION
+            #BOXED,WHERE(%AllControlFieldStyleType='Local List'),AT(0,0)
+              #PROMPT('Style:',FROM(%WindowStyles,,INSTANCE(%WindowStyles)&'-'&CHOOSE(%WindowStyleFontNameIsVariable,%WindowStyleFontNameVariable,%WindowStyleFontName)&','&CHOOSE(%WindowStyleFontSizeIsVariable,%WindowStyleFontSizeVariable,%WindowStyleFontSize))),%AllControlFieldStyleLocalList
+            #ENDBOXED
+            #BOXED,WHERE(%AllControlFieldStyleType='Style Number'),AT(0,0)
+              #PROMPT('Style Number:',SPIN(@n6,0,65535)),%AllControlFieldStyle
+            #ENDBOXED
+          #ENDBOXED
+        #ENDBOXED
+        #BOXED('Conditional Style Assignments')
+          #BUTTON('Conditional Style Assignments'),MULTI(%ConditionalStylesAll,%StyleConditionAll),INLINE,HLP('~TPLControlBrowseBox.htm#Styles')
+            #PROMPT('&Condition:',EDIT),%StyleConditionAll,WHENACCEPTED(%SVExpresionEditor(%StyleConditionAll))
+            #PROMPT('Style Type:',DROP('Local List|Style Number')),%ConditionalAllControlFieldStyleType,DEFAULT('Local List')
+            #BOXED,SECTION
+              #BOXED,WHERE(%ConditionalAllControlFieldStyleType='Local List'),AT(0,0)
+                #PROMPT('Style:',FROM(%WindowStyles,,INSTANCE(%WindowStyles)&'-'&CHOOSE(%WindowStyleFontNameIsVariable,%WindowStyleFontNameVariable,%WindowStyleFontName)&','&CHOOSE(%WindowStyleFontSizeIsVariable,%WindowStyleFontSizeVariable,%WindowStyleFontSize))),%ConditionalAllControlFieldStyleLocalList
+              #ENDBOXED
+              #BOXED,WHERE(%ConditionalAllControlFieldStyleType='Style Number'),AT(0,0)
+                #PROMPT('Style Number:',SPIN(@n6,0,65535)),%ConditionalAllControlFieldStyle
+              #ENDBOXED
+            #ENDBOXED
+          #ENDBUTTON
+        #ENDBOXED
+      #ENDBOXED
+      #BOXED,WHERE(%AllControlGreenBarStyle),AT(,0)
+        #BOXED('First Style')
+          #PROMPT('Style Type:',DROP('Local List|Style Number')),%AllGreenBarOnStyleType,DEFAULT('Local List')
+          #BOXED,SECTION
+            #BOXED,WHERE(%AllGreenBarOnStyleType='Local List'),AT(0,0)
+              #PROMPT('Style:',FROM(%WindowStyles,,INSTANCE(%WindowStyles)&'-'&CHOOSE(%WindowStyleFontNameIsVariable,%WindowStyleFontNameVariable,%WindowStyleFontName)&','&CHOOSE(%WindowStyleFontSizeIsVariable,%WindowStyleFontSizeVariable,%WindowStyleFontSize))),%AllGreenBarOnStyleLocalList
+            #ENDBOXED
+            #BOXED,WHERE(%AllGreenBarOnStyleType='Style Number'),AT(0,0)
+              #PROMPT('Style Number:',SPIN(@n6,0,65535)),%AllGreenBarOnStyle
+            #ENDBOXED
+          #ENDBOXED
+        #ENDBOXED
+        #BOXED('Second Style')
+          #PROMPT('Style Type:',DROP('Local List|Style Number')),%AllGreenBarOffStyleType,DEFAULT('Local List')
+          #BOXED,SECTION
+            #BOXED,WHERE(%AllGreenBarOffStyleType='Local List'),AT(0,0)
+              #PROMPT('Style:',FROM(%WindowStyles,,INSTANCE(%WindowStyles)&'-'&CHOOSE(%WindowStyleFontNameIsVariable,%WindowStyleFontNameVariable,%WindowStyleFontName)&','&CHOOSE(%WindowStyleFontSizeIsVariable,%WindowStyleFontSizeVariable,%WindowStyleFontSize))),%AllGreenBarOffStyleLocalList
+            #ENDBOXED
+            #BOXED,WHERE(%AllGreenBarOffStyleType='Style Number'),AT(0,0)
+              #PROMPT('Style Number:',SPIN(@n6,0,65535)),%AllGreenBarOffStyle
+            #ENDBOXED
+          #ENDBOXED
+        #ENDBOXED
+      #ENDBOXED
+    #ENDBOXED
+  #ENDBOXED
+#!
+#GROUP(%FileDropHasNotStyles)
+  #PREPARE
+    #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+  #ENDPREPARE
+  #DISPLAY('Your FileDrop is not set to use styles. To activate styles for your FileDrop, follow these steps.'),AT(10,,175,24)
+  #DISPLAY('1.  If you aren''t in the window formatter, go there.'),AT(10,,175)
+  #DISPLAY('2.  Right-click on the FileDrop control, and select "List Box Format..."'),AT(10,,175,16)
+  #DISPLAY('3.  Select the column you want to use styles for from the left hand list.'),AT(10,,175,16)
+  #DISPLAY('4.  Set the "Style" property to TRUE.'),AT(10,,175)
+  #DISPLAY('5.  Repeat steps 3 and 4 as necessary.'),AT(10,,175)
+  #DISPLAY('6.  When you call up the FileDrop actions window, this tab will show the columns you''ve added styles for.'),AT(10,,175,24)
+#!
+#GROUP(%FileDropTipsTab)
+  #PREPARE
+    #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+  #ENDPREPARE
+  #BUTTON('&Customize Tooltips'),FROM(%ControlField,%ControlField & ' - ' & %ControlFieldTipField),HLP('~TPLControlFileDrop.htm#Tips'),INLINE,WHERE(%ControlFieldHasTip)
+    #PREPARE
+      #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+    #ENDPREPARE
+    #PROMPT('Tooltip &variable:',FIELD),%ControlFieldTipField
+  #ENDBUTTON
+#!
+#GROUP(%FileDropHasNotTips)
+  #PREPARE
+    #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+  #ENDPREPARE
+  #DISPLAY('Your FileDrop is not set to use tooltips. To activate tooltips for your FileDrop, follow these steps.'),AT(10,,175,24)
+  #DISPLAY('1.  If you aren''t in the window formatter, go there.'),AT(10,,175)
+  #DISPLAY('2.  Right-click on the FileDrop control, and select "List Box Format..."'),AT(10,,175,16)
+  #DISPLAY('3.  Select the column you want to use styles for from the left hand list.'),AT(10,,175,16)
+  #DISPLAY('4.  Set the "Tooltip" property to TRUE.'),AT(10,,175)
+  #DISPLAY('5.  Repeat steps 3 and 4 as necessary.'),AT(10,,175)
+  #DISPLAY('6.  When you call up the FileDrop actions window, this tab will show the columns you''ve added tooltips for.'),AT(10,,175,24)
+#!
+#GROUP(%FileDropHotFieldsTab)
+  #BUTTON('Hot fields'),MULTI(%HotFields,%HotField),INLINE,HLP('~TPLControlFileDrop.htm#HotFields')
+    #PROMPT('&Hot field:',FIELD),%HotField,REQ
+    #PROMPT('&BIND field',CHECK),%HotFieldBound
+    #PROMPT('Do NOT add to View',CHECK),%HotFieldBindOnly
+  #ENDBUTTON
+#!
+#GROUP(%SortFieldsTab)
+  #BUTTON('Sort fields'),MULTI(%SortFields,%SortField),INLINE,HLP('~TPLControlFileDrop.htm#SortFields')
+    #PROMPT('Sort &field:',FIELD),%SortField
+  #ENDBUTTON
+#!
+#GROUP(%FileDropAtStart)
+  #INSERT(%FileControlInitialize)
+  #SET(%DropControl,%GetControlName())
+  #SET(%ListQueue,%GetControlQueue())
+  #DECLARE(%ListControl)                    #!Needed for call to ConstructQueue group
+  #SET(%ListControl,%DropControl)
+  #INSERT(%BuildQueueFields,%FileDropObjectName,%DropControl,%DropDoNotIncludePrimaryKey)
+  #DECLARE(%ManagerName)
+  #SET(%ManagerName,%FileDropObjectName)    #!Needed for call to construct join groups
+  #EQUATE(%WindowManagerObject,%GetObjectName('Default',0))
+  #IF(%RangeField)
+     #CALL(%LoadHigherKeysComponets,%Primary,%PrimaryKey,%RangeField,%RangeLimitType)
+  #ENDIF
+#!
+#GROUP(%FileDropCustomGlobalDeclarations)
+  #INSERT(%FileControlSetFlags)
+  #FOR(%Control),WHERE(%ControlInstance = %ActiveTemplateInstance)
+    #FOR(%ControlField)
+      #IF(%ControlFieldHasIcon)
+        #IF(%ControlFieldIcon)
+          #INSERT(%StandardAddIconToProject,%ControlFieldIcon)
+        #ENDIF
+        #FOR(%ConditionalIcons)
+          #INSERT(%StandardAddIconToProject,%ConditionalControlFieldIcon)
+        #ENDFOR
+      #ENDIF
+    #ENDFOR
+  #ENDFOR
+#!
+#GROUP(%FileDropBindFields)
+#FOR(%HotFields),WHERE(%HotFieldBound)
+  #FIND(%Field,%HotField)
+  #IF(NOT %FieldFile OR %FieldName)
+    #SET(%ValueConstruct, %HotField)
+    #INSERT(%CleanDimensions)
+#!BIND('%ValueConstruct',%HotField)
+#CALL(%AddFieldToBindToList,%HotField)
+  #ENDIF
+#ENDFOR
+#!
+#GROUP(%FileDropAfterWindowOpening)
+%FileDropObjectName.Q &= %ListQueue
+%FileDropObjectName.AddSortOrder(%PrimaryKey)
+#IF(ITEMS(%SortFields))
+  #FOR(%SortFields)
+%FileDropObjectName.AppendOrder('%SortField')
+  #ENDFOR
+#ENDIF
+#IF(%RangeField)
+  #CASE(%RangeLimitType)
+  #OF ('Single Value')
+%FileDropObjectName.AddRange(%RangeField,%RangeLimit)
+  #OF ('Range of Values')
+%FileDropObjectName.AddRange(%RangeField,%RangeLow,%RangeHigh)
+  #OF ('File Relationship')
+%FileDropObjectName.AddRange(%RangeField,Relate:%Primary,Relate:%RangeFile)
+  #OF ('Current Value')
+%FileDropObjectName.AddRange(%RangeField)
+  #ENDCASE
+#ENDIF
+#IF(%RecordFilter)
+%FileDropObjectName.SetFilter(%(%StripPling(%RecordFilter)))
+#ENDIF
+#FIX(%Control,%Dropcontrol)
+#IF(ITEMS(%QueueField))
+  #FOR(%QueueField)
+    #FIND(%Field,%QueueFieldAssignment)
+    #FIND(%HotField,%QueueFieldAssignment,%HotFields)
+    #IF (%Field OR %HotField AND ~%HotFieldBindOnly OR INLIST(%QueueFieldAssignment,%ControlField))
+%FileDropObjectName.AddField(%QueueFieldAssignment,%ManagerName.Q.%QueueField) !%QueueFieldComment
+    #ENDIF
+  #ENDFOR
+#ELSE
+  #FIX(%File,%Primary)
+  #SELECT(%Field,1)
+  #ADD(%QueueField,%Field)
+  #SET(%QueueFieldAssignment,%Field)
+  #SET(%QueueFieldComment,'Field assumed from primary file')
+%FileDropObjectName.AddField(%QueueFieldAssignment,%ManagerName.Q.%QueueField) !Field assumed from primary file
+#ENDIF
+#IF(%FillField AND %TargetField)
+%FileDropObjectName.AddUpdateField(%FillField,%TargetField)
+  #FOR(%MoreAssignments)
+%FileDropObjectName.AddUpdateField(%MoreField,%MoreTarget)
+  #ENDFOR
+#ELSIF(%FillField AND EXTRACT(%ControlStatement,'USE',1) AND SUB(EXTRACT(%ControlStatement,'USE',1),1,1) NOT='?')
+%FileDropObjectName.AddUpdateField(%FillField,%(EXTRACT(%ControlStatement,'USE',1)))
+#ELSIF(EXTRACT(%ControlStatement,'USE',1) AND SUB(EXTRACT(%ControlStatement,'USE',1),1,1) NOT='?')
+  #IF(~ITEMS(%QueueField))
+    #ERROR('Cannot default - no fields in list box!')
+  #ENDIF
+  #SELECT(%QueueField,1)
+  #IF(%QueueFieldAssignment NOT=EXTRACT(%ControlStatement,'USE',1))
+%FileDropObjectName.AddUpdateField(%QueueFieldAssignment,%(EXTRACT(%ControlStatement,'USE',1)))
+  #ENDIF
+#ENDIF
+%WindowManagerObject.AddItem(%FileDropObjectName.WindowComponent)
+#FOR(%IconList),WHERE(%IconListType <> 'Index' AND %IconListType <> 'VarIndex')
+  #SET(%ValueConstruct,INSTANCE(%IconList))
+  #IF(%IconListType = 'Built-In')
+%ListControl{PROP:IconList,%ValueConstruct} = %IconList
+  #ELSIF(%IconListType = 'Variable')
+    #SET(%IconNameValue, SUB(%IconList, 2, LEN(%IconList) - 1))
+%ListControl{PROP:IconList,%ValueConstruct} = %IconNameValue
+  #ELSIF(%IconListType = 'File')
+    #IF(SUB(%IconList,1,1) = '~')
+%ListControl{PROP:IconList,%ValueConstruct} = '%IconList'
+    #ELSE
+%ListControl{PROP:IconList,%ValueConstruct} = '~%IconList'
+    #ENDIF
+  #ENDIF
+#ENDFOR
+#IF (~%DefaultFill)
+%FileDropObjectName.DefaultFill = 0
+#ENDIF
+#!
+#!
+#GROUP(%FormatDropQueue),AUTO
+#FIX(%Control,%DropControl)
+#?%Null
+#IF(%UseSameColorForAll)
+    #IF(ITEMS(%ConditionalColorsAll) AND NOT %AllControlGreenBarColor)
+#SUSPEND
+      #FOR(%ConditionalColorsAll)
+        #IF(INSTANCE(%ConditionalColorsAll) = 1)
+#?IF (%ColorConditionAll)
+        #ELSE
+#?ELSIF (%ColorConditionAll)
+        #ENDIF
+           #FOR(%QueueField)
+             #FIX(%ControlField,%QueueFieldAssignment)
+             #SET(%ValueConstruct,%QueueField)
+             #IF(%QueueFieldHasColor)
+  SELF.Q.%ValueConstruct_NormalFG = %ConditionalAllControlFieldForegroundNormal    #<! Set conditional color values for %QueueField
+  SELF.Q.%ValueConstruct_NormalBG = %ConditionalAllControlFieldBackgroundNormal
+  SELF.Q.%ValueConstruct_SelectedFG = %ConditionalAllControlFieldForegroundSelected
+  SELF.Q.%ValueConstruct_SelectedBG = %ConditionalAllControlFieldBackgroundSelected
+             #ENDIF
+           #ENDFOR
+      #ENDFOR
+#?ELSE
+       #FOR(%QueueField)
+         #FIX(%ControlField,%QueueFieldAssignment)
+         #SET(%ValueConstruct,%QueueField)
+         #IF(%QueueFieldHasColor)
+  SELF.Q.%ValueConstruct_NormalFG = %AllControlFieldForegroundNormal               #<! Set color values for %QueueField
+  SELF.Q.%ValueConstruct_NormalBG = %AllControlFieldBackgroundNormal
+  SELF.Q.%ValueConstruct_SelectedFG = %AllControlFieldForegroundSelected
+  SELF.Q.%ValueConstruct_SelectedBG = %AllControlFieldBackgroundSelected
+         #ENDIF
+       #ENDFOR
+#?END
+#RESUME
+    #ELSE
+       #FOR(%QueueField)
+         #FIX(%ControlField,%QueueFieldAssignment)
+         #SET(%ValueConstruct,%QueueField)
+         #IF(%QueueFieldHasColor)
+            #IF(NOT %AllControlGreenBarColor)
+SELF.Q.%ValueConstruct_NormalFG = %AllControlFieldForegroundNormal               #<! Set color values for %QueueField
+SELF.Q.%ValueConstruct_NormalBG = %AllControlFieldBackgroundNormal
+SELF.Q.%ValueConstruct_SelectedFG = %AllControlFieldForegroundSelected
+SELF.Q.%ValueConstruct_SelectedBG = %AllControlFieldBackgroundSelected
+            #ENDIF
+         #ENDIF
+       #ENDFOR
+    #ENDIF
+#ENDIF
+#IF(%UseSameStyleForAll)
+    #IF(ITEMS(%ConditionalStylesAll) AND NOT %AllControlGreenBarStyle)
+#SUSPEND
+      #FOR(%ConditionalStylesAll)
+        #IF(INSTANCE(%ConditionalStylesAll) = 1)
+#?IF (%StyleConditionAll)
+        #ELSE
+#?ELSIF (%StyleConditionAll)
+        #ENDIF
+           #FOR(%QueueField)
+             #FIX(%ControlField,%QueueFieldAssignment)
+             #SET(%ValueConstruct,%QueueField)
+             #IF(%QueueFieldHasStyle)
+  SELF.Q.%ValueConstruct_Style = %(%GetStyleNumber(%ConditionalAllControlFieldStyleType,%ConditionalAllControlFieldStyle,%ConditionalAllControlFieldStyleLocalList)) ! %ConditionalAllControlFieldStyle
+             #ENDIF
+           #ENDFOR
+      #ENDFOR
+#?ELSE
+       #FOR(%QueueField)
+         #FIX(%ControlField,%QueueFieldAssignment)
+         #SET(%ValueConstruct,%QueueField)
+         #IF(%QueueFieldHasStyle)
+  SELF.Q.%ValueConstruct_Style = %(%GetStyleNumber(%AllControlFieldStyleType,%AllControlFieldStyle,%AllControlFieldStyleLocalList)) ! %AllControlFieldStyle
+         #ENDIF
+       #ENDFOR
+#?END
+#RESUME
+    #ELSE
+       #FOR(%QueueField)
+         #FIX(%ControlField,%QueueFieldAssignment)
+         #SET(%ValueConstruct,%QueueField)
+         #IF(%QueueFieldHasStyle)
+            #IF(NOT %AllControlGreenBarStyle)
+SELF.Q.%ValueConstruct_Style = %(%GetStyleNumber(%AllControlFieldStyleType,%AllControlFieldStyle,%AllControlFieldStyleLocalList)) ! %AllControlFieldStyle
+            #ENDIF
+         #ENDIF
+       #ENDFOR
+    #ENDIF
+#ENDIF
+#FOR(%QueueField)
+  #FIX(%ControlField,%QueueFieldAssignment)
+  #SET(%ValueConstruct,%QueueField)
+  #IF(%QueueFieldHasColor AND NOT %UseSameColorForAll)
+    #IF(ITEMS(%ConditionalColors) AND NOT %ControlGreenBarColor)
+      #FOR(%ConditionalColors)
+        #IF(INSTANCE(%ConditionalColors) = 1)
+IF (%ColorCondition)
+        #ELSE
+ELSIF (%ColorCondition)
+        #ENDIF
+  SELF.Q.%ValueConstruct_NormalFG = %ConditionalControlFieldForegroundNormal    #<! Set conditional color values for %QueueField
+  SELF.Q.%ValueConstruct_NormalBG = %ConditionalControlFieldBackgroundNormal
+  SELF.Q.%ValueConstruct_SelectedFG = %ConditionalControlFieldForegroundSelected
+  SELF.Q.%ValueConstruct_SelectedBG = %ConditionalControlFieldBackgroundSelected
+      #ENDFOR
+ELSE
+  SELF.Q.%ValueConstruct_NormalFG = %ControlFieldForegroundNormal               #<! Set color values for %QueueField
+  SELF.Q.%ValueConstruct_NormalBG = %ControlFieldBackgroundNormal
+  SELF.Q.%ValueConstruct_SelectedFG = %ControlFieldForegroundSelected
+  SELF.Q.%ValueConstruct_SelectedBG = %ControlFieldBackgroundSelected
+END
+    #ELSE
+       #IF(NOT %ControlGreenBarColor)
+SELF.Q.%ValueConstruct_NormalFG = %ControlFieldForegroundNormal                 #<! Set color values for %QueueField
+SELF.Q.%ValueConstruct_NormalBG = %ControlFieldBackgroundNormal
+SELF.Q.%ValueConstruct_SelectedFG = %ControlFieldForegroundSelected
+SELF.Q.%ValueConstruct_SelectedBG = %ControlFieldBackgroundSelected
+       #ENDIF
+    #ENDIF
+  #ENDIF
+  #IF(%QueueFieldHasIcon)
+    #IF(ITEMS(%ConditionalIcons))
+      #FOR(%ConditionalIcons)
+        #IF(INSTANCE(%ConditionalIcons) = 1)
+IF (%IconCondition)
+        #ELSE
+ELSIF (%IconCondition)
+        #ENDIF
+        #FIX(%IconList,%ConditionalControlFieldIcon)
+  #INSERT(%FixupIcon)
+      #ENDFOR
+ELSE
+      #FIX(%IconList,%ControlFieldIcon)
+  #INSERT(%FixupIcon)
+END
+    #ELSE
+      #FIX(%IconList,%ControlFieldIcon)
+#INSERT(%FixupIcon)
+    #ENDIF
+  #ENDIF
+  #IF(%QueueFieldHasStyle AND NOT %UseSameStyleForAll)
+    #IF(ITEMS(%ConditionalStyles) AND NOT %ControlGreenBarStyle)
+      #FOR(%ConditionalStyles)
+        #IF(INSTANCE(%ConditionalStyles) = 1)
+IF (%StyleCondition)
+        #ELSE
+ELSIF (%StyleCondition)
+        #ENDIF
+  SELF.Q.%ValueConstruct_Style = %(%GetStyleNumber(%ConditionalControlFieldStyleType,%ConditionalControlFieldStyle,%ConditionalControlFieldStyleLocalList)) ! %ConditionalControlFieldStyle
+      #ENDFOR
+ELSE
+  SELF.Q.%ValueConstruct_Style = %(%GetStyleNumber(%ControlFieldStyleType,%ControlFieldStyle,%ControlFieldStyleLocalList)) ! %ControlFieldStyle
+END
+    #ELSE
+       #IF(NOT %ControlGreenBarStyle)
+SELF.Q.%ValueConstruct_Style = %(%GetStyleNumber(%ControlFieldStyleType,%ControlFieldStyle,%ControlFieldStyleLocalList)) ! %ControlFieldStyle
+       #ENDIF
+    #ENDIF
+  #ENDIF
+  #IF(%QueueFieldHasTip)
+    #IF(%ControlFieldTipField)
+SELF.Q.%ValueConstruct_Tip = %ControlFieldTipField
+    #ELSE
+CLEAR (SELF.Q.%ValueConstruct_Tip)
+    #ENDIF
+  #ENDIF
+#ENDFOR
+#!
+#GROUP(%FixupIcon)
+  #IF(%IconList)
+    #CASE(%IconListType)
+    #OF('Index')
+SELF.Q.%ValueConstruct_Icon = %IconList
+    #OF('VarIndex')
+      #SET(%IconNameValue, SUB(%IconList, 2, LEN(%IconList) - 1))
+SELF.Q.%ValueConstruct_Icon = %IconNameValue
+    #ELSE
+SELF.Q.%ValueConstruct_Icon = %(INSTANCE(%IconList))
+    #ENDCASE
+  #ELSE
+SELF.Q.%ValueConstruct_Icon = 0
+  #ENDIF
+#!

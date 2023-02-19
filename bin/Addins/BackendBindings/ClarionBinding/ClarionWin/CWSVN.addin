@@ -1,0 +1,22 @@
+﻿<AddIn name        = "ClarionWindowsSubVersionAddin"
+       author      = "SoftVelocity"
+       copyright   = "Copyright  SoftVelocity 1986-2006"
+       url         = "http://www.softvelocity.com"
+       description = "Allows Subversion commands to work with Clarion for Windows projects">
+
+	<Manifest>
+		<Identity name = "Clarion.CWSVN"/>
+		<Dependency addin = "Clarion.CWBinding"/>
+		<Dependency addin = "ICSharpCode.Svn"/>
+	</Manifest>
+
+	<Path name = "/SharpDevelop/Pads/ProjectBrowser/ContextMenu/CWLibraryNode">
+		<Include id = "SubversionInclude" path = "/SharpDevelop/Pads/ProjectBrowser/ContextMenu/SubversionItem"/>
+	</Path>
+	<Path name = "/SharpDevelop/Pads/ProjectBrowser/ContextMenu/CWIncludeNode">
+		<Include id = "SubversionInclude" path = "/SharpDevelop/Pads/ProjectBrowser/ContextMenu/SubversionItem"/>
+	</Path>
+	<Path name = "/SharpDevelop/Pads/ProjectBrowser/ContextMenu/CWFileNode">
+		<Include id = "SubversionInclude" path = "/SharpDevelop/Pads/ProjectBrowser/ContextMenu/SubversionItem"/>
+	</Path>
+</AddIn>

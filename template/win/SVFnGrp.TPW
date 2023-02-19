@@ -1,0 +1,887 @@
+#!
+#! SVFNGRP.TPW
+#! SoftVelocity Function Group Library
+#!
+#!----------------------------------------------------------------------------
+#GROUP(%SVFGetEntryFn,%SVFFile, %SVSection ,%SVFSetting,%SVFDefault='')
+#! retrieve and entry from a file in the section %SVSection where
+#! %SVFFile contains the name of the file to be read
+#! %SVFSetting contains the name of the setting to retrieve
+#! %SVFDefault contains the default value than is returned when no value is found
+#! ---------------------------------------------------------------------------
+#! the target file is the the form of:
+#! setting_name=value string goes here
+#! ---------------------------------------------------------------------------
+#DECLARE(%SVFEntry)
+#SET(%SVFEntry,%SVFSetting)
+#CALL(%SVGetINI,%SVFSetting,%SVSection,%SVFEntry,%SVFDefault,%SVFFile)
+#RETURN(CLIP(LEFT(%SVFSetting)))
+#!----------------------------------------------------------------------------
+#!
+#!----------------------------------------------------------------------------
+#GROUP(%SVFGetEntry, %SVFFile, %SVSection ,%SVFSetting, *%SVFValue)
+#IF(%SVFFile='')
+   #RETURN
+#ENDIF
+#IF(FILEEXISTS(%SVFFile)<>1)
+   #RETURN
+#ENDIF
+#SET(%SVFValue,%SVFGetEntryFn(%SVFFile, %SVSection ,%SVFSetting,%SVFValue))
+#!----------------------------------------------------------------------------
+#GROUP(%SVFCopyFile, %SVFNewFile, %SVFOldFile)
+#IF(%SVFNewFile='' OR %SVFOldFile='')
+   #RETURN
+#ENDIF
+#DECLARE(%SVFLineInput)
+#IF(NOT FILEEXISTS(%SVFOldFile))
+   #RETURN
+#ENDIF
+#OPEN(%SVFOldFile),READ
+#CREATE(%SVFNewFile)
+#LOOP
+   #READ(%SVFLineInput)
+   #IF(%SVFLineInput = %EOF)
+      #BREAK
+   #ENDIF
+%SVFLineInput
+#ENDLOOP
+#CLOSE(%SVFOldFile),READ
+#CLOSE(%SVFNewFile)
+#!----------------------------------------------------------------------------
+#GROUP(%SVFPutEntry, %SVFFile, %SVSection ,%SVFSetting, %SVFValue='')
+#!----------------------------------------------------------------------------
+#! write an entry to a file where
+#! %SVFFile contains the nae of the file to write to
+#! %SVFSetting contains the name of the setting to to write
+#! %SVFValue contains the value to to write
+#! If an entry is found it is changed
+#! If an entry is not found it is appended
+#! ---------------------------------------------------------------------------
+#! the target file is the the form of:
+#! setting_name=value string goes here
+#! ---------------------------------------------------------------------------
+#!
+#IF(%SVFFile='')
+   #RETURN
+#ENDIF
+#CALL(%SVPutINI,%SVFValue,%SVSection ,%SVFSetting, %SVFFile)
+#!
+#!
+#!----------------------------------------------------------------------------
+#GROUP(%SVFRemoveEntry, %SVFFile, %SVSection ,%SVFSetting)
+#!----------------------------------------------------------------------------
+#! remove an entry from a file where
+#! %SVFFile contains the nane of the file to modify to
+#! %SVFSetting contains the name of the setting to remove
+#! ---------------------------------------------------------------------------
+#! the target file is the the form of:
+#! setting_name=value string goes here
+#! ---------------------------------------------------------------------------
+#!
+#CALL(%SVPutINI,'',%SVSection ,%SVFSetting, %SVFFile)
+#!
+#!
+#!----------------------------------------------------------------------------
+#GROUP(%SVFReplaceChars,*%SVFTargetVar,%SVFOldChars,%SVFNewChars)
+#!----------------------------------------------------------------------------
+#! this verison has not been tested yet
+#!
+#DECLARE(%SVFCharLoc)
+#DECLARE(%SVFStringLen)
+#DECLARE(%SVFRemainderLen)
+#DECLARE(%SVFChangedVal)
+#SET(%SVFCharLoc,INSTRING(%SVFOldChars,%SVFTargetVar,1,1))
+#IF(%SVFCharLoc)
+  #SET(%SVFStringLen,%SVFCharLoc-1)
+  #SET(%SVFRemainderLen,LEN(%SVFTargetVar) - %SVFCharLoc)
+  #SET(%SVFChangedVal, SUB(%SVFTargetVar,1,%SVFStringLen) & %SVFNewChars & SUB(%SVFTargetVar,%SVFCharLoc+ LEN(%SVFNewChars),%SVFRemainderLen))
+  #SET(%SVFTargetVar,%SVFChangedVal)
+  #INSERT(%SVFReplaceChars,%SVFTargetVar,%SVFOldChars,%SVFNewChars)
+#ENDIF
+#!--------------------------------------------------------------------------
+#GROUP(%ReplaceSubString,*%pString,%OldSubString,%NewSubString,%pCaseSensitive=0),AUTO
+ #DECLARE(%lPosition,LONG)
+ #DECLARE(%lLen,LONG)
+ #SET(%lPosition,1)
+ #SET(%lLen,LEN(%OldSubString))
+ #LOOP
+    #IF(%pCaseSensitive)
+       #SET(%lPosition,INSTRING(%OldSubString,%pString,1,%lPosition))
+    #ELSE
+       #SET(%lPosition,INSTRING(UPPER(%OldSubString),UPPER(%pString),1,%lPosition))
+    #ENDIF
+    #IF (%lPosition=0)
+      #BREAK
+    #ELSE
+      #SET(%pString,SUB(%pString,1,%lPosition-1)&%NewSubString&SUB(%pString,%lPosition+%lLen,LEN(CLIP(%pString))-%lPosition))
+      #SET(%lPosition,%lPosition+LEN(%NewSubString))
+    #ENDIF
+ #ENDLOOP
+#!--------------------------------------------------------------------------
+#GROUP(%SVInsertSymbol,%pString,%pSep=''),AUTO
+ #! if the pSep is omitted use (13,10)
+ #IF(NOT %pString)
+ #RETURN
+ #ENDIF
+ #DECLARE(%lPosition,LONG)
+ #DECLARE(%oPosition,LONG)
+ #DECLARE(%pSepLen,LONG)
+ #SET(%oPosition,1)
+ #SET(%lPosition,0)
+ #IF(%pSep='')
+    #SET(%pSepLen,2)
+    #SET(%pSep,'<13,10>')
+ #ELSE
+    #SET(%pSepLen,LEN(%pSep))
+ #ENDIF
+ #LOOP
+    #SET(%lPosition,INSTRING(%pSep,%pString,1,%oPosition))
+%(SUB(%pString,%oPosition,%lPosition-%oPosition))
+    #IF (%lPosition=0)
+      #BREAK
+    #END
+    #SET(%oPosition,%lPosition+%pSepLen)
+ #ENDLOOP
+ #RETURN
+#!--------------------------------------------------------------------------
+#GROUP(%SVInsertMultiLineSymbolPrefix,%pString,%pPrefix='!!! ',%pSep=''),AUTO
+ #! if the pSep is omitted use (13,10)
+ #IF(NOT %pString)
+ #RETURN
+ #ENDIF
+ #DECLARE(%lPosition,LONG)
+ #DECLARE(%oPosition,LONG)
+ #DECLARE(%pSepLen,LONG)
+ #SET(%oPosition,1)
+ #SET(%lPosition,0)
+ #IF(%pSep='')
+    #SET(%pSepLen,2)
+    #SET(%pSep,'<13,10>')
+ #ELSE
+    #SET(%pSepLen,LEN(%pSep))
+ #ENDIF
+ #LOOP
+    #SET(%lPosition,INSTRING(%pSep,%pString,1,%oPosition))
+%pPrefix%(SUB(%pString,%oPosition,%lPosition-%oPosition))
+    #IF (%lPosition=0)
+      #BREAK
+    #END
+    #SET(%oPosition,%lPosition+%pSepLen)
+ #ENDLOOP
+ #RETURN
+#!----------------------------------------------------------------------------
+#!
+#! SoftVelocity Theme Management Function Group Library
+#!
+#!----------------------------------------------------------------------------
+#GROUP(%SVGetThemeFullPathName,%pThemeListName,%pThemeFileName),AUTO
+#DECLARE(%TempThemPath)
+#SET(%TempThemPath,%SVGetThemePath(%pThemeListName))
+#SET(%TempThemPath,CLIP(%TempThemPath)&'\'&CLIP(%pThemeFileName))
+#RETURN(%TempThemPath)
+#!----------------------------------------------------------------------------
+#GROUP(%SVGetThemePath,%pThemeListName),AUTO
+#DECLARE(%TempThemPath)
+#SET(%TempThemPath,'')
+#SET(%TempThemPath,%SVFGetEntryFn(%CWRoot&'BIN\ClaTFT.INI','Theme Path',%pThemeListName))
+#IF(NOT CLIP(%TempThemPath))
+    #CALL(%SVPutINI,'%Root%\Template\Win\TFT','Theme Path' ,%pThemeListName, %CWRoot&'BIN\ClaTFT.INI')
+    #SET(%TempThemPath,'%Root%\Template\Win\TFT')
+#ENDIF
+#IF(INSTRING('%ROOT%\',UPPER(%TempThemPath),1,1))
+    #CALL(%ReplaceSubString,%TempThemPath,'%Root%\',%CWRoot)
+#ENDIF
+#RETURN(%TempThemPath)
+#!--------------------------------------------------------------------------
+#GROUP(%SVGetThemeList,%pThemeListName),AUTO
+#DECLARE(%TempThemList)
+#DECLARE(%TempThemPath)
+#! Return the Theme list for the %pThemeListName
+#SET(%TempThemList,'')
+#SET(%TempThemList,%SVFGetEntryFn(%CWRoot&'BIN\ClaTFT.INI','Theme List',%pThemeListName,'Default[Default.TFT]'))
+#IF(NOT CLIP(%TempThemList))
+    #CALL(%SVPutINI,'Default[Default.TFT]','Theme List' ,%pThemeListName, %CWRoot&'BIN\ClaTFT.INI')
+    #SET(%TempThemList,'Default[Default.TFT]')
+    #SET(%TempThemPath,%SVGetThemePath(%pThemeListName))
+    #CREATE(%TempThemPath&'\Default.TFT')
+    #CLOSE(%TempThemPath&'\Default.TFT')
+#ENDIF
+#RETURN(%TempThemList)
+#!--------------------------------------------------------------------------
+#GROUP(%SVGetFirstTheme,%pThemeList),AUTO
+#! Return the first theme FileName
+#DECLARE(%lStart,LONG)
+#DECLARE(%lEnd,LONG)
+#SET(%lStart,INSTRING('[',%pThemeList,1,1))
+#SET(%lEnd,INSTRING(']',%pThemeList,1,%lStart))
+#IF(((%lStart+1)<(%lEnd-1)) AND (%lStart>0) AND (%lEnd>0))
+   #RETURN(SUB(%pThemeList,(%lStart+1),(%lEnd-1)-(%lStart+1)+1))
+#ELSE
+   #RETURN('')
+#ENDIF
+#!--------------------------------------------------------------------------
+#GROUP(%SVGetThemeName,%pThemeFileName,%pThemeList)
+#DECLARE(%WholeTheme)
+#DECLARE(%lThemeName)
+#SET(%WholeTheme,%SVGetWholeTheme(%pThemeFileName,%pThemeList))
+#SET(%lThemeName,SUB(%WholeTheme,1,INSTRING('[',%WholeTheme,1,1)-1))
+#RETURN (CLIP(%lThemeName))
+#!--------------------------------------------------------------------------
+#GROUP(%SVGetWholeTheme,%pThemeFile,%pThemeList)
+#! Return the Theme File and the Theme Name in the form  ThemeName[ThemeFile]
+#DECLARE(%lStartTheme,LONG)
+#DECLARE(%lEndTheme,LONG)
+#DECLARE(%TempTheme)
+#SET(%pThemeFile,'['&%pThemeFile&']')
+#SET(%lStartTheme,INSTRING(%pThemeFile,%pThemeList,1,1))
+#IF(%lStartTheme>0)
+   #SET(%lEndTheme,%lStartTheme+LEN(CLIP(%pThemeFile)))
+   #! Try to found the real beginig of the theme
+   #LOOP
+       #SET(%lStartTheme,%lStartTheme-1)
+       #IF(%lStartTheme=0)
+           #BREAK
+       #ENDIF
+       #IF(%lStartTheme=1)
+           #BREAK
+       #ENDIF
+       #IF(SUB(%pThemeList,%lStartTheme,1)='|')
+           #SET(%lStartTheme,%lStartTheme+1)
+           #BREAK
+       #ENDIF
+   #ENDLOOP
+   #RETURN SUB(%pThemeList,%lStartTheme,%lEndTheme-%lStartTheme)
+#ENDIF
+#RETURN ''
+#!--------------------------------------------------------------------------
+#GROUP(%SVRenameThemeName,%pThemeNewName,%pThemeFileName,* %pThemeList),AUTO
+#DECLARE(%NewWholeTheme)
+#DECLARE(%WholeTheme)
+#SET(%NewWholeTheme,%pThemeNewName&'['&%pThemeFileName&']')
+#SET(%WholeTheme,%SVGetWholeTheme(%pThemeFileName,%pThemeList))
+#CALL(%ReplaceSubString,%pThemeList,%WholeTheme,%NewWholeTheme)
+#!--------------------------------------------------------------------------
+#GROUP(%SVMoveThemeToFirstPlace,%pThemeListName,%pThemeFileName,* %pThemeList),AUTO
+#! Move the whole Theme than have the %pThemeFileName like FileName
+#! to the First position
+#DECLARE(%lStartTheme,LONG)
+#DECLARE(%lEndTheme,LONG)
+#DECLARE(%WholeTheme)
+#SET(%WholeTheme,%SVGetWholeTheme(%pThemeFileName,%pThemeList))
+#SET(%lStartTheme,INSTRING(%WholeTheme,%pThemeList,1,1))
+#IF(%lStartTheme>1)
+   #! IF is not the first
+   #! Delete it
+   #CALL(%ReplaceSubString,%pThemeList,'|'&%WholeTheme,'')
+   #! and add to the beginig
+   #SET(%pThemeList,%WholeTheme&'|'&CLIP(%pThemeList))
+#ENDIF
+#!--------------------------------------------------------------------------
+#GROUP(%SVSaveThemeList,%pThemeListName,%pNewThemeList)
+#! Save the Theme List to the Theme List Name
+#CALL(%SVFPutEntry, %CWRoot&'BIN\ClaTFT.INI','Theme List',%pThemeListName, %pNewThemeList)
+#!--------------------------------------------------------------------------
+#GROUP(%SVAddThemeToList,%pThemeListName,*%pThemeList,%pNewThemeName,%pNewThemeFileName)
+#! Add the new theme to the actual theme list for the %pThemeListName
+#IF(LEN(CLIP(%pNewThemeFileName))>=4)
+   #IF(NOT(SUB(%pNewThemeFileName,LEN(CLIP(%pNewThemeFileName))-3,4)='.TFT'))
+      #SET(%pNewThemeFileName,CLIP(%pNewThemeFileName)&'.TFT')
+   #ENDIF
+#ELSE
+   #SET(%pNewThemeFileName,CLIP(%pNewThemeFileName)&'.TFT')
+#ENDIF
+#IF(CLIP(%pThemeList)<>'')
+   #CALL(%SVSortTheme,%pThemeList)
+   #CALL(%SVFPutEntry, %CWRoot&'BIN\ClaTFT.INI','Theme List',%pThemeListName, %pNewThemeName&'['&%pNewThemeFileName&']'&'|'&CLIP(%pThemeList))
+   #SET(%pThemeList,%pNewThemeName&'['&%pNewThemeFileName&']'&'|'&CLIP(%pThemeList))
+#ELSE
+   #CALL(%SVFPutEntry, %CWRoot&'BIN\ClaTFT.INI','Theme List',%pThemeListName, %pNewThemeName&'['&%pNewThemeFileName&']')
+   #SET(%pThemeList,%pNewThemeName&'['&%pNewThemeFileName&']')
+#END
+#!--------------------------------------------------------------------------
+#GROUP(%SVSaveAsTheme,%pThemeListName,*%pTheme,*%pThemeList,%pNewThemeName,%pNewThemeFileName)
+#! Save the Theme list with the new theme added in the %pThemeListName
+#! and asign the new theme to the variable %pTheme
+#IF(LEN(CLIP(%pNewThemeFileName))>=4)
+   #IF(NOT(SUB(%pNewThemeFileName,LEN(CLIP(%pNewThemeFileName))-3,4)='.TFT'))
+      #SET(%pNewThemeFileName,CLIP(%pNewThemeFileName)&'.TFT')
+   #ENDIF
+#ELSE
+   #SET(%pNewThemeFileName,CLIP(%pNewThemeFileName)&'.TFT')
+#ENDIF
+#CALL(%SVFCopyFile, %SVGetThemeFullPathName(%pThemeListName,%pNewThemeFileName), %SVGetThemeFullPathName(%pThemeListName,%pTheme))
+#CALL(%SVAddThemeToList,%pThemeListName,%pThemeList,%pNewThemeName,%pNewThemeFileName)
+#SET(%pTheme,%pNewThemeFileName)
+#!--------------------------------------------------------------------------
+#GROUP(%SVSortTheme,*%pThemeList),AUTO
+#IF(CLIP(%pThemeList)='')
+   #RETURN
+#ENDIF
+#DECLARE(%lThemes),MULTI,UNIQUE
+#DECLARE(%lTheme,%lThemes)
+#DECLARE(%lStartTheme,LONG)
+#DECLARE(%lEndTheme,LONG)
+#DECLARE(%Finish)
+#SET(%lEndTheme,0)
+#SET(%Finish,%False)
+#LOOP
+    #SET(%lStartTheme,%lEndTheme+1)
+    #SET(%lEndTheme,INSTRING('|',%pThemeList,1,%lStartTheme))
+    #IF(%lEndTheme=0)
+       #SET(%lEndTheme,LEN(%pThemeList))
+       #SET(%Finish,%True)
+    #ENDIF
+    #IF(%lEndTheme<>0 AND %lStartTheme<%lEndTheme)
+       #ADD(%lThemes,UPPER(SUB(SUB(%pThemeList,%lStartTheme,%lEndTheme-%lStartTheme),1,INSTRING('[',SUB(%pThemeList,%lStartTheme,%lEndTheme-%lStartTheme),1,1))))
+       #IF(%Finish)
+           #SET(%lTheme,SUB(%pThemeList,%lStartTheme,%lEndTheme-%lStartTheme+2))
+       #ELSE
+          #SET(%lTheme,SUB(%pThemeList,%lStartTheme,%lEndTheme-%lStartTheme))
+       #END
+    #ELSE
+       #BREAK
+    #ENDIF
+    #IF(%Finish)
+       #BREAK
+    #ENDIF
+#ENDLOOP
+#SET(%pThemeList,'')
+#FOR(%lThemes)
+   #IF(CLIP(%pThemeList)<>'')
+      #SET(%pThemeList,CLIP(%pThemeList)&'|'&%lTheme)
+   #ELSE
+      #SET(%pThemeList,%lTheme)
+   #ENDIF
+#ENDFOR
+#!--------------------------------------------------------------------------
+#GROUP(%SVRemoveTheme,%pThemeListName,%pThemeFileName,*%pThemeList),AUTO
+#DECLARE(%lStartTheme,LONG)
+#DECLARE(%lEndTheme,LONG)
+#DECLARE(%WholeTheme)
+#SET(%WholeTheme,%SVGetWholeTheme(%pThemeFileName,%pThemeList))
+#SET(%lStartTheme,INSTRING(%WholeTheme,%pThemeList,1,1))
+#IF(%lStartTheme>1)
+   #! IF is not the first
+   #! Delete it
+   #CALL(%ReplaceSubString,%pThemeList,'|'&%WholeTheme,'')
+#ELSIF(%lStartTheme=1)
+   #CALL(%ReplaceSubString,%pThemeList,%WholeTheme&'|','')
+   #CALL(%ReplaceSubString,%pThemeList,%WholeTheme,'')
+#ENDIF
+#IF(%lStartTheme<>0)
+   #REMOVE(%pThemeFileName)
+   #CALL(%SVFPutEntry, %CWRoot&'BIN\ClaTFT.INI','Theme List',%pThemeListName, CLIP(%pThemeList))
+#ENDIF
+#!--------------------------------------------------------------------------
+#GROUP(%SVFGetOptField,%Incoming)
+  #IF(SUB(%Incoming,1,1)='!')
+    #RETURN(SUB(%Incoming,2))
+  #ELSE
+    #RETURN(%Incoming)
+  #ENDIF
+#!-------------------------------------------------------------------------
+#GROUP(%SVBool,%Incoming)
+#IF(%Incoming = '1' OR UPPER(%Incoming) = 'TRUE' OR (CLIP(%Incoming)<>'' AND %Incoming <> '0' AND UPPER(%Incoming) <> 'FALSE'))
+   #RETURN('TRUE')
+#ELSE
+   #RETURN('FALSE')
+#ENDIF
+#!-------------------------------------------------------------------------
+#GROUP(%SVStripPling,%Incoming)
+  #IF(SUB(%Incoming,1,1)='!')
+    #RETURN(SUB(%Incoming,2))
+  #ELSIF(SUB(%Incoming,1,1)='=')
+    #RETURN('EVALUATE(' & %StripPling(SUB(%Incoming, 2)) & ')')
+  #ELSIF(UPPER(%Incoming)='TRUE' OR UPPER(%Incoming)='FALSE')
+    #RETURN(%Incoming)
+  #ELSIF(UPPER(%Incoming)='''TRUE''' OR UPPER(%Incoming)='''FALSE''')
+    #RETURN(%Incoming)
+  #ELSE
+    #RETURN( '''' & QUOTE(%Incoming) & '''' )
+  #ENDIF
+#!****************************************************
+#GROUP(%SVFGetWidthHeightFromPaper,%pPaperType,*%pWidth,*%pHeight)
+   #CASE(%pPaperType)
+   #OF('PAPER:LETTER')
+      #SET(%pWidth,8500)
+      #SET(%pHeight,11000)
+   #OF('PAPER:LETTERSMALL')
+      #SET(%pWidth,8500)
+      #SET(%pHeight,11000)
+   #OF('PAPER:TABLOID')
+      #SET(%pWidth,11000)
+      #SET(%pHeight,17000)
+   #OF('PAPER:LEDGER')
+      #SET(%pWidth,17000)
+      #SET(%pHeight,11000)
+   #OF('PAPER:LEGAL')
+      #SET(%pWidth,8500)
+      #SET(%pHeight,14000)
+   #OF('PAPER:STATEMENT')
+      #SET(%pWidth,5500)
+      #SET(%pHeight,8500)
+   #OF('PAPER:EXECUTIVE')
+      #SET(%pWidth,7250)
+      #SET(%pHeight,10500)
+   #OF('PAPER:A3')
+      #SET(%pWidth,11688)
+      #SET(%pHeight,16500)
+   #OF('PAPER:A4')
+      #SET(%pWidth,8250)
+      #SET(%pHeight,11688)
+   #OF('PAPER:A4SMALL')
+      #SET(%pWidth,8250)
+      #SET(%pHeight,11688)
+   #OF('PAPER:A5')
+      #SET(%pWidth,5844)
+      #SET(%pHeight,8250)
+   #OF('PAPER:B4')
+      #SET(%pWidth,9842)
+      #SET(%pHeight,13937)
+   #OF('PAPER:B5')
+      #SET(%pWidth,7165)
+      #SET(%pHeight,10118)
+   #OF('PAPER:FOLIO')
+      #SET(%pWidth,8500)
+      #SET(%pHeight,13000)
+   #OF('PAPER:QUARTO')
+      #SET(%pWidth,8464)
+      #SET(%pHeight,10826)
+   #OF('PAPER:10X14')
+      #SET(%pWidth,10000)
+      #SET(%pHeight,14000)
+   #OF('PAPER:11X17')
+      #SET(%pWidth,11000)
+      #SET(%pHeight,17000)
+   #OF('PAPER:NOTE')
+      #SET(%pWidth,8500)
+      #SET(%pHeight,11000)
+   #OF('PAPER:ENV_9')
+      #SET(%pWidth,3875)
+      #SET(%pHeight,8875)
+   #OF('PAPER:ENV_10')
+      #SET(%pWidth,4125)
+      #SET(%pHeight,9500)
+   #OF('PAPER:ENV_11')
+      #SET(%pWidth,4500)
+      #SET(%pHeight,10375)
+   #OF('PAPER:ENV_12')
+      #SET(%pWidth,4500)
+      #SET(%pHeight,11000)
+   #OF('PAPER:ENV_14')
+      #SET(%pWidth,5000)
+      #SET(%pHeight,11500)
+   #OF('PAPER:CSHEET')
+      #SET(%pWidth,10000)
+      #SET(%pHeight,10000)
+   #OF('PAPER:DSHEET')
+      #SET(%pWidth,10000)
+      #SET(%pHeight,10000)
+   #OF('PAPER:ESHEET')
+      #SET(%pWidth,10000)
+      #SET(%pHeight,10000)
+   #OF('PAPER:ENV_DL')
+      #SET(%pWidth,4330)
+      #SET(%pHeight,8660)
+   #OF('PAPER:ENV_C5')
+      #SET(%pWidth,6377)
+      #SET(%pHeight,9015)
+   #OF('PAPER:ENV_C3')
+      #SET(%pWidth,12755)
+      #SET(%pHeight,18031)
+   #OF('PAPER:ENV_C4')
+      #SET(%pWidth,9015)
+      #SET(%pHeight,12755)
+   #OF('PAPER:ENV_C6')
+      #SET(%pWidth,4488)
+      #SET(%pHeight,6377)
+   #OF('PAPER:ENV_C65')
+      #SET(%pWidth,4488)
+      #SET(%pHeight,9015)
+   #OF('PAPER:ENV_B4')
+      #SET(%pWidth,9842)
+      #SET(%pHeight,13897)
+   #OF('PAPER:ENV_B5')
+      #SET(%pWidth,6929)
+      #SET(%pHeight,9842)
+   #OF('PAPER:ENV_B6')
+      #SET(%pWidth,6929)
+      #SET(%pHeight,4921)
+   #OF('PAPER:ENV_ITALY')
+      #SET(%pWidth,4330)
+      #SET(%pHeight,9055)
+   #OF('PAPER:ENV_MONARCH')
+      #SET(%pWidth,3875)
+      #SET(%pHeight,7500)
+   #OF('PAPER:ENV_PERSONAL')
+      #SET(%pWidth,3625)
+      #SET(%pHeight,6500)
+   #OF('PAPER:FANFOLD_US')
+      #SET(%pWidth,14875)
+      #SET(%pHeight,11000)
+   #OF('PAPER:FANFOLD_STD_GERMAN')
+      #SET(%pWidth,8500)
+      #SET(%pHeight,12000)
+   #OF('PAPER:FANFOLD_LGL_GERMAN')
+      #SET(%pWidth,8500)
+      #SET(%pHeight,13000)
+   #ENDCASE
+#!****************************************************
+#GROUP(%SVFGetPaperFromWidthHeight,%pWidth,%pHeight,*%pPaperType)
+   #IF(%pWidth=8500 AND %pHeight=11000)
+      #SET(%pPaperType,'PAPER:LETTER')
+   #ELSIF(%pWidth=8500 AND %pHeight=11000)
+      #SET(%pPaperType,'PAPER:LETTERSMALL')
+   #ELSIF(%pWidth=11000 AND %pHeight=17000)
+      #SET(%pPaperType,'PAPER:TABLOID')
+   #ELSIF(%pWidth=17000 AND %pHeight=11000)
+      #SET(%pPaperType,'PAPER:LEDGER')
+   #ELSIF(%pWidth=8500 AND %pHeight=14000)
+      #SET(%pPaperType,'PAPER:LEGAL')
+   #ELSIF(%pWidth=5500 AND %pHeight=8500)
+      #SET(%pPaperType,'PAPER:STATEMENT')
+   #ELSIF(%pWidth=7250 AND %pHeight=10500)
+      #SET(%pPaperType,'PAPER:EXECUTIVE')
+   #ELSIF(%pWidth=11688 AND %pHeight=16500)
+      #SET(%pPaperType,'PAPER:A3')
+   #ELSIF(%pWidth=8250 AND %pHeight=11688)
+      #SET(%pPaperType,'PAPER:A4')
+   #ELSIF(%pWidth=8250 AND %pHeight=11688)
+      #SET(%pPaperType,'PAPER:A4SMALL')
+   #ELSIF(%pWidth=5844 AND %pHeight=8250)
+      #SET(%pPaperType,'PAPER:A5')
+   #ELSIF(%pWidth=9842 AND %pHeight=13937)
+      #SET(%pPaperType,'PAPER:B4')
+   #ELSIF(%pWidth=7165 AND %pHeight=10118)
+      #SET(%pPaperType,'PAPER:B5')
+   #ELSIF(%pWidth=8500 AND %pHeight=13000)
+      #SET(%pPaperType,'PAPER:FOLIO')
+   #ELSIF(%pWidth=8464 AND %pHeight=10826)
+      #SET(%pPaperType,'PAPER:QUARTO')
+   #ELSIF(%pWidth=10000 AND %pHeight=14000)
+      #SET(%pPaperType,'PAPER:10X14')
+   #ELSIF(%pWidth=11000 AND %pHeight=17000)
+      #SET(%pPaperType,'PAPER:11X17')
+   #ELSIF(%pWidth=8500 AND %pHeight=11000)
+      #SET(%pPaperType,'PAPER:NOTE')
+   #ELSIF(%pWidth=3875 AND %pHeight=8875)
+      #SET(%pPaperType,'PAPER:ENV_9')
+   #ELSIF(%pWidth=4125 AND %pHeight=9500)
+      #SET(%pPaperType,'PAPER:ENV_10')
+   #ELSIF(%pWidth=4500 AND %pHeight=10375)
+      #SET(%pPaperType,'PAPER:ENV_11')
+   #ELSIF(%pWidth=4500 AND %pHeight=11000)
+      #SET(%pPaperType,'PAPER:ENV_12')
+   #ELSIF(%pWidth=5000 AND %pHeight=11500)
+      #SET(%pPaperType,'PAPER:ENV_14')
+   #ELSIF(%pWidth=10000 AND %pHeight=10000)
+      #SET(%pPaperType,'PAPER:CSHEET')
+   #ELSIF(%pWidth=10000 AND %pHeight=10000)
+      #SET(%pPaperType,'PAPER:DSHEET')
+   #ELSIF(%pWidth=10000 AND %pHeight=10000)
+      #SET(%pPaperType,'PAPER:ESHEET')
+   #ELSIF(%pWidth=4330 AND %pHeight=8660)
+      #SET(%pPaperType,'PAPER:ENV_DL')
+   #ELSIF(%pWidth=6377 AND %pHeight=9015)
+      #SET(%pPaperType,'PAPER:ENV_C5')
+   #ELSIF(%pWidth=12755 AND %pHeight=18031)
+      #SET(%pPaperType,'PAPER:ENV_C3')
+   #ELSIF(%pWidth=9015 AND %pHeight=12755)
+      #SET(%pPaperType,'PAPER:ENV_C4')
+   #ELSIF(%pWidth=4488 AND %pHeight=6377)
+      #SET(%pPaperType,'PAPER:ENV_C6')
+   #ELSIF(%pWidth=4488 AND %pHeight=9015)
+      #SET(%pPaperType,'PAPER:ENV_C65')
+   #ELSIF(%pWidth=9842 AND %pHeight=13897)
+      #SET(%pPaperType,'PAPER:ENV_B4')
+   #ELSIF(%pWidth=6929 AND %pHeight=9842)
+      #SET(%pPaperType,'PAPER:ENV_B5')
+   #ELSIF(%pWidth=6929 AND %pHeight=4921)
+      #SET(%pPaperType,'PAPER:ENV_B6')
+   #ELSIF(%pWidth=4330 AND %pHeight=9055)
+      #SET(%pPaperType,'PAPER:ENV_ITALY')
+   #ELSIF(%pWidth=3875 AND %pHeight=7500)
+      #SET(%pPaperType,'PAPER:ENV_MONARCH')
+   #ELSIF(%pWidth=3625 AND %pHeight=6500)
+      #SET(%pPaperType,'PAPER:ENV_PERSONAL')
+   #ELSIF(%pWidth=14875 AND %pHeight=11000)
+      #SET(%pPaperType,'PAPER:FANFOLD_US')
+   #ELSIF(%pWidth=8500 AND %pHeight=12000)
+      #SET(%pPaperType,'PAPER:FANFOLD_STD_GERMAN')
+   #ELSIF(%pWidth=8500 AND %pHeight=13000)
+      #SET(%pPaperType,'PAPER:FANFOLD_LGL_GERMAN')
+   #ELSE
+      #SET(%pPaperType,'PAPER:USER')
+   #ENDIF
+#!****************************************************
+#GROUP(%SVGetINI,*%pEntryValue,%pSection ,%pEntry ,%pDefault,%pINIFile),AUTO
+#!ERROR('1ON SVGetINI pINIFile='&%pINIFile&' pEntry='&%pEntry&' pSection='&%pSection&' pEntryValue='&%pEntryValue)
+#SET(%pEntryValue,GETINI(%pSection ,%pEntry ,%pDefault,%pINIFile))
+#!ERROR('3ON SVGetINI pINIFile='&%pINIFile&' pEntry='&%pEntry&' pSection='&%pSection&' pEntryValue='&%pEntryValue)
+#!--------------------------------------------------------------------------
+#GROUP(%SVPutINI,%pEntryValue,%pSection ,%pEntry ,%pINIFile),AUTO
+#DECLARE(%NullValue)
+#! This null value may be required because the PUTINI function does not return a value
+#! but the only way to call it is on a #SET
+  #SET(%NullValue,PUTINI(%pSection ,%pEntry ,%pEntryValue,%pINIFile))
+#!****************************************************
+#GROUP(%SVFontDialog,%pFontTitle ,*%pFontTypeface ,*%pFontSize,*%pFontColor,*%pFontStyle,*%pCharSet,%pFontAdded),AUTO
+#DECLARE(%lFontTypeface)
+#DECLARE(%lFontSize)
+#DECLARE(%lFontColor)
+#DECLARE(%lFontStyle)
+#DECLARE(%lCharSet)
+#SET(%lFontTypeface,%pFontTypeface)
+#SET(%lFontSize,%pFontSize)
+#SET(%lFontColor,%pFontColor)
+#SET(%lFontStyle,%pFontStyle)
+#SET(%lCharSet,%pCharSet)
+#DECLARE(%ReturnValue)
+   #SET(%ReturnValue, FONTDIALOG(%pFontTitle,%lFontTypeface,%lFontSize,%lFontColor,%lFontStyle,%lCharSet,%pFontAdded))
+   #IF(%ReturnValue)
+      #SET(%pFontTypeface,%lFontTypeface)
+      #SET(%pFontSize,%lFontSize)
+      #SET(%pFontColor,%lFontColor)
+      #SET(%pFontStyle,%lFontStyle)
+      #SET(%pCharSet,%lCharSet)
+   #ENDIF
+#!--------------------------------------------------------------------------
+#GROUP(%SVFSelectWindowFont,* %pFont),AUTO
+#DECLARE(%locFontAux)
+#DECLARE(%locFontName)
+#DECLARE(%locFontNameAux)
+#DECLARE(%locFontSize)
+#DECLARE(%locFontColor)
+#DECLARE(%locFontStyle)
+#SET(%locFontAux,'FONT('&CLIP(%pFont)&')')
+#SET(%locFontName,EXTRACT(%locFontAux,'FONT',1))
+#IF(SUB(%locFontName,1,1)='''')
+   #SET(%locFontName,SUB(%locFontName,2,LEN(CLIP(%locFontName))-2))
+#ENDIF
+#SET(%locFontSize,EXTRACT(%locFontAux,'FONT',2))
+#SET(%locFontColor,EXTRACT(%locFontAux,'FONT',3))
+#SET(%locFontStyle,EXTRACT(%locFontAux,'FONT',4))
+#CALL(%SVFSelectFont, %locFontName, %locFontSize, %locFontColor, %locFontStyle)
+#SET(%locFontName,''''&CLIP(%locFontName)&'''')
+#SET(%pFont,%locFontName&','&%locFontSize&','&%locFontColor&','&%locFontStyle)
+#!--------------------------------------------------------------------------
+#GROUP(%SVFSelectFont,* %pFontName,* %pFontSize,* %pFontColor,* %pFontStyle, *%pCharSet,%pFontAdded=2),AUTO
+#! added   An integer constant or variable that specifies adding screen or printer fonts, or both, to the list of
+#! available fonts. Zero (0) adds screen fonts, one (1) adds printer fonts, two (2) adds both, four (4)
+#! adds true type only fonts, and eight (8) adds fixed pitch only fonts. If omitted, only Windows
+#! registered fonts are listed.
+#CALL(%SVFontDialog,'Select Font',%pFontName ,%pFontSize,%pFontColor,%pFontStyle,%pCharSet,%pFontAdded)
+#!****************************************************
+#GROUP(%SVFGetFontToString,%pFontName,%pFontSize,%pFontColor,%pFontStyle)
+#RETURN (''''&%pFontName&''','&%pFontSize&','&%pFontColor&','&%pFontStyle)
+#!****************************************************
+#GROUP(%SVInSymbol,%pSymbolToLookFor,*%pMultiSymbol,%pNoCase=1),AUTO,PRESERVE
+#DECLARE(%ControlFound)
+#SET(%ControlFound,%False)
+#FOR(%pMultiSymbol)
+    #IF(%pNoCase)
+       #IF(UPPER(%pSymbolToLookFor)=UPPER(%pMultiSymbol))
+          #SET(%ControlFound,%True)
+          #BREAK
+       #ENDIF
+    #ELSE
+       #IF(%pSymbolToLookFor=%pMultiSymbol)
+          #SET(%ControlFound,%True)
+          #BREAK
+       #ENDIF
+    #ENDIF
+#ENDFOR
+#RETURN(%ControlFound)
+#!****************************************************
+#GROUP(%SVIsAGlobalProcedure,%pProcedure),PRESERVE
+#FIX(%Procedure,%pProcedure)
+#IF(UPPER(%Procedure)=UPPER(%pProcedure))
+   #IF(%ProcedureIsGlobal)
+      #RETURN %True
+   #ENDIF
+#END
+#RETURN %False
+#!****************************************************
+#GROUP(%SVExpresionEditorWithFind, * %pExpresionToEdit,*%pMultiPrompt,%pControl,%pLimit),AUTO
+#DECLARE(%ExpressionToEdit)
+#SET(%ExpressionToEdit,%pExpresionToEdit)
+#SERVICE('ClaTPLE.DLL','GenExpEdit')
+#SET(%ExpressionToEdit,LEFT(CLIP(%ExpressionToEdit)))
+#FIND(%pMultiPrompt,%pControl,%pLimit)
+#SET(%pExpresionToEdit,%ExpressionToEdit)
+#!****************************************************
+#GROUP(%SVExpresionEditor, * %ExpressionToEdit)
+#SERVICE('ClaTPLE.DLL','GenExpEdit')
+#SET(%ExpressionToEdit,LEFT(CLIP(%ExpressionToEdit)))
+#!****************************************************
+#GROUP(%SVGlobalExpresionEditor, * %ExpressionToEdit)
+#SERVICE('ClaTPLE.DLL','GenGlobalExpEdit')
+#SET(%ExpressionToEdit,LEFT(CLIP(%ExpressionToEdit)))
+#!****************************************************
+#!GROUP(%SVGlobalFieldSelection, * %ExpressionToEdit)
+#!SERVICE('ClaTPLE.DLL','GenGetGlobalField')
+#!SET(%ExpressionToEdit,LEFT(CLIP(%ExpressionToEdit)))
+#!****************************************************
+#GROUP(%SVAddProcedureToModule, %pProcedureName,%pProcedurePrototype,%pModuleName='CURRENT MODULE'),AUTO
+#DECLARE(%lFound)
+#ADD(%CustomModuleMapModule,%pModuleName)
+#FIX(%CustomModuleMapModule,%pModuleName)
+#SET(%lFound,%False)
+#FOR(%CustomModuleMapProcedure),WHERE(UPPER(%CustomModuleMapProcedure)=UPPER(%pProcedureName))
+    #IF(UPPER(%CustomModuleMapProcedurePrototype)=UPPER(%pProcedurePrototype))
+        #SET(%lFound,%True)
+    #ENDIF
+#ENDFOR
+#IF(NOT %lFound)
+    #ADD(%CustomModuleMapProcedure,%pProcedureName)
+    #SET(%CustomModuleMapProcedurePrototype,%pProcedurePrototype)
+#ENDIF
+#!****************************************************
+#GROUP(%SVAddLastSlashToPath,*%pFilePath)
+  #IF(%pFilePath)
+    #IF(SUB(%pFilePath,LEN(%pFilePath),1) <> '\')
+      #SET(%pFilePath,%pFilePath & '\')
+    #ENDIF
+  #ENDIF
+#!****************************************************
+#GROUP(%SVCountOccurrences,%pString,%pChar),AUTO
+  #DECLARE(%CharCounter)
+  #SET(%CharCounter,0)
+  #IF(%pString)
+    #DECLARE(%LoopIndex,LONG)
+    #LOOP,FOR(%LoopIndex,1,LEN(%pString))
+      #IF(SUB(%pString,%LoopIndex,1) = %pChar)
+        #SET(%CharCounter,%CharCounter + 1)
+      #ENDIF
+    #ENDLOOP
+  #ENDIF
+  #RETURN %CharCounter
+#!****************************************************
+#GROUP(%SVFindParentTemplateInstance,%pTInstance),PRESERVE
+#FOR(%ActiveTemplate)
+    #FOR(%ActiveTemplateInstance)
+        #IF(%pTInstance=%ActiveTemplateInstance)
+           #RETURN(%ActiveTemplateParentInstance)
+        #ENDIF
+    #ENDFOR
+#ENDFOR
+#RETURN(0)
+#!
+#!****************************************************
+#GROUP(%SVSearchUniqueKey,%pFile),PRESERVE
+#FIX(%File,%pFile)
+#IF(%File)
+   #IF(%FilePrimaryKey)
+       #RETURN(%FilePrimaryKey)
+   #ELSE
+       #FOR(%Key)
+            #IF(NOT %KeyDuplicate)
+               #RETURN(%Key)
+            #ENDIF
+       #ENDFOR
+   #ENDIF
+#ENDIF
+#RETURN('')
+#!****************************************************
+#GROUP(%SVKeyToOrder,%pFile,%pKeyToAdd),PRESERVE,AUTO
+#DECLARE(%lSortOrder)
+#SET(%lSortOrder,'')
+#IF(%pFile AND %pKeyToAdd)
+   #FIX(%FILE,%pFile)
+   #FIX(%Key,%pKeyToAdd)
+   #IF(%Key)
+      #FOR(%KeyField)
+         #IF(%KeyFieldSequence='ASCENDING')
+            #SET(%lSortOrder,%lSortOrder&CHOOSE(%lSortOrder,',','')&'+'&%KeyField)
+         #ELSE
+            #SET(%lSortOrder,%lSortOrder&CHOOSE(%lSortOrder,',','')&'+'&%KeyField)
+         #ENDIF
+      #ENDFOR
+   #ENDIF
+#ENDIF
+#RETURN(%lSortOrder)
+#!
+#!****************************************************
+#!
+#GROUP(%ControlFieldFieldNo),AUTO
+#!************************************************************
+#!* The %ControlField shuld be fixed before call this function
+#!************************************************************
+#DECLARE(%lControlField)
+#DECLARE(%lControlFieldFieldNo)
+#SET(%lControlFieldFieldNo,0)
+#SET(%lControlField,%ControlField)
+#FOR(%ControlField)
+    #SET(%lControlFieldFieldNo,%lControlFieldFieldNo+1)
+    #IF(%ControlField = %lControlField)
+       #BREAK
+    #ENDIF
+    #IF(%ControlFieldHasColor)
+        #SET(%lControlFieldFieldNo,%lControlFieldFieldNo+4)
+    #ENDIF
+    #IF(%ControlFieldHasIcon)
+        #SET(%lControlFieldFieldNo,%lControlFieldFieldNo+1)
+    #ENDIF
+    #IF(%ControlFieldHasTree)
+        #SET(%lControlFieldFieldNo,%lControlFieldFieldNo+1)
+    #ENDIF
+    #IF(%ControlFieldHasStyle)
+        #SET(%lControlFieldFieldNo,%lControlFieldFieldNo+1)
+    #ENDIF
+    #IF(%ControlFieldHasTip)
+        #SET(%lControlFieldFieldNo,%lControlFieldFieldNo+1)
+    #ENDIF
+#ENDFOR
+#FIX(%ControlField,%lControlField)
+#RETURN(%lControlFieldFieldNo)
+#!
+#!****************************************************
+#!
+#!
+#!****************************************************
+#!
+#GROUP(%SVGetWithParentesis,%pParams)
+#!****************************************************
+#! it return the %pParams with added ()
+#!****************************************************
+#IF(NOT %pParams)
+    #RETURN('()')
+#ENDIF
+#IF(SUB(%pParams, 1, 1) <> '(')
+    #RETURN('(' & %pParams & ')')
+#ENDIF
+#IF(SUB(%pParams, LEN(%pParams), 1) <> ')')
+    #RETURN(%pParams & ')')
+#ENDIF
+#RETURN(%pParams)
+#!****************************************************
+#!Make a new directory
+#!****************************************************
+#GROUP(%SVMKDIR,%pDirName)
+#DECLARE(%ServiceResponse)
+#SET(%ServiceResponse,'')
+#SERVICE('ClaTPLS.DLL','GenFileService', 'MKDIR '&%pDirName) 
+#IF(%ServiceResponse)
+    #ERROR(%ServiceResponse)
+#ENDIF
+#!****************************************************
+#!Remove a directory
+#!****************************************************
+#GROUP(%SVRMDIR,%pDirName)
+#DECLARE(%ServiceResponse)
+#SET(%ServiceResponse,'')
+#SERVICE('ClaTPLS.DLL','GenFileService', 'RMDIR '&%pDirName) 
+#IF(%ServiceResponse)
+    #ERROR(%ServiceResponse)
+#ENDIF
+#!****************************************************
+#!ShellExecute
+#!****************************************************
+#GROUP(%SVShellExecute,%pShellExecuteCommand,%pShellExecuteParameter)
+#DECLARE(%ServiceResponse)
+#SET(%ServiceResponse,'')
+#SERVICE('ClaTPLS.DLL','GenFileService', %pShellExecuteCommand&' '&%pShellExecuteParameter)
+#IF(%ServiceResponse)
+    #ERROR(%ServiceResponse)
+#ENDIF
+#!****************************************************

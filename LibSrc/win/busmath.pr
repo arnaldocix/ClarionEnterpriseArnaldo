@@ -1,0 +1,2 @@
+#pragma link(c%V%fin%X%%L%.lib)
+#pragma link(c%V%stat%X%%L%.lib)

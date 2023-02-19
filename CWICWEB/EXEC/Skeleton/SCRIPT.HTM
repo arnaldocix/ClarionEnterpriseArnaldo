@@ -1,0 +1,63 @@
+<SCRIPT LANGUAGE="JavaScript">
+<!-- Hides script from old browsers
+  var ie30x = (navigator.userAgent.indexOf("Mozilla/2.0") != -1)
+  var netscape = (navigator.appName.indexOf("Netscape") != -1)
+  var ns30x = (navigator.userAgent.indexOf("Mozilla/3.0") != -1)
+  var mozilla4 = (navigator.userAgent.indexOf("Mozilla/4.") != -1)
+  var form;
+  var submitSuppress = 0;
+  var pageLoaded = 0;
+
+  function onBodyLoad()
+  {
+    form = document.forms[0];
+    pageLoaded = 1
+  }
+
+  function onBodyUnload()       { }
+  function setValue(name,value) { form.elements[name].value = value }
+  function icSubmit(value)      { form.__Special__.value = value; form.submit(); }
+  function icSubmitForm()       { form.submit(); }
+  function reject(name)         { alert("Invalid entry at : " + name); }
+  function hotlinkto(where)     { window.location.href=where; }
+
+  function ShowHelp(page,style)
+  {
+     submitSuppress++
+     var helpWindow = window.open(page, "_HELP", style)
+  }
+
+  function spin(which, delta, rh, rl)
+  {
+    submitSuppress++;
+    if (which.value - (-delta) <= rh && which.value - (-delta) >= rl)
+      which.value -= -delta;
+  }
+
+  function cycleQuery(cur, choice)
+  {
+    submitSuppress++;
+    choice.value = (Number(choice.value) + 1) % 5
+    switch (Number(choice.value))
+    {
+    case 0: cur.value = '    '; break;
+    case 1: cur.value = ' = '; break;
+    case 2: cur.value = '>='; break;
+    case 3: cur.value = '<='; break;
+    case 4: cur.value = '<>'; break;
+    }
+  }
+
+  function tsReq(f)
+  {
+    if (f.value == "")
+    {
+      alert("\"xxx\" is a REQ field.");
+      f.focus();
+      return (false);
+    }
+    return (true);
+  }
+
+// end hide -->
+</SCRIPT>

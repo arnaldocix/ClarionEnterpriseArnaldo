@@ -1,0 +1,192 @@
+BOOLEAN        EQUATE(BYTE)
+DWORD          EQUATE(LONG)
+COLORREF       EQUATE(LONG)
+STRINGREF      EQUATE(LONG)
+HBRUSH         EQUATE(UNSIGNED)
+
+! ==============================================================================
+
+               MAP
+                 MODULE('')
+                   ToString (STRINGREF),STRING,NAME('Cla$PushCString')
+                 END
+               END
+
+! ==============================================================================
+
+IHasProperties INTERFACE,COM
+
+SetString        PROCEDURE (UNSIGNED, CONST *CSTRING),BOOL,PROC
+SetLong          PROCEDURE (UNSIGNED, LONG),BOOL,PROC
+GetString        PROCEDURE (UNSIGNED, *STRINGREF),BOOL,PROC
+GetLong          PROCEDURE (UNSIGNED, *LONG),BOOL,PROC
+               END
+
+! ------------------------------------------------------------------------------
+
+IFontProperties INTERFACE (IHasProperties),COM
+
+FontName         PROCEDURE (CONST *CSTRING),BOOLEAN,PROC
+FontSize         PROCEDURE (SIGNED),BOOLEAN,PROC
+FontStyle        PROCEDURE (DWORD),BOOLEAN,PROC
+FontCharSet      PROCEDURE (BYTE),BOOLEAN,PROC
+FontAngle        PROCEDURE (LONG),BOOLEAN,PROC
+FontColor        PROCEDURE (COLORREF),BOOLEAN,PROC
+
+FontName         PROCEDURE (),*CSTRING,RAW
+FontSize         PROCEDURE (),SIGNED
+FontStyle        PROCEDURE (),DWORD
+FontCharSet      PROCEDURE (),BYTE
+FontAngle        PROCEDURE (),LONG
+FontColor        PROCEDURE (),COLORREF
+
+FontCPI          PROCEDURE (BYTE),BOOLEAN,PROC
+FontCPI          PROCEDURE (),BYTE               
+               END
+
+! ------------------------------------------------------------------------------
+
+BrushTypes     ITEMIZE(0),PRE
+BrushNull        EQUATE
+BrushSolid       EQUATE
+BrushHatched     EQUATE
+BrushPattern     EQUATE
+BrushImage       EQUATE
+BrushGradient    EQUATE
+               END
+   
+IBrush         INTERFACE,COM
+
+BrushType        PROCEDURE (),UNSIGNED ! Result is BrushTypes
+
+Brush            PROCEDURE (HBRUSH)
+Brush            PROCEDURE (),HBRUSH
+
+ColorBrush       PROCEDURE (COLORREF)
+Color            PROCEDURE (),COLORREF
+
+ImageBrush       PROCEDURE (CONST *CSTRING)
+ImageName        PROCEDURE (),*CSTRING,RAW
+
+Gradient         PROCEDURE (COLORREF, COLORREF, UNSIGNED gType)
+GradientFrom     PROCEDURE (),COLORREF
+GradientTo       PROCEDURE (),COLORREF
+GradientType     PROCEDURE (),UNSIGNED !GradientTypes
+
+!GradientDir      PROCEDURE (),BOOLEAN  ! FALSE: horizontal; TRUE: vertical
+!GradientCyl      PROCEDURE (),BOOLEAN  ! FALSE: shade; TRUE: cylinder
+
+Equal            PROCEDURE (*IBrush),BOOLEAN               
+               END
+
+! ------------------------------------------------------------------------------
+
+MenuBrushes    ITEMIZE(1),PRE
+NormalBkgnd      EQUATE
+SelectedBkgnd    EQUATE
+HotBkgnd         EQUATE
+ImageBkgnd       EQUATE
+NormalBarBkgnd   EQUATE
+SelectedBarBkgnd EQUATE
+GrayBrush        EQUATE
+FrameBrush       EQUATE
+               END
+
+MenuColors     ITEMIZE(1),PRE
+NormalText       EQUATE
+SelectedText     EQUATE
+HotText          EQUATE
+InactiveText     EQUATE
+GrayText         EQUATE                ! For use in flat menus
+               END
+
+FlatMenuMode   ITEMIZE(0),PRE
+Off              EQUATE
+On               EQUATE
+Default          EQUATE
+               END
+
+BarGradientMode ITEMIZE(0),PRE
+Off              EQUATE                ! No gradient
+Vertical         EQUATE                ! Vertical gradient brush
+Rightmost        EQUATE                ! Gradient up to right edge of rightmost item without RIGHT attribute
+Full             EQUATE                ! Gradient uo to right edge of menubar
+               END
+
+MenuLines      ITEMIZE
+MenuLine:Default       EQUATE(0)
+MenuLine:ShowGutter    EQUATE(1)
+MenuLine:FullSeparator EQUATE(2)
+MenuLine:Embossed      EQUATE(4)
+               END
+
+! Metrics
+! Menubar items:
+! <cxBarLMargin> [<image/check> <cxTextLMargin>] <text> <cxBarRMargin>
+! Popup items:
+! <cxItemLMargin> [<cxImageLMargin> <image/check> <cxImageRMargin> [<cxGutter>]] <cxTextLMargin> <text> <cxTextRMargin> <cxSubMenu> <cxItemRMargin>
+
+MenuMetric     ITEMIZE(1),PRE
+cxBarLMargin     EQUATE
+cxBarRMargin     EQUATE
+cxItemLMargin    EQUATE
+cxItemRMargin    EQUATE
+cxImageLMargin   EQUATE
+cxImageRMargin   EQUATE
+cxTextLMargin    EQUATE
+cxTextRMargin    EQUATE
+cxKeySpace       EQUATE                ! Extra space added to accelerator key's name
+cxSysMenuLMargin EQUATE                ! Extra space added to system menu icon
+cxSysBarDelta    EQUATE                ! Read-only: extra space adding by Windows to menubar items
+cxSubMenu        EQUATE
+cxGutter         EQUATE                ! Read-only: width of gutter if any
+cySeparator      EQUATE                ! Height of separator
+cyItemVMargin    EQUATE                ! Extra space added above and below menu item
+cySepVMargin     EQUATE                ! Extra space added above and below menu separator
+cyTextVMargin    EQUATE                ! Min margins above and below text
+cyImageVMargin   EQUATE                ! Min margins above and below image/check mark 
+               END
+
+IMenuStyle     INTERFACE,COM
+
+Clone            PROCEDURE (),*IMenuStyle
+Destroy          PROCEDURE ()
+
+SetDirty         PROCEDURE ()
+
+MenuFont         PROCEDURE (),*IFontProperties
+
+MenuBrush        PROCEDURE (UNSIGNED),*IBrush    !Index: MenuBrushes
+MenuColor        PROCEDURE (UNSIGNED, COLORREF)  !Index: MenuColors
+MenuColor        PROCEDURE (UNSIGNED),COLORREF   !Index: MenuColors
+
+FlatMode         PROCEDURE (UNSIGNED)            !Value: FlatMenuMode
+FlatMode         PROCEDURE (),UNSIGNED           !Value: FlatMenuMode
+
+AlignShortcuts   PROCEDURE (BOOLEAN)
+AlignShortcuts   PROCEDURE (),BOOLEAN            !TRUE: Shortcuts are left aligned
+
+MenuBarGradientMode PROCEDURE (UNSIGNED)         !Value: BarGradientMode
+MenuBarGradientMode PROCEDURE (),UNSIGNED        !Value: BarGradientMode
+
+MetricValue      PROCEDURE (UNSIGNED, UNSIGNED)  !Index: MenuMetric
+MetricValue      PROCEDURE (UNSIGNED),UNSIGNED   !Index: MenuMetric               
+
+LineMode         PROCEDURE (BYTE)                !Value: MenuLines
+LineMode         PROCEDURE (),BYTE               !Value: MenuLines
+
+IgnoreOSTheme    PROCEDURE (BOOLEAN)             !TRUE: UI theme to be ignored
+IgnoreOSTheme    PROCEDURE (),BOOLEAN
+OSThemeAvailable PROCEDURE (),BOOLEAN
+
+UseCustomTheme   PROCEDURE (BOOLEAN)             !TRUE: theme set by the user will be used
+UseCustomTheme   PROCEDURE (),BOOLEAN
+               END
+
+! ------------------------------------------------------------------------------
+
+IMenuInterface INTERFACE,COM
+
+GetStyle         PROCEDURE (),*IMenuStyle
+SetStyle         PROCEDURE (<*IMenuStyle>)
+               END

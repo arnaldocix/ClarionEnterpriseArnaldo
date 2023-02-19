@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<Template originator   = "SoftVelocity">
+
+	<!-- Template Header -->
+	<TemplateConfiguration>
+		<Name>${res:Clarion.Templates.Project.Win32ExeABCWindow.Name}</Name>
+		<Category>Clarion for Windows</Category>
+		<Icon>CW.Project.EmptyProject</Icon>
+		<Description>${res:Clarion.Templates.Project.Win32ExeABCWindow.Description}</Description>
+	</TemplateConfiguration>
+
+	<Actions>
+		<Open filename = "${ProjectName}.clw"/>
+	</Actions>
+	<Project name = "${ProjectName}" directory = "." language = "Clarion">
+		<PropertyGroup>
+			<OutputType>Exe</OutputType>
+      <DefineConstants>_ABCDllMode_=&gt;0;_ABCLinkMode_=&gt;1</DefineConstants>
+		</PropertyGroup>
+		<Files>
+			<File name="${ProjectName}.EXP">
+				<![CDATA[
+NAME '${ProjectName}' GUI
+MANIFEST
+]]>	
+			</File>
+			<File name="${ProjectName}.clw">
+				<![CDATA[
+  PROGRAM
+
+${StandardHeader.Clarion}
+
+  MAP
+  END
+
+ INCLUDE('equates.clw'),ONCE 
+
+MyWindow WINDOW('Caption'),AT(,,192,110),GRAY,FONT('MS Sans Serif',8,,FONT:regular)
+        BUTTON('&OK'),AT(102,82,35,14),USE(?OkButton),DEFAULT,LEFT
+        BUTTON('&Cancel'),AT(144,82,36,14),USE(?CancelButton),LEFT
+    END
+
+  CODE
+ OPEN(MyWindow)
+ ACCEPT
+    CASE FIELD()
+    OF 0
+       CASE EVENT()
+       OF EVENT:OpenWindow
+       END
+    OF ?OkButton
+       CASE EVENT()
+       OF EVENT:Accepted
+       END
+    OF ?CancelButton
+       CASE EVENT()
+       OF EVENT:Accepted
+          POST(EVENT:CloseWindow)
+       END
+    END
+ END
+ ]]>
+			</File>
+		</Files>
+	</Project>
+</Template>
+

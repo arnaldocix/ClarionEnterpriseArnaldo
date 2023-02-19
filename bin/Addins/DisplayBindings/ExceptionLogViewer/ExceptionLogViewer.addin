@@ -1,0 +1,38 @@
+﻿<AddIn name        = "ExceptionLogViewer"
+       author      = "SoftVelocity"
+       copyright   = "Copyright SoftVelocity 1986-2009"
+       url         = "http://www.softvelocity.com"
+       description = "Tool that provides a graphical interface to an exception 
+                      log file extracting information from the map files if possible">
+
+	<Manifest>
+		<Identity name = "SoftVelocity.ExceptionLogViewer"/>
+	</Manifest>
+
+	<Runtime>
+		<Import assembly = "SoftVelocity.ExceptionLogViewer.dll"/>
+		<Import assembly = ":ICSharpCode.SharpDevelop"/>
+		<Import assembly = ":ICSharpCode.TextEditor"/>
+		<Import assembly = "Clarion.Core.dll"/>
+	</Runtime>
+
+	<StringResources file="Resources\SoftVelocity.ExceptionLogViewer.Strings.resources" />
+
+
+	<Path name = "/SharpDevelop/Workbench/DisplayBindings">
+		<DisplayBinding id    = "StackTraceFileEditor"
+		                class = "SoftVelocity.ExceptionLogViewer.Editor.DisplayBinding"
+		                insertbefore    = "Text"/>
+	</Path>
+	<Path name = "/SharpDevelop/Dialogs/OptionsDialog/Clarion Options">
+		<DialogPanel id    = "ExceptionLogReaderOptions"
+		             label = "${res:SoftVelocity.ExceptionLogViewer.ExceptionLogOptionsPanel.Title}"
+		             class = "SoftVelocity.ExceptionLogViewer.ExceptionLogOptionsPanel"/>
+	</Path>
+	<Path name = "/SharpDevelop/Workbench/MainMenu/Tools">
+		<MenuItem id      = "CheckStructure"
+		          label   = "${res:SoftVelocity.ExceptionLogViewer.Menu.OpenExceptionLogFile}"
+		          insertbefore = "LastSeparator"
+		          class   = "SoftVelocity.ExceptionLogViewer.TestAndOpenLogFileLoading"/>
+	</Path>
+</AddIn>

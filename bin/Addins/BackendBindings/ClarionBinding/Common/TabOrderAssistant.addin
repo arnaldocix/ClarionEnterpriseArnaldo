@@ -1,0 +1,38 @@
+<AddIn name        = "TabOrderAssistant"
+       author      = "SoftVelocity"
+       copyright   = "Copyright SoftVelocity 1986-2007"
+       url         = "http://www.softvelocity.com"
+       description = "Tab Order Assistant">
+
+	<Manifest>
+		<Identity name = "SoftVelocity.TabOrderAssistant"/>
+		<Dependency addin = "ICSharpCode.FormsDesigner"/>
+	</Manifest>
+	<Runtime>
+		<Import assembly = "TabOrderAssistant.dll">
+			<ConditionEvaluator name="FormsDesignerActive" class="SoftVelocity.FormDesigner.FormsDesignerActiveConditionEvaluator"/>
+		</Import>
+	</Runtime>    
+	<Path name = "/Workspace/Autostart">
+		<Class id    = "StartPad"
+		       class = "SoftVelocity.FormDesigner.StartupCode"/>
+	</Path> <!-- /Workspace/Autostart -->
+	<Path name = "/SharpDevelop/Workbench/Pads">
+		<Pad id       = "TabOrderAssistant"
+		     category = "Main"
+		     title    = "${res:TabOrderAssistant.Pad.Title}"
+		     icon     = "SoftVelocity.TabOrderAssistant"
+		     shortcut = "F9"
+		     class    = "SoftVelocity.FormDesigner.TabOrderAssistantPad"/>
+	</Path>
+	<Path name = "/SoftVelocity/Clarion/ToolBar/ClarionFormater">
+		<ToolbarItem id = "TabOrderAssistantSeparator" insertafter="WindowPreview" type = "Separator"/>
+		<ToolbarItem id          = "TabOrderAssistant"
+		             insertbefore= "ViewTabOrderSeparator"
+		             insertafter = "TabOrderAssistantSeparator"
+		             tooltip     = "${res:TabOrderAssistant.Pad.Title}"
+		             icon        = "SoftVelocity.TabOrderAssistant"
+		             loadclasslazy = "false"
+		             class       = "SoftVelocity.FormDesigner.ShowTabOrderAssistantCommand"/>
+	</Path>
+</AddIn>

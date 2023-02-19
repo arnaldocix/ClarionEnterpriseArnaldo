@@ -1,0 +1,966 @@
+#extension(ADOCommandObject, 'ADO Command Object'), PROCEDURE, req(ADOSupport),HLP('~TPLExtensionADOCommand'), MULTI
+#sheet
+  #tab('General')
+    #prompt('Command Object Name: ', @s50), %svCommandObject, default('MyCmd' & %ActiveTemplateInstance)
+    #prompt('Command Class: ', @s50), %svCommandClass, default(%svdefaultCommandClass)
+    #boxed('Connection settings')
+      #prompt('Use an existing Connection Object ?', check), %svUseExistingConn, default(1), at(10)
+      #enable(%svUseExistingCOnn = 1), clear
+        #prompt('Connection Object Name: ', from(%svGlobalConnections,,%svGlobalConnectionName)), %svConnectionObject, DEFAULT(%GetFirstGlobalConnection())
+      #endenable
+    #endboxed
+    #prompt('Command Timeout: ', @n5), %svCommandTimeout, default(0)  
+    #boxed('Recordset')
+      #prompt('Command object will return a recordset?', check), %svRecordsetIsReturned, default(1), at(10)
+      #enable(%svRecordsetIsReturned = 1), clear
+        #prompt('Recordset Object Name: ', @s50), %svRecordsetReturned, default('MyReturnedSet')
+        #prompt('Recordset class: ', @s50), %svRecodsetClass, default(%svDefaultRecordsetClass)
+        #prompt('Generate buffer as a: ', DROP('Group|Queue')), %svGenerateStructureAs
+      #endenable
+    #endboxed
+  #endtab
+  #tab('Command Type')
+    #prompt('Command Type: ', drop('adCmdUnspecified|adCmdText|adCmdTable|adCmdStoredProc|adCmdUnknown|adCmdFile|adCmdTableDirect')), %svCommandType
+    #boxed('Statement'), where(%svCommandType = 'adCmdText'), clear, at(,30,,,)
+      #insert(%PromptCmdText)
+    #endboxed
+    #boxed('') ,where(%svCommandType = 'adCmdStoredProc'), clear, at(,30,,)
+      #insert(%PromptStoredProcedure)
+    #endboxed
+  #endtab
+#endsheet
+
+#atstart
+  #declare(%svTmpStatement)
+  #declare(%svHRVar)
+  #set(%svHRVar, %svCommandObject & '_HR')
+  #declare(%svParamsColl)
+  #set(%svParamsColl, %svCommandObject & '_Params')
+  #declare(%svParam)
+  #set(%svParam, %svCommandObject & '_Par')
+  #declare(%svParName)
+  #set(%svParName, %svCommandObject & '_ParName')
+  #declare(%svgVar)
+  #declare(%svaVar)
+  #set(%svgVar, %svCommandObject & '_gVar')
+  #set(%svaVar, %svCommandObject & '_aVar')
+  #declare(%svParamInterfacePointer)
+  #set(%svParamInterfacePointer, %svCommandObject & '_IPa')
+  #declare(%svDataTypeEnum)
+  #declare(%svParamDirection)
+  #declare(%svTest)
+  #declare(%svGenericGrp)
+#endat
+
+#at(%DataSection), priority(1000)
+%[20]svCommandObject &%svCommandClass
+%[20]svHRVar HRESULT
+%[20]svParamsColl &CParameters
+%[20]svParam &CParameter
+%[20]svParName cstring(128)
+%[20]svgVar like(gVariant)
+%[20]svaVar variant, over(%svgVar)
+%[20]svParamInterfacePointer &IParameter
+  #if(%svRecordsetIsReturned = 1)
+%[20]svRecordsetReturned &%svRecodsetClass
+  #endif
+  #if(%svCommandType = 'adCmdText')
+%null
+    #if(%svGenerateStructureAs = 'Group')
+      #set(%svGenericGrp, %svCommandObject & '_grp')
+%[20]svGenericGrp group
+    #else
+      #set(%svGenericGrp, %svCommandObject & 'Q')
+%[20]svGenericGrp queue
+    #endif
+#insert(%svGenerateBuffer)
+%[20]null end
+%null
+  #endif
+#endat
+#at(%ProcessedCode), FIRST
+  %svCommandObject &= new(%svCommandClass)
+  if ~(%svCommandObject &= null)
+    %svHRVar = %svCommandObject.Init()
+    if %svHRVar = S_OK
+      %svHRVar = %svCommandObject.PutRefActiveConnection(%svConnectionObject)
+      %svHRVar = %svCommandObject.PutCommandType(%svCommandType)
+    #if(%svCommandTimeout > 0)
+      %svHRVar = %svCommandObject.PutCommandTimeout(%svCommandTimeout)
+    #endif      
+    #case(%svCommandType)  
+    #of('adCmdText')
+      #set(%svTmpStatement, %ClearCRLF(%svStatement))
+      %svHRVar = %svCommandObject.PutCommandText('%svTmpStatement')
+    #of('adCmdStoredProc')
+      %svParamsColl &= %svCommandObject.GetParameters(%svHRVar)
+      #for(%svProcParams)
+      %svParName = '%svParamName'
+      #if(%svParameterTypeString = 'RETURN VALUE')
+      %svaVar = 0
+      #else  
+        #if(%svParameterValueType = 'Constant')
+      %svaVar = %svParamValueConstant
+        #else
+      %svaVar = %svParameterValueVariable
+        #endif  
+      #endif
+      #set(%svDataTypeEnum, %svGetADOTypeEnum(%svParamDataType))
+      #set(%svParamDirection, %svGetADOParameterDirectionEnum(%svParamType))
+      %svParam &= %svCommandObject.CreateParameter(%svParName, %svDataTypeEnum, %svParamDirection, size(%svParName), %svgVar, %svHRVar)  
+      if ~(%svParam  &= null)
+        %svParamInterfacePointer &= %svParam.GetIUnknown()
+        %svHRVar = %svParamsColl._Append(%svParamInterfacePointer)
+      end
+      dispose(%svParam)
+      #endfor
+      dispose(%svParamsColl)
+      %svHRVar = %svCommandObject.PutCommandText('%svStoredProcedureName')      
+    #endcase  
+    end
+  end
+#endat
+#at(%ProcessedCode), LAST
+  if ~(%svCommandObject &= null)
+    #if(%svRecordsetIsReturned = 1)
+    %svRecordsetReturned.Close()
+    dispose(%svRecordsetReturned)
+    #endif
+    dispose(%svCommandObject)
+  end
+#endat
+#!--------------------------------------------------------------------------------------------------------------
+#at(%DerivedEmbedAfterStandardWindowOpening)
+%svCommandObject &= new(%svCommandClass)
+if ~(%svCommandObject &= null)
+  %svHRVar = %svCommandObject.Init()
+  if %svHRVar = S_OK
+    %svHRVar = %svCommandObject.PutRefActiveConnection(%svConnectionObject)
+    %svHRVar = %svCommandObject.PutCommandType(%svCommandType)
+    #if(%svCommandTimeout > 0)
+    %svHRVar = %svCommandObject.PutCommandTimeout(%svCommandTimeout)
+    #endif
+  #case(%svCommandType)  
+  #of('adCmdText')
+    #set(%svTmpStatement, %ClearCRLF(%svStatement))
+    %svHRVar = %svCommandObject.PutCommandText('%svTmpStatement')
+  #of('adCmdStoredProc')
+    %svParamsColl &= %svCommandObject.GetParameters(%svHRVar)
+    #for(%svProcParams)
+    %svParName = '%svParamName'
+    #if(%svParameterTypeString = 'RETURN VALUE')
+    %svaVar = 0
+    #else  
+      #if(%svParameterValueType = 'Constant')
+    %svaVar = %svParamValueConstant
+      #else
+    %svaVar = %svParameterValueVariable
+      #endif  
+    #endif
+    #set(%svDataTypeEnum, %svGetADOTypeEnum(%svParamDataType))
+    #set(%svParamDirection, %svGetADOParameterDirectionEnum(%svParamType))
+    %svParam &= %svCommandObject.CreateParameter(%svParName, %svDataTypeEnum, %svParamDirection, size(%svParName), %svgVar, %svHRVar)  
+    if ~(%svParam  &= null)
+      %svParamInterfacePointer &= %svParam.GetIUnknown()
+      %svHRVar = %svParamsColl._Append(%svParamInterfacePointer)
+    end
+    dispose(%svParam)
+    #endfor
+    dispose(%svParamsColl)
+    %svHRVar = %svCommandObject.PutCommandText('%svStoredProcedureName')      
+  #endcase  
+  end
+end
+#endat
+#!--------------------------------------------------------------------------------------------------------------
+#at(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(7750)
+%svCommandObject &= new(%svCommandClass)
+if ~(%svCommandObject &= null)
+  %svHRVar = %svCommandObject.Init()
+  if %svHRVar = S_OK
+    %svHRVar = %svCommandObject.PutRefActiveConnection(%svConnectionObject)
+    %svHRVar = %svCommandObject.PutCommandType(%svCommandType)
+    #if(%svCommandTimeout > 0)
+    %svHRVar = %svCommandObject.PutCommandTimeout(%svCommandTimeout)
+    #endif    
+  #case(%svCommandType)  
+  #of('adCmdText')
+    #set(%svTmpStatement, %ClearCRLF(%svStatement))
+    %svHRVar = %svCommandObject.PutCommandText('%svTmpStatement')
+  #of('adCmdStoredProc')
+    %svParamsColl &= %svCommandObject.GetParameters(%svHRVar)
+    #for(%svProcParams)
+    %svParName = '%svParamName'
+    #if(%svParameterTypeString = 'RETURN VALUE')
+    %svaVar = 0
+    #else  
+      #if(%svParameterValueType = 'Constant')
+    %svaVar = %svParamValueConstant
+      #else
+    %svaVar = %svParameterValueVariable
+      #endif  
+    #endif
+    #set(%svDataTypeEnum, %svGetADOTypeEnum(%svParamDataType))
+    #set(%svParamDirection, %svGetADOParameterDirectionEnum(%svParamType))
+    %svParam &= %svCommandObject.CreateParameter(%svParName, %svDataTypeEnum, %svParamDirection, size(%svParName), %svgVar, %svHRVar)  
+    if ~(%svParam  &= null)
+      %svParamInterfacePointer &= %svParam.GetIUnknown()
+      %svHRVar = %svParamsColl._Append(%svParamInterfacePointer)
+    end
+    dispose(%svParam)
+    #endfor
+    dispose(%svParamsColl)
+    %svHRVar = %svCommandObject.PutCommandText('%svStoredProcedureName')      
+  #endcase  
+  end
+end
+#endat
+#!-----------------------------------------------------------------------------------------------------------------
+#at(%EndOfProcedure)
+if ~(%svCommandObject &= null)
+  dispose(%svCommandObject)
+end
+#endat
+#!-----------------------------------------------------------------------------------------------------------------
+#group(%svCheckQuery, %svpConnectObj, *%svQuery)
+#declare(%svTmpConnectStr)
+#declare(%svPos)
+#declare(%svColCount)
+#declare(%EndCount)
+#find(%svGlobalConnectionName, %svpConnectObj)
+#case(%svConnectStrSource)
+#of('From Dictionary')
+  #set(%svTmpConnectStr, %svConnectStrFromDCT)
+#of('UDL File picked and read in the template')
+  #set(%svTmpConnectStr, %svStrUDL)
+#of('Connection Builder')
+  #set(%svTmpConnectStr, %svStrFromCnBld)
+#else
+  #set(%svTmpConnectStr, %svGetConnectionFromDCT())
+#endcase
+#set(%svTmpConnectStr, %svTmpConnectStr & '## SELECT ##' & %svQuery)
+#rundll('ClaADOtp.dll', 'CheckQuery', %svTmpConnectStr), release
+#if(%svTmpConnectStr)
+  #purge(%svDataGrp)
+  #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+  #set(%svQuery, slice(%svTmpConnectStr, 1, %svPos - 1))
+  #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))
+  #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+  #set(%EndCount, slice(%svTmpConnectStr, 1, %svPos - 1))
+  #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))
+  #if(%EndCount > 0)
+    #loop for(%svColCount, 1, %EndCount)
+      #add(%svDataGrp, %svColCount)  
+    #endloop 
+    #set(%svColCount, 1)
+    #loop for(%svColCount, 1, %EndCount)
+      #fix(%svDataGrp, %svColCount)
+      #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+      #set(%svDataCol, slice(%svTmpConnectStr, 1, %svPos - 1))
+      #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))
+      #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+      #set(%svDataType,  slice(%svTmpConnectStr, 1, %svPos - 1))
+      #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))      
+      #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+      #set(%svDataSize, slice(%svTmpConnectStr, 1, %svPos - 1))
+      #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))      
+      #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+      #set(%svDataPrec, slice(%svTmpConnectStr, 1, %svPos - 1))
+      #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))           
+      #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+      #set(%svDataScale, slice(%svTmpConnectStr, 1, %svPos - 1))
+      #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))           
+    #endloop
+  #endif
+#endif
+#!----------------------------------------------------------------------------------------------------------------
+#group(%svSelectStoredProc, %svpConnectObj, *%svProc)
+#declare(%svTmpConnectStr)
+#declare(%svPos)
+#declare(%svColCount)
+#declare(%EndCount)
+#declare(%svCounter)
+#find(%svGlobalConnectionName, %svpConnectObj)
+#case(%svConnectStrSource)
+#of('From Dictionary')
+  #set(%svTmpConnectStr, %svConnectStrFromDCT)
+#of('UDL File picked and read in the template')
+  #set(%svTmpConnectStr, %svStrUDL)
+#of('Connection Builder')
+  #set(%svTmpConnectStr, %svStrFromCnBld)
+#else
+  #set(%svTmpConnectStr, %svGetConnectionFromDCT())
+#endcase
+#rundll('ClaADOtp.dll', 'GetSPInfo', %svTmpConnectStr), release
+#if(%svTmpConnectStr <> ' ')
+  #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+  #set(%svProc, slice(%svTmpConnectStr, 1, %svPos - 1))
+  #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))
+  #if(%svTmpConnectStr <> ' ')
+    #purge(%svProcParams)
+    #set(%svCounter, 1)
+    #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+    #set(%EndCount, slice(%svTmpConnectStr, 1, %svPos - 1))
+    #loop for(%svCounter, 1, %EndCount)
+      #add(%svProcParams,%svCounter)    
+    #endloop
+    #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))
+    #set(%svCounter, 1)
+    #loop
+      #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+      #fix(%svProcParams,%svCounter)
+      #set(%svParamName, slice(%svTmpConnectStr, 1, %svPos - 1))
+      #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))
+      #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+      #set(%svParamType, slice(%svTmpConnectStr, 1, %svPos - 1))
+      #case(%svParamType)
+        #of(1)
+          #set(%svParameterTypeString, 'IN')
+        #of(2)
+          #set(%svParameterTypeString, 'OUT')
+        #of(3)
+          #set(%svParameterTypeString, 'INOUT')
+        #of(4)
+          #set(%svParameterTypeString, 'RETURN VALUE')
+        #else
+          #set(%svParameterTypeString, 'UNKNOWN')
+      #endcase
+      #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))
+      #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+      #set(%svParamDataType, slice(%svTmpConnectStr, 1, %svPos - 1))
+      #case(%svParamDataType)
+      #of(16)
+        #set(%svParameterDataTypeString, 'TINYINT')
+      #of(2)
+        #set(%svParameterDataTypeString, 'SMALLINT')    
+      #of(3)
+        #set(%svParameterDataTypeString, 'INTEGER')  
+      #of(20)
+        #set(%svParameterDataTypeString, 'BIGINT')  
+      #of(17)
+        #set(%svParameterDataTypeString, 'UNSIGNED TINYINT')  
+      #of(18)  
+        #set(%svParameterDataTypeString, 'UNSIGNED SMALLINT')
+      #of(19)
+        #set(%svParameterDataTypeString, 'UNSIGNED INTEGER')  
+      #of(21)
+        #set(%svParameterDataTypeString, 'UNSIGNED BIGINT')  
+      #of(131)
+        #set(%svParameterDataTypeString, 'NUMERIC')  
+      #of(133)
+        #set(%svParameterDataTypeString, 'DATE')  
+      #of(134)
+        #set(%svParameterDataTypeString, 'TIME')  
+      #of(135)  
+        #set(%svParameterDataTypeString, 'TIMESTAMP')
+      #of(130)
+        #set(%svParameterDataTypeString, 'VARCHAR')  
+      #of(6)
+        #set(%svParameterDataTypeString, 'CURRENCY') 
+      #of(129)
+        #set(%svParameterDataTypeString, 'CHAR')    
+      #else
+        #set(%svParameterDataTypeString, %svParamDataType)  
+      #endcase  
+      #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))
+      #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+      #set(%svParamSize, slice(%svTmpConnectStr, 1, %svPos - 1))
+      #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr))) 
+      #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+      #set(%svParamPrec, slice(%svTmpConnectStr, 1, %svPos - 1))
+      #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))           
+      #set(%svPos, instring(' ##', %svTmpConnectStr, 1, 1))
+      #set(%svParamScale, slice(%svTmpConnectStr, 1, %svPos - 1))
+      #set(%svTmpConnectStr, slice(%svTmpConnectStr, %svPos + 3, len(%svTmpConnectStr)))        
+      #if(%svTmpConnectStr = ' ')
+        #break
+      #else
+        #set(%svCounter, %svCounter + 1)
+      #endif  
+    #endloop
+  #endif
+#endif
+#!-----------------------------------------------------------------------------------------------------------------------------------------
+#code(ADOCommandExecute, 'ADO Command Object Execute Method'), req(ADOCommandObject),HLP('~TPLCodeADOCommandExecute')
+#if(%svRecordsetIsReturned=1)
+%svRecordsetReturned &= %svCommandObject._Execute(, %svHRVar)
+#else
+%svCommandObject._Execute(, %svHRVar)
+#endif
+#if(%svCommandType = 'adCmdStoredProc')
+  #suspend
+#?%svParamsColl &= %svCommandObject.GetParameters(%svHRVar)
+  #for(%svProcParams)
+    #case(%svParameterTypeString)
+    #of('OUT')
+    #orof('INOUT')
+    #orof('RETURN VALUE')
+%svaVar = '%svParamName'
+%svParam &=  %svParamsColl.GetItem(%svgVar, %svHRVar)
+%svHRVar = %svParam.GetValue(%svgVar) 
+%svParameterValueVariable = %svaVar
+dispose(%svParam)
+    #endcase  
+  #endfor
+#?dispose(%svParamsColl)
+  #resume
+#endif  
+#!------------------------------------------------------------------------------------------------------------------------------------------
+#group(%svGetADOTypeEnum, %svValue)
+#declare(%svReturnValue)
+#case(%svValue)
+#of(0)
+  #set(%svReturnValue, 'adEmpty')
+#of(16)
+  #set(%svReturnValue, 'adTinyInt')
+#of(2)
+  #set(%svReturnValue, 'adSmallInt')
+#of(3)
+  #set(%svReturnValue, 'adInteger')
+#of(20)
+  #set(%svReturnValue, 'adBigInt')
+#of(17)
+  #set(%svReturnValue, 'adUnsignedTinyInt')
+#of(18)
+  #set(%svReturnValue, 'adUnsignedSmallInt')
+#of(19)
+  #set(%svReturnValue, 'adUnsignedInt')
+#of(21)
+  #set(%svReturnValue, 'adUnsignedBigInt')
+#of(4)
+  #set(%svReturnValue, 'adSingle')
+#of(5)
+  #set(%svReturnValue, 'adDouble')                    
+#of(6)
+  #set(%svReturnValue, 'adCurrency')
+#of(14)
+  #set(%svReturnValue, 'adDecimal')
+#of(131)
+  #set(%svReturnValue, 'adNumeric')
+#of(11)
+  #set(%svReturnValue, 'adBoolean')
+#of(10)
+  #set(%svReturnValue, 'adError')
+#of(132)
+  #set(%svReturnValue, 'adUserDefined')
+#of(12)
+  #set(%svReturnValue, 'adVariant')
+#of(9)
+  #set(%svReturnValue, 'adIDispatch')
+#of(13)
+  #set(%svReturnValue, 'adIUnknown')
+#of(72)
+  #set(%svReturnValue, 'adGUID')
+#of(7)
+  #set(%svreturnValue, 'adDate')
+#of(133)
+  #set(%svReturnValue, 'adDBDate')
+#of(134)
+  #set(%svReturnValue, 'adDBTime')
+#of(135)
+  #set(%svReturnValue, 'adDBTimeStamp')
+#of(8)
+  #set(%svReturnValue, 'adBSTR')
+#of(129)
+  #set(%svReturnValue, 'adChar')
+#of(200)
+  #set(%svReturnValue, 'adVarChar')
+#of(201)
+  #set(%svReturnValue, 'adLongVarChar')
+#of(130)
+  #set(%svReturnValue, 'adWChar')
+#of(202)
+  #set(%svReturnValue, 'adVarWChar')
+#of(203)
+  #set(%svReturnValue, 'adLongVarWChar')
+#of(128)
+  #set(%svReturnValue, 'adBinary')
+#of(204)
+  #set(%svReturnValue, 'adVarBinary')
+#of(205)
+  #set(%svReturnValue, 'adLongVarBinary')
+#of(136)
+  #set(%svReturnValue, 'adChapter')
+#of(64)
+  #set(%svReturnValue, 'adFileTime')
+#of(138)
+  #set(%svReturnValue, 'adPropVariant')
+#of(139)
+  #set(%svReturnValue, 'adVarNumeric')
+#of(8192)
+  #set(%svReturnValue, 'adArray')
+#else
+  #set(%svReturnValue, 'Not known by template')
+#endcase
+#return(%svReturnValue)  
+#!-------------------------------------------------------------------------------------------------------------------------------------------
+#group(%svGetADOParameterDirectionEnum, %svValue)
+#declare(%svReturnValue)
+#case(%svValue)
+#of(0)
+  #set(%svReturnValue, 'adParamUnknown')
+#of(1)
+  #set(%svReturnValue, 'adParamInput')
+#of(2)
+  #set(%svreturnValue, 'adParamOutput')    
+#of(3)
+  #set(%svReturnValue, 'adParamInputOutput')
+#of(4)
+  #set(%svReturnValue, 'adParamReturnValue')
+#endcase
+#return(%svReturnValue)    
+#!----------------------------------------------------------------------------------------------------------------------------------------------------
+#extension(ADORecordsetObject, 'ADO Recordset Object'), PROCEDURE, req(ADOSupport), HLP('~TPLExtensionADORecordSetObject'), MULTI
+#sheet
+  #tab('General')
+    #prompt('Recordset Object Name: ', @s50), %svRecordsetObject, default('MyRecordset' & %ActiveTemplateInstance)
+    #prompt('Recordset Class: ', @s50), %svRecordsetClass, default(%svdefaultRecordsetClass)
+    #prompt('Generate a TableMapper object:', check), %svGenerateMapper, default(1), at(10)
+    #prompt('Generate buffer as a:', DROP('Group|Queue')), %svRSGenerateStructureAs
+    #enable(%svRSGenerateStructureAs = 'Queue'), clear
+      #prompt('Generate loop to fill the queue after Open call', check), %svFillQueue, at(20)
+    #endenable
+    #boxed('Connection settings')
+      #prompt('Use an existing Connection Object ?', check), %svUseExistingConn, default(1), at(10)
+      #boxed('Select Connection Object'), where(%svUseExistingConn = 1), at(,95,,)
+      #!#enable(%svUseExistingCOnn = 1), clear
+        #prompt('Connection Object Name: ', from(%svGlobalConnections,,%svGlobalConnectionName)), %svConnectionObject, DEFAULT(%GetFirstGlobalConnection())
+      #!#endenable
+      #endboxed
+      #boxed('Enter Connection'), where(%svUseExistingConn = 0), at(,95,,)
+        #display('')
+        #display('Connection can be one of the following:')
+        #display('')
+        #display('1) A connection object (CConnection)')
+        #display('2) A CSTRING variable containing the')
+        #display('   Connection string')
+        #display('')
+        #prompt('Connection: ', EXPR), %svUserConnection
+      #endboxed
+    #endboxed
+  #endtab
+  #tab('Command Type')
+    #prompt('Command Type: ', drop('adCmdUnspecified|adCmdText|adCmdTable|adCmdStoredProc|adCmdUnknown|adCmdFile|adCmdTableDirect')), %svCommandType
+    #boxed('Statement'), where(%svCommandType = 'adCmdText'), at(,30,,)
+      #insert(%PromptCmdText)
+    #endboxed
+    #boxed('Table'), where(%svCommandType = 'adCmdTable'), at(,30,,)
+      #prepare
+        #declare(%svDCTFileList), multi
+        #purge(%svDCTFileList)
+        #for(%File)
+          #add(%svDCTFileList, %File)
+        #endfor
+      #endprepare
+      #prompt('Table:', FROM(%svDCTFileList)), %svRSTable
+    #endboxed
+    #boxed('Stored Procedure'), where(%svCommandType = 'adCmdStoredProc'), at(,30,,)
+      #insert(%PromptStoredProcedure)
+    #endboxed
+  #endtab
+#endsheet
+#!
+#atstart
+  #declare(%svTmpStatement)
+  #declare(%svHRVar)
+  #set(%svHRVar, %svRecordsetObject & '_hr')
+  #declare(%svRSCstrVar)
+  #set(%svRSCstrVar, %svRecordsetObject & '_cstr')
+  #declare(%svRSMapper)
+  #set(%svRSMapper, %svRecordsetObject & '_Mapper')
+  #declare(%svRSBuffer)
+  #if(%svRSGenerateStructureAs = 'Group')
+    #set(%svRSBuffer, %svRecordsetObject & '_grp')
+  #else
+    #set(%svRSBuffer, %svRecordsetObject & 'Q')
+  #endif
+  #declare(%svEOF)
+  #set(%svEOF, %svRecordsetObject & '_EOF')
+#endat
+#!
+#at(%DataSection), priority(1000)
+#set(%svTmpStatement, %ClearCRLF(%svStatement))
+%null
+! %svRecordsetObject related declarations
+%null
+  #if(%svFillQueue)
+%[20]svEOF SHORT
+  #endif
+%null
+%[20]svRecordsetObject &%svRecordsetClass
+  #if(%svCommandType = 'adCmdText')
+%[20]svRSCstrVar cstring(2048)
+  #endif
+  #if(%svCommandType = 'adCmdTable')
+%[20]svRSCstrVar cstring('%svRSTable')
+  #endif
+%[20]svHRVar HRESULT
+  #if(%svGenerateMapper = 1)
+    #CALL(%AddModuleIncludeFile(ABC),%svADOTableMapperClassType)
+%[20]svRSMapper TableMapper
+#! #CALL(%AddModuleIncludeFile(ABC),'TableMapper',%True)
+  #endif    
+%null
+  #if(%svRSGenerateStructureAs = 'Group')
+%[20]svRSBuffer group
+  #else
+%[20]svRSBuffer Queue
+  #endif
+  #if(%svCommandType = 'adCmdText')
+#insert(%svGenerateBuffer)
+  #endif
+  #if(%svCommandType = 'adCmdTable')
+#call(%svGenerateBufferFromTable, %svRSTable)
+  #endif
+%[20]null end
+%null
+! %svRecordsetObject end of related declarations
+%null
+#endat
+
+#at(%DerivedEmbedAfterStandardWindowOpening)
+  #if(%svCommandType = 'adCmdText')
+%svRSCstrVar = '%svTmpStatement'
+  #endif
+%svRecordsetObject &= new(%svRecordsetClass)
+if ~(%svRecordsetObject &= null)
+  %svHRVar = %svRecordsetObject.Init()
+  if %svHRVar <> S_OK
+    #embed(%svRecordsetInitNotOK, 'HRESULT <> S_OK after call to Recordset.Init()'), TREE('Local Objects|' & %svRecordsetObject & '|Init() <> S_OK')
+  end
+end
+#endat
+
+#at(%ProcessedCode), FIRST
+  #if(%svCommandType = 'adCmdText')
+  %svRSCstrVar = '%svTmpStatement'
+  #endif
+  %svRecordsetObject &= new(%svRecordsetClass)
+  if ~(%svRecordsetObject &= null)
+    %svHRVar = %svRecordsetObject.Init()
+    if %svHRVar <> S_OK
+      #embed(%svRecordsetInitNotOK, 'HRESULT <> S_OK after call to Recordset.Init()'), TREE('Local Objects|' & %svRecordsetObject & '|Init() <> S_OK')
+    end
+  end
+#endat
+
+#at(%ProcessedCode), LAST
+  %svRecordsetObject.Close()
+  dispose(%svRecordsetObject)
+#endat
+
+
+#at(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(7750)
+  #if(%svCommandType = 'adCmdText')
+%svRSCstrVar = '%svTmpStatement'
+  #endif
+%svRecordsetObject &= new(%svRecordsetClass)
+if ~(%svRecordsetObject &= null)
+  %svHRVar = %svRecordsetObject.Init()
+  if %svHRVar <> S_OK
+    #embed(%svRecordsetInitNotOK, 'HRESULT <> S_OK after call to Recordset.Init()'), TREE('Local Objects|' & %svRecordsetObject & '|Init() <> S_OK')
+  end
+end
+#endat
+
+#at(%EndOfProcedure)
+%svRecordsetObject.Close()
+dispose(%svRecordsetObject)
+#endat
+
+#!-------------------------------------------------------------------------------------------------------------------------------------------
+#code(ADORecordsetOpen, 'ADO Recordset Open Method'), req(ADORecordsetObject), HLP('~TPLCodeADORecordSetOpen')
+#sheet
+  #tab('Recordset Open method')
+     #prompt('Cursor Type: ', DROP('adOpenUnspecified|adOpenForwardOnly|adOpenKeyset|adOpenDynamic|adOpenStatic')), %svRecordsetCursorType, default('adOpenForwardOnly')
+     #prompt('Lock type: ', drop('adLockUnspecified|adLockReadOnly|adLockPessimistic|adLockOptimistic|adLockBatchOptimistic')), %svRecordsetLockType, default('adLockOptimistic')
+     #prompt('Execute Options', OPTION), %svExecuteOption, default('(None)')
+     #prompt('(None)', radio), at(20)
+     #prompt('adAsyncExecute', radio), at(20)
+     #prompt('adAsyncFetch', radio), at(20)
+     #prompt('adAsyncFetchNonBlocking', radio),  at(20)
+     #prompt('adExecuteNoRecords', radio),  at(20)
+     #prompt('adOptionUnspecified', radio),  at(20)
+  #endtab
+  #tab('Recordset Query Parameter'), where(%svCommandType = 'adCmdText')
+    #prompt('Override default SQL statement?', check), %svOverrideDefaultStatement, default(0), at(10)
+    #enable(%svOverrideDefaultStatement = 1)
+      #prompt('SQL Statement', TEXT), %svNewCstrvarValue, default('''' & %svStatement & '''')
+    #endenable
+  #endtab
+#endsheet
+#atstart
+  #declare(%svQueryCstring)
+  #declare(%svOpenRecordsetConnection)
+  #if(%svUseExistingConn = 1)
+    #set(%svOpenRecordsetConnection, %svConnectionObject)
+  #else
+    #set(%svOpenRecordsetConnection, %svUserConnection)
+  #endif
+#endat
+#!
+#if(%svCommandType = 'adCmdText')
+  #if(%svOverrideDefaultStatement)
+%svRSCstrVar = %svNewCstrvarValue
+  #endif
+#endif
+#if(%svExecuteOption = '(None)')
+%svHRVar = %svRecordsetObject.Open(%svRSCstrVar, %svOpenRecordsetConnection, %svRecordsetCursorType, %svRecordsetLockType, %svCommandType)
+#else
+%svHRVar = %svRecordsetObject.Open(%svRSCstrVar, %svOpenRecordsetConnection, %svRecordsetCursorType, %svRecordsetLockType, %svCommandType + %svExecuteOption)
+#endif
+#if(%svRSGenerateStructureAs = 'Queue' and %svFillQueue = 1)
+free(%svRSBuffer)
+#endif
+#if(%svGenerateMapper = 1)
+%svRSMapper.MapRSToGroup(%svRecordsetObject, %svRSBuffer)
+  #if(%svRSGenerateStructureAs = 'Queue' and %svFillQueue = 1)
+add(%svRSBuffer)
+  #endif
+#endif
+#if(%svRSGenerateStructureAs = 'Queue' and %svFillQueue = 1)
+loop
+  %svHRVar = %svRecordsetObject.MoveNext()
+  if %svHRVar = S_OK
+    %svHRVar = %svRecordsetObject.GetEOF(%svEOF)
+    if NOT %svEOF
+      %svRSMapper.MapRSToGroup(%svRecordsetObject)
+      add(%svRSBuffer)
+    else
+      break
+    end
+  else
+    break
+  end
+end
+#endif
+#!-------------------------------------------------------------------------------------------------------------------------------------------
+#code(ADORecordsetPutCursorLocation, 'ADO Recordset PutCursorLocation Method'), req(ADORecordsetObject), HLP('~TPLCodeADORecordSetPutCursorLocation')
+#sheet
+  #tab('Recordset PutCursorLocation Method')
+    #prompt('Cursor Location: ', DROP('adUseNone|adUseServer|adUseClient|adUseClientBatch')), %svRecordsetCursorLocationEnum, default('adUseServer')
+  #endtab
+#endsheet
+%svHRVar = %svRecordsetObject.PutCursorLocation(%svRecordsetCursorLocationEnum)
+#!-------------------------------------------------------------------------------------------------------------------------------------------
+#code(ADORecordsetGetCursorLocation, 'ADO Recordset GetCursorLocation Method'), req(ADORecordsetObject), HLP('~TPLCodeADORecordSetGetCursorLocation')
+#sheet
+  #tab('Recordset GetCursorLocation Method')
+    #prompt('Long variable: ', FIELD), %svRecordsetCursorLocationVar
+  #endtab
+#endsheet
+%svHRVar = %svRecordsetObject.GetCursorLocation(%svRecordsetCursorLocationVar)
+#!-------------------------------------------------------------------------------------------------------------------------------------------
+#code(ADORecordsetGetPageCount, 'ADO Recordset GetPageCount Method'), req(ADORecordsetObject), HLP('~TPLCodeADORecordSetGetPageCount')
+#sheet
+  #tab('Recordset GetPageCount Method')
+    #prompt('PageCount long variable:', FIELD), %svRSPageCountVar
+  #endtab
+#endsheet
+%svHRVar = %svRecordsetObject.GetPageCount(%svRSPageCountVar)
+#!------------------------------------------------------------------------------------------------------------------------------------------
+#code(ADORecordsetGetPageSize, 'ADO Recordset GetPageSize method'), req(ADORecordsetObject), HLP('~TPLCodeADORecordSetGetPageSize')
+#sheet
+  #tab('PageSize')
+    #prompt('Long Variable: ', FIELD), %svPageSizeVariable
+  #endtab
+#endsheet
+#!
+%svHRVar = %svRecordsetObject.GetPageSize(%svPageSizeVariable)
+#!------------------------------------------------------------------------------------------------------------------------------------------
+#code(ADORecordsetPutPageSize, 'ADO Recordset PutPageSize method'), req(ADORecordsetObject), HLP('~TPLCodeADORecordSetPutPageSize')
+#sheet
+  #tab('PageSize')
+    #prompt('Long Variable: ', FIELD), %svPageSizeVariable
+  #endtab
+#endsheet
+#!
+%svHRVar = %svRecordsetObject.PutPageSize(%svPageSizeVariable)
+#!-------------------------------------------------------------------------------------------------------------------------------------------
+#code(ADORecordsetPutCacheSize, 'ADO Recordset PutCacheSize method'),  req(ADORecordsetObject), HLP('~TPLCodeADORecordSetPutCacheSize')
+#sheet
+  #tab('Cache size')
+    #prompt('Long Variable: ', FIELD), %svCacheSizeVar
+  #endtab
+#endsheet
+%svHRVar = %svRecordsetObject.PutCacheSize(%svCacheSizeVar)
+#!-------------------------------------------------------------------------------------------------------------------------------------------
+#code(ADORecordsetGetCacheSize, 'ADO Recordset GetCacheSize method'),  req(ADORecordsetObject), HLP('~TPLCodeADORecordSetGetCacheSize')
+#sheet
+  #tab('Cache size')
+    #prompt('Long Variable: ', FIELD), %svCacheSizeVar
+  #endtab
+#endsheet
+%svHRVar = %svRecordsetObject.GetCacheSize(%svCacheSizeVar)
+#!-------------------------------------------------------------------------------------------------------------------------------------------
+#code(ADORecordsetGetMaxRecords, 'ADO Recordset GetMaxRecords method'), req(ADORecordsetObject), HLP('~TPLCodeADORecordSetGetMaxRecords')
+#sheet
+  #tab('Max records')
+    #prompt('Long Variable: ', FIELD), %svMaxRecordsVar
+  #endtab
+#endsheet
+%svHRVar = %svRecordsetObject.GetMaxRecords(%svMaxRecordsVar)
+#!-------------------------------------------------------------------------------------------------------------------------------------------
+#code(ADORecordsetPutMaxRecords, 'ADO Recordset PutMaxRecords method'), req(ADORecordsetObject), HLP('~TPLCodeADORecordSetPutMaxRecords')
+#sheet
+  #tab('Max records')
+    #prompt('Long Variable: ', FIELD), %svMaxRecordsVar
+  #endtab
+#endsheet
+%svHRVar = %svRecordsetObject.PutMaxRecords(%svMaxRecordsVar)
+#!-------------------------------------------------------------------------------------------------------------------------------------------
+#code(ADORecordsetGetBOF, 'ADO Recordset GetBOF method'),  req(ADORecordsetObject), HLP('~TPLCodeADORecordSetGetBOF')
+#sheet
+  #tab('BOF')
+    #prompt('Short variable:', FIELD), %svBOFVar
+  #endtab
+#endsheet
+%svHRVar = %svRecordsetObject.GetBOF(%svBOFVar)
+#!-------------------------------------------------------------------------------------------------------------------------------------------
+#code(ADORecordsetGetEOF, 'ADO Recordset GetEOF method'),  req(ADORecordsetObject), HLP('~TPLCodeADORecordSetGetEOF')
+#sheet
+  #tab('EOF')
+    #prompt('Short variable:', FIELD), %svEOFVar
+  #endtab
+#endsheet
+%svHRVar = %svRecordsetObject.GetEOF(%svEOFVar)
+#!-------------------------------------------------------------------------------------------------------------------------------------------
+#code(ADORecordsetToXML, 'ADO Recordset Save to XML method'), req(ADORecordsetObject), HLP('~TPLCodeADORecordsetToXML')
+#sheet
+  #tab('XML')
+    #prompt('CSTRING Variable for File Name: ', FIELD), %svCstrVar
+    #prompt('Init the variable with a file name?', CHECK), %svInitVar, default(0), at(10)
+    #enable(%svInitVar = 1)
+      #prompt('File name: ', @s25), %svFileNameValue
+    #endenable
+  #endtab
+#endsheet
+#if(%svInitVar = 1 and %svFileNameValue <> '')
+  #if(slice(%svFileNameValue, 1, 1) = '''')
+%svCstrVar = %svFileNameValue
+  #else
+%svCstrVar = '%svFileNameValue'
+  #endif
+#endif
+%svHRVar =  %svRecordsetObject._xSave(%svCstrVar, adPersistXML)
+#!-------------------------------------------------------------------------------------------------------------------------------------------
+#group(%svGenerateBuffer)
+  #for(%svDataGrp)
+    #case(%svGetADOTypeEnum(%svDataType))
+      #of('adChar')
+      #orof('adVarChar')
+      #orof('adWChar')
+      #orof('adVarWChar')
+%[22]svDataCol string(%svDataSize)
+      #of('adGUID')
+%[22]svDatacol cstring(39)
+      #of('adTinyInt')
+      #orof('adUnsignedTinyInt')
+%[22]svDataCol byte
+      #of('adSmallInt')
+%[22]svDataCol short
+      #of('adInteger')
+%[22]svDataCol long
+      #of('adUnsignedSmallInt')
+%[22]svDataCol ushort 
+      #of('adUnsignedInt')
+%[22]svDataCol ulong 
+      #of('adDouble')
+%[22]svDataCol real  
+      #of('adDecimal')
+%[22]svDataCol decimal(%svDataPrec, %svDataScale)
+      #of('adNumeric')
+        #if(%svDataScale = 0)
+          #if(%svDataPrec > 9)
+%[22]svDataCol decimal(%svDataPrec, %svDataScale)
+          #elsif(%svDataPrec > 4)
+%[22]svDataCol long
+          #elsif(%svDataPrec > 2)
+%[22]svDataCol short
+          #elsif(%svDataPrec)
+%[22]svDataCol byte
+          #else
+%[22]svDataCol real
+          #endif
+        #else
+%[22]svDataCol decimal(%svDataPrec, %svDataScale)
+        #endif
+      #of('adCurrency')
+%[22]svDataCol decimal(18, 2)        
+      #of('adDBDate')
+      #orof('adDBTimeStamp')
+%[22]svDataCol date 
+      #of('adBoolean')
+%[22]svDataCol short
+      #of('adVarNumeric')
+%[22]svDataCol real
+      #of('Not known by template')
+!%[21]svDataCol  AdoType =  %svDataType
+    #endcase
+  #endfor
+#!----------------------------------------------------------------------------------------------------------------------------------------
+#group(%svGenerateBufferFromTable, %pTable)
+#declare(%svTmpFieldName)
+#fix(%File, %pTable)
+#for(%Field)
+  #set(%svTmpFieldName, %SQLGetTrueFieldNameNoPrefix(%Field))
+%[22]svTmpFieldName %FieldStatement
+#endfor
+#!----------------------------------------------------------------------------------------------------------------------------------------
+#group(%PromptCmdText)
+  #prompt('Statement: ', text), %svStatement
+  #boxed(''), hide, at(0,0,0,0)
+    #button(''), multi(%svDataGrp, %svDataCol)
+      #prompt('', @s50), %svDataCol
+      #prompt('', @s50), %svDataType
+      #prompt('', @s50), %svDataSize
+      #prompt('', @s50), %svDataPrec
+      #prompt('', @s50), %svDataScale
+    #endbutton
+  #endboxed
+  #button('Check Query'), WhenAccepted(%svCheckQuery(%svConnectionObject, %svStatement)), at(,,170,)
+  #endbutton
+#!----------------------------------------------------------------------------------------------------------------------------------------
+#group(%PromptStoredProcedure)
+  #prompt('Stored procedure Name: ', @s50), %svStoredProcedureName
+  #button('Parameters'), INLINE, multi(%svProcParams,%svParamName)
+    #boxed(''), hide, at(0,0,0,0)
+      #prompt('', @s50), %svParamName
+      #prompt('', @s50), %svParamType
+      #prompt('', @s50), %svParamDataType
+      #prompt('', @s50), %svParameterTypeString
+      #prompt('', @s50), %svParameterDataTypeString
+      #prompt('', @s50), %svParamSize
+      #prompt('', @s50), %svParamPrec
+      #prompt('', @s50), %svParamScale
+    #endboxed
+    #display('Parameter Name.....:   ' & %svParamName)
+    #display('Parameter Direction:   ' & %svParameterTypeString)
+    #display('Parameter Datatype:   ' & %svParameterDataTypeString)
+    #display('Parameter Size.....:   ' & %svParamSize)
+    #Display('Parameter Precision:   ' & %svParamPrec)
+    #display('Parameter Scale....:   ' & %svParamScale)
+    #display()
+    #prompt('Parameter Value is a: ', DROP('Constant|Variable')), %svParameterValueType
+    #enable(%svParameterValueType = 'Constant'), clear
+      #prompt('Value: ', @s50), %svParamValueConstant
+    #endenable
+    #enable(%svParameterValueType = 'Variable'), clear
+      #prompt('Variable: ', FIELD), %svParameterValueVariable
+    #endenable
+  #endbutton
+  #button('Stored Procedures List'), WHENACCEPTED(%svSelectStoredProc(%svConnectionObject, %svStoredProcedureName)), at(,,170,)
+  #endbutton
+#!-----------------------------------------------------------------------------------------------------------------------------------------
+#group(%ClearCRLF, %pStatement)
+#declare(%svTmpString)
+#declare(%svNdx)
+#declare(%svTmpStringLen)
+#set(%svTmpString, %pStatement)
+#set(%svTmpStringLen, len(clip(%svTmpString)))
+#loop, for(%svNdx, 1, %svTmpStringLen)
+  #if( val(slice(%svTmpString, %svNdx, %svNdx)) = 10 or val(slice(%svTmpString, %svNdx, %svNdx)) = 13)
+    #set(%svTmpString, slice(%svTmpString, 1,  %svNdx - 1) & ' ' & slice(%svTmpString, %svNdx + 1, %svTmpStringLen))
+  #endif
+#endloop
+#return(%svTmpString)

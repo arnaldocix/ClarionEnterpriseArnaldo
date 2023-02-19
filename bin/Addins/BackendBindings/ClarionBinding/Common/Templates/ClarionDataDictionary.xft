@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<Template originator   = "SoftVelocity">
+
+	<Config
+		  name        = "Data Dictionary"
+		  icon        = "SoftVelocity.DataDictionary.Icons.DictFile"
+		  category    = "Clarion Data Dictionary"
+		  defaultname = "Empty${Number}.dct"
+		  language    = "DataDictionaryFiles"
+    >
+    </Config>
+
+	<Description>Data Dictionary</Description>
+	<Files>
+		<File name="${FullName}" language="DataDictionaryFiles"></File>
+	</Files>
+
+	<AdditionalOptions/>
+</Template>
+
+

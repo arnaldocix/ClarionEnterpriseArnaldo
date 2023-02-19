@@ -1,0 +1,391 @@
+#GROUP(%EnhanceFocusGlobalPrompts)
+  #!ENABLE(%False)
+  #PROMPT('Provide visual indicators on control with focus',CHECK),%WindowEnableEnhanceFocus,DEFAULT(0),AT(10)
+  #ENABLE(%WindowEnableEnhanceFocus)
+    #BUTTON('Set visual indicators'),WHERE(%WindowEnableEnhanceFocus),AT(,,175),HLP('~TPLGlobalSelectedControl.htm')
+      #!BOXED('Selected Control Extension Options')
+        #SHEET
+          #TAB('General')
+            #BOXED('Include these controls'),SECTION
+              #PROMPT('Text controls',CHECK),%SelectedText,DEFAULT(%True),AT(10,0)
+              #PROMPT('Radio controls',CHECK),%SelectedRadio,DEFAULT(%True),AT(90,0)
+              #PROMPT('Spin controls',CHECK),%SelectedSpin,DEFAULT(%True),AT(10,12)
+              #PROMPT('Check controls',CHECK),%SelectedCheck,DEFAULT(%True),AT(90,12)
+              #PROMPT('Drop controls',CHECK),%SelectedDropList,DEFAULT(%True),AT(10,24)
+              #PROMPT('List controls',CHECK),%SelectedList,DEFAULT(%True),AT(90,24)
+            #ENDBOXED
+            #BOXED
+              #DISPLAY('Selected Control indicators'), AT(5,,185), PROP(PROP:FontColor, 0FFFFFFH),PROP(PROP:Color,0808080H),PROP(PROP:FontStyle,700),PROP(PROP:Center,%True)
+              #SHEET
+                #TAB('Control Color indicator')
+                  #PROMPT('Change Color',CHECK),%SelectedDisplayChangeColor,DEFAULT(%True),AT(8)
+                  #BOXED('')
+                    #ENABLE(%SelectedDisplayChangeColor)
+                      #PROMPT('Background Color',COLOR),%SelectedColor,DEFAULT(000FFFFH)
+                      #PROMPT('Bold text',CHECK),%SelectedStyle,DEFAULT(%True)
+                      #BOXED('Required Fields')
+                        #PROMPT('Override settings',CHECK),%SelectedRequired,DEFAULT(%False)
+                        #ENABLE(%SelectedRequired)
+                          #PROMPT('Background Color',COLOR),%SelectedRequiredColor,DEFAULT(000FFFFH)
+                        #ENDENABLE
+                      #ENDBOXED
+                    #ENDENABLE
+                  #ENDBOXED
+                #ENDTAB
+                #TAB('Box indicator')
+                  #PROMPT('Display Box',CHECK),%SelectedDisplayBox,DEFAULT(%True),AT(8)
+                  #BOXED('')
+                    #ENABLE(%SelectedDisplayBox)
+                      #PROMPT('Fill Color',COLOR),%SelectedDisplayBoxFillColor,DEFAULT(000FFFFH)
+                      #PROMPT('Border Color',COLOR),%SelectedDisplayBoxBorderColor,DEFAULT(0000000H)
+                      #PROMPT('Size',SPIN(@n2,0,99)),%SelectedDisplayBoxBorderSize,DEFAULT(2)
+                      #BOXED('Required Fields')
+                        #PROMPT('Override settings',CHECK),%SelectedRequiredBox,DEFAULT(%False)
+                        #ENABLE(%SelectedRequiredBox)
+                          #PROMPT('Fill Color',COLOR),%SelectedRequiredDisplayBoxFillColor,DEFAULT(00000FFH)
+                          #PROMPT('Border Color',COLOR),%SelectedRequiredDisplayBoxBorderColor,DEFAULT(0000000H)
+                        #ENDENABLE
+                      #ENDBOXED
+                    #ENDENABLE
+                  #ENDBOXED
+                #ENDTAB
+                #TAB('Visual indicator')
+                  #PROMPT('Display indicator',CHECK),%SelectedCaret,DEFAULT(%True),AT(8)
+                  #BOXED('')
+                    #ENABLE(%SelectedCaret)
+                      #PROMPT('Indicator Color',COLOR),%SelectedCaretColor,DEFAULT(0808080H)
+                      #PROMPT('Indicator Character',@S3),%SelectedCaretCharacter,DEFAULT('<187>')
+                      #PROMPT('Offset',SPIN(@n2,0,99)),%SelectedCaretCharacterSeparation,DEFAULT('8')
+                    #ENDENABLE
+                  #ENDBOXED
+                #ENDTAB
+              #ENDSHEET
+            #ENDBOXED
+          #ENDTAB
+          #TAB('About')
+            #DISPLAY('This template will set the fill color of the control')
+            #DISPLAY('with input focus to the specified value and reset')
+            #DISPLAY('the control to it`s original color when the control')
+            #DISPLAY('loses focus.  Optionally a visual marker can be displayed')
+            #DISPLAY('to the left of the selected control.  Required fields')
+            #DISPLAY('can be treated as special cases.')
+            #BOXED,HIDE
+              #PROMPT('Exclude DropList',CHECK),%ExcludeSelectedDropList,DEFAULT(%False)
+            #ENDBOXED
+          #ENDTAB
+        #ENDSHEET
+      #!ENDBOXED
+    #ENDBUTTON
+    #BOXED,SECTION
+    #PROMPT('On Screen Keyboard', OPTION), %EnableOSK, DEFAULT('OFF'),AT(,0,,25)
+       #PROMPT('On', RADIO),AT(20,10),VALUE('ON')
+       #PROMPT('Off', RADIO),AT(50,10),VALUE('OFF')
+       #PROMPT('Auto', RADIO),AT(80,10),VALUE('AUTO')
+    #ENDBOXED
+  #ENDENABLE
+  #!ENDENABLE
+#!
+#!
+#GROUP(%EnhanceFocusProcedurePrompts)
+      #ENABLE(%WindowEnableEnhanceFocus)
+         #BOXED('Visual indicators on control with focus')
+           #PROMPT('Disable visual indicators',CHECK),%ProcedureDisableEnhanceFocus,DEFAULT(0),AT(10)
+         #ENDBOXED
+      #ENDENABLE
+#!
+#!
+#GROUP(%EnhanceFocusProcedureVariables)
+#IF(NOT VAREXISTS(%ProcedureEnhanceFocus))
+    #DECLARE(%ProcedureEnhanceFocus)
+#ENDIF
+#IF(%WindowEnableEnhanceFocus)
+    #IF(%ProcedureDisableEnhanceFocus)
+        #SET(%ProcedureEnhanceFocus,0)
+    #ELSE
+        #SET(%ProcedureEnhanceFocus,1)
+    #ENDIF
+#ELSE
+    #SET(%ProcedureEnhanceFocus,0)
+#ENDIF
+#!
+#!
+#!
+#GROUP(%EnhanceFocusGlobalIncludeList)
+#IF(%WindowEnableEnhanceFocus)
+#ADD(%GlobalIncludeList,'EFOCUS.INC')
+#PROJECT('EFOCUS.CLW')
+#ENDIF
+#!
+#GROUP(%EnhanceFocusProcedureCodeData)
+EnhancedFocusManager EnhancedFocusClassType
+#!
+#!
+#GROUP(%EnhanceFocusProcedureCodeInit),AUTO
+#DECLARE(%lInitString)
+#SET(%lInitString,'')
+#SET(%ExcludeSelectedDropList,%False)
+#SET(%lInitString,%SelectedDisplayChangeColor&','&%SelectedColor&','&%SelectedStyle&','&%ExcludeSelectedDropList&',')
+#IF(%SelectedRequired)
+#SET(%lInitString,%lInitString&%SelectedRequiredColor&',')
+#ELSE
+#SET(%lInitString,%lInitString&%SelectedColor&',')
+#ENDIF
+#SET(%lInitString,%lInitString&%SelectedDisplayBox&','&%SelectedDisplayBoxFillColor&','&%SelectedDisplayBoxBorderColor&','&%SelectedDisplayBoxBorderSize&',')
+#IF(%SelectedRequiredBox)
+#SET(%lInitString,%lInitString&%SelectedRequiredDisplayBoxFillColor&','&%SelectedRequiredDisplayBoxBorderColor&',')
+#ELSE
+#SET(%lInitString,%lInitString&%SelectedDisplayBoxFillColor&','&%SelectedDisplayBoxBorderColor&',')
+#ENDIF
+#SET(%lInitString,%lInitString&%SelectedCaret&','&%SelectedCaretColor&','''&%SelectedCaretCharacter&''','&%SelectedCaretCharacterSeparation)
+EnhancedFocusManager.Init(%lInitString)
+#IF(%EnableOSK='ON')
+EnhancedFocusManager.SetOnScreenKeyboard(True) !Will enable the OSK always
+#ELSIF(%EnableOSK='OFF')
+EnhancedFocusManager.SetOnScreenKeyboard(False) !Will disable the OSK
+#ENDIF
+#IF(NOT %SelectedSpin)
+EnhancedFocusManager.DisableControlType(CREATE:Spin)
+#ENDIF
+#IF(NOT %SelectedRadio)
+EnhancedFocusManager.DisableControlType(CREATE:Radio)
+#ENDIF
+#IF(NOT %SelectedCheck)
+EnhancedFocusManager.DisableControlType(CREATE:Check)
+#ENDIF
+#!
+#IF(NOT %SelectedText)
+EnhancedFocusManager.DisableControlType(CREATE:Text)
+EnhancedFocusManager.DisableControlType(CREATE:RTF)
+#ENDIF
+#IF(NOT %SelectedList)
+EnhancedFocusManager.DisableControlType(CREATE:Combo)
+EnhancedFocusManager.DisableControlType(CREATE:List)
+#ENDIF
+#IF(NOT %SelectedDropList)
+EnhancedFocusManager.DisableControlType(CREATE:DropCombo)
+EnhancedFocusManager.DisableControlType(CREATE:DropList)
+#ENDIF
+#! LocSelectedCaret=CREATE(0,CREATE:STRING)
+#!
+#!
+#GROUP(%EnhanceFocusProcedureCodeOpen)
+#!
+#!
+#GROUP(%EnhanceFocusProcedureCodeTakeEvent)
+EnhancedFocusManager.TakeEvent()
+#!
+#!
+#!
+#!*******************************************************************************************
+#!
+#!
+#!
+#!
+#GROUP(%UseInsteadGlobalPrompts)
+#BOXED('Field Navigation')
+  #PROMPT('Use ENTER key instead of TAB',CHECK),%GlobalUseEnterInsteadTab,AT(10),DEFAULT(0)
+  #ENABLE(%GlobalUseEnterInsteadTab)
+    #BUTTON('Exclude Controls'),AT(10,,175),HLP('~TPLExcludeControls.htm')
+      #PROMPT('Exclude Control:',@S255),%GlobalUseEnterInsteadTabExclude,MULTI('Exclude Control'),INLINE
+      #!PROMPT('Action when EnterKey is pressed: ',DROP('No Action[No]|Press Default Button[DefaultButton]|POST Event:Accepted to it self[SelfEventAccepted]')),%GlobalUseEnterInsteadTabExcludeAction,DEFAULT('DefaultButton')
+    #ENDBUTTON
+    #PROMPT('Default Action:',DROP('Enable|Disable|Runtime')),%GlobalUseEnterInsteadTabEnable,DEFAULT('Enable')
+    #BOXED,WHERE(%GlobalUseEnterInsteadTabEnable='Runtime')
+      #PROMPT('Default Value:',EDIT(256)),%GlobalUseEnterInsteadTabEnableValue,REQ,DEFAULT('True'),WHENACCEPTED(%SVGlobalExpresionEditor(%GlobalUseEnterInsteadTabEnableValue))
+    #ENDBOXED
+  #ENDENABLE
+#ENDBOXED
+#!
+#!
+#GROUP(%UseInsteadProcedurePrompts)
+  #ENABLE(%GlobalUseEnterInsteadTab)
+    #BOXED('Override Field Navigation key')
+      #ENABLE(%GlobalUseEnterInsteadTab)
+        #PROMPT('Override Use of ENTER key instead of TAB',CHECK),%ProcedureUseEnterInsteadTabOverride,DEFAULT(0),AT(10)
+        #ENABLE(%GlobalUseEnterInsteadTab AND %ProcedureUseEnterInsteadTabOverride),CLEAR
+          #PROMPT('Use ENTER key instead of TAB',CHECK),%WindowUseEnterInsteadTab,DEFAULT(1),AT(10)
+        #ENDENABLE
+        #ENABLE(%GlobalUseEnterInsteadTab AND (NOT %ProcedureUseEnterInsteadTabOverride OR (%ProcedureUseEnterInsteadTabOverride AND %WindowUseEnterInsteadTab))),CLEAR
+          #PROMPT('Disable Left/Right Key on List controls',CHECK),%ProcedureUseEnterInsteadTabExcludeListCombo,DEFAULT(0),AT(10)
+          #PROMPT('Enable Next Tab control selection',CHECK),%ProcedureUseEnterInsteadTabEnableNextTabStop,DEFAULT(0),AT(10)
+          #PROMPT('Use Exclude Global List',CHECK),%ProcedureUseEnterInsteadTabExcludeG,DEFAULT(1),AT(10)
+        #ENDENABLE
+        #ENABLE(%GlobalUseEnterInsteadTab AND (NOT %ProcedureUseEnterInsteadTabOverride OR (%ProcedureUseEnterInsteadTabOverride AND %WindowUseEnterInsteadTab)))
+          #BUTTON('Exclude Controls'),AT(10,,175),HLP('~TPLExcludeControls.htm')
+            #PROMPT('Exclude Control:',CONTROL),%WindowUseEnterInsteadTabExclude,MULTI('Exclude Control'),INLINE
+            #!PROMPT('Action when EnterKey is pressed: ',DROP('No Action[No]|Press Default Button[DefaultButton]|POST Event:Accepted to it self[SelfEventAccepted]|POST Event:Accepted to Control[EventAccepted]|POST Event:Selected to Control[EventSelected]')),%WindowUseEnterInsteadTabExcludeAction,DEFAULT('DefaultButton')
+            #!BOXED,WHERE(%WindowUseEnterInsteadTabExcludeAction='EventAccepted' OR %WindowUseEnterInsteadTabExcludeAction='EventSelected')
+              #!PROMPT('Target Control:',CONTROL),%WindowUseEnterInsteadTabExcludeTarget,REQ
+            #!ENDBOXED
+          #ENDBUTTON
+        #ENDENABLE
+      #ENDENABLE
+    #ENDBOXED
+  #ENDENABLE
+#!
+#!
+#GROUP(%UseInsteadGlobalIncludeList)
+#IF(%GlobalUseEnterInsteadTab)
+#ADD(%GlobalIncludeList,'EFOCUS.INC')
+#PROJECT('EFOCUS.CLW')
+#ENDIF
+#!
+#GROUP(%UseInsteadProcedureVariables)
+#IF(NOT VAREXISTS(%ProcedureUseEnterInsteadTab))
+    #DECLARE(%ProcedureUseEnterInsteadTab)
+#ENDIF
+#IF(%GlobalUseEnterInsteadTab)
+    #IF(%ProcedureUseEnterInsteadTabOverride)
+        #SET(%ProcedureUseEnterInsteadTab,%WindowUseEnterInsteadTab)
+    #ELSE
+        #SET(%ProcedureUseEnterInsteadTab,1)
+    #ENDIF
+#ELSE
+    #SET(%ProcedureUseEnterInsteadTab,0)
+#ENDIF
+#!
+#!
+#GROUP(%UseInsteadProcedureData),AUTO
+#IF(%ProcedureUseEnterInsteadTab)
+    #IF(%GlobalUseEnterInsteadTabEnable='Enable' OR %GlobalUseEnterInsteadTabEnable='Runtime' OR (%ProcedureUseEnterInsteadTabOverride AND %WindowUseEnterInsteadTab))
+LocEnableEnterByTab  BYTE(1)         #<!Used by the ENTER Instead of Tab template
+    #ELSE
+LocEnableEnterByTab  BYTE(0)         #<!Used by the ENTER Instead of Tab template
+    #ENDIF
+EnterByTabManager    EnterByTabClass
+#ENDIF
+#!
+#!
+#!
+#GROUP(%UseInsteadProcedureCodeInit),AUTO
+#IF(%ProcedureUseEnterInsteadTab)
+#DECLARE(%ControlInListtoExclude),MULTI,UNIQUE
+#DECLARE(%DefaultControlInWindow)
+#SET(%DefaultControlInWindow,'')
+#!
+    #IF(ITEMS(%WindowUseEnterInsteadTabExclude) OR (ITEMS(%GlobalUseEnterInsteadTabExclude) AND %ProcedureUseEnterInsteadTabExcludeG))
+      #FOR(%Control)
+        #IF(%ControlType='BUTTON')
+          #IF(EXTRACT(%ControlStatement,'DEFAULT')<>'')
+            #SET(%DefaultControlInWindow,%Control)
+          #ENDIF
+        #ENDIF
+        #IF(%ProcedureUseEnterInsteadTabExcludeG)
+          #IF(%SVInSymbol(%Control,%GlobalUseEnterInsteadTabExclude))
+            #ADD(%ControlInListToExclude,%Control)
+            #CYCLE
+          #ENDIF
+        #ENDIF
+        #IF(%SVInSymbol(%Control,%WindowUseEnterInsteadTabExclude))
+          #ADD(%ControlInListToExclude,%Control)
+        #ENDIF
+      #ENDFOR
+    #ENDIF
+    #IF(%GlobalUseEnterInsteadTabEnable='Runtime')
+LocEnableEnterByTab = %GlobalUseEnterInsteadTabEnableValue
+    #ENDIF
+#IF(%GlobalUseEnterInsteadTabEnable='Disable' OR %GlobalUseEnterInsteadTabEnable='Runtime')
+IF LocEnableEnterByTab
+#ENDIF
+    #FOR(%ControlInListToExclude)
+EnterByTabManager.ExcludeControl(%ControlInListToExclude)
+    #ENDFOR
+#!
+    #IF(%ProcedureUseEnterInsteadTabEnableNextTabStop)
+#INSERT(%UseInsteadProcedureGenerateNextTabStop)
+    #ENDIF
+#!
+    #IF(%ProcedureUseEnterInsteadTabExcludeListCombo)
+EnterByTabManager.Init(True)
+    #ELSE
+EnterByTabManager.Init(False)
+    #ENDIF
+#IF(%GlobalUseEnterInsteadTabEnable='Disable' OR %GlobalUseEnterInsteadTabEnable='Runtime')
+END
+#ENDIF
+#ENDIF
+#!
+#!
+#GROUP(%UseInsteadProcedureCodeTakeEvent)
+#IF(%ProcedureUseEnterInsteadTab)
+    #IF(%GlobalUseEnterInsteadTabEnable='Disable' OR %GlobalUseEnterInsteadTabEnable='Runtime')
+IF LocEnableEnterByTab
+   IF EnterByTabManager.TakeEvent()
+       #IF(%AppTemplateFamily='ABC')
+      RETURN(Level:Notify)
+       #ELSIF(%AppTemplateFamily='CLARION')
+      CYCLE
+       #ENDIF
+   END
+END
+    #ELSE
+IF EnterByTabManager.TakeEvent()
+       #IF(%AppTemplateFamily='ABC')
+   RETURN(Level:Notify)
+       #ELSIF(%AppTemplateFamily='CLARION')
+   CYCLE
+       #ENDIF
+END
+    #ENDIF
+#ENDIF
+#!
+#!
+#!
+#!
+#GROUP(%UseInsteadProcedurePromptsAddExcludeControl,%pControl)
+#FOR(%Control),WHERE(NOT INLIST(%Control,%WindowUseEnterInsteadTabExclude))
+    #IF(INSTRING(UPPER(%pControl),UPPER(%Control)))
+        #ADD(%WindowUseEnterInsteadTabExclude,%Control)
+        #BREAK
+    #ENDIF
+#ENDFOR
+#!
+#!
+#GROUP(%UseInsteadProcedureGenerateNextTabStop),AUTO
+#DECLARE(%lOpenTab)
+#DECLARE(%lLastControl)
+#DECLARE(%lSheetIndent),MULTI
+#DECLARE(%lFirstControl)
+#DECLARE(%lNumbersOfTabs)
+#SET(%lNumbersOfTabs,0)
+#FOR(%Control)
+    #IF(UPPER(%ControlType)='SHEET')
+         #ADD(%lSheetIndent,%ControlIndent)
+         #SELECT(%lSheetIndent,ITEMS(%lSheetIndent))
+         #SET(%lNumbersOfTabs,0)
+      #CYCLE
+    #ENDIF
+    #IF(UPPER(%ControlType)='TAB')
+      #SET(%lNumbersOfTabs,%lNumbersOfTabs+1)
+      #SET(%lOpenTab,%True)
+      #CYCLE
+    #ENDIF
+    #IF(%SVInSymbol(%Control,%ControlInListToExclude))
+      #CYCLE
+    #ENDIF
+    #IF(UPPER(%ControlType)='RTF' OR UPPER(%ControlType)='TEXT' OR UPPER(%ControlType)='SPIN' OR UPPER(%ControlType)='ENTRY' OR UPPER(%ControlType)='BUTTON' OR UPPER(%ControlType)='RADIO' OR UPPER(%ControlType)='CHECK' OR UPPER(%ControlType)='DROPCOMBO' OR UPPER(%ControlType)='COMBO' OR UPPER(%ControlType)='LIST' OR UPPER(%ControlType)='DROPLIST')
+       #IF(%lFirstControl='')
+         #SET(%lFirstControl,%Control)
+       #ENDIF
+       #IF(%lOpenTab)
+          #IF(%lLastControl)
+EnterByTabManager.SetNextTabStop(%lLastControl,%Control)
+          #ENDIF
+          #SET(%lOpenTab,%False)
+       #ELSE
+          #IF(ITEMS(%lSheetIndent) AND %ControlIndent<=%lSheetIndent AND %lNumbersOfTabs>1)
+              #POP(%lSheetIndent)
+              #IF(%lLastControl)
+EnterByTabManager.SetNextTabStop(%lLastControl,%Control)
+              #ENDIF
+          #ENDIF
+       #ENDIF
+       #SET(%lLastControl,%Control)
+    #ENDIF
+#ENDFOR
+#IF(ITEMS(%lSheetIndent) AND %lFirstControl AND %lLastControl AND %lFirstControl<>%lLastControl)
+  #IF(NOT %SVInSymbol(%lFirstControl,%ControlInListToExclude))
+EnterByTabManager.SetNextTabStop(%lLastControl,%lFirstControl)
+  #ENDIF
+#ENDIF
+#!

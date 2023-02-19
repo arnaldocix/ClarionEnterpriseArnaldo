@@ -1,0 +1,56 @@
+<AddIn name        = "Browser"
+       author      = "SoftVelocity"
+       copyright   = "Copyright SoftVelocity 1986-2006"
+       url         = "http://www.SoftVelocity.com"
+       description = "Data File Browser">
+
+	<Manifest>
+		<Identity name = "SoftVelocity.Browser"/>
+		<Dependency addin = "SoftVelocity.ClarionBinding"/>
+		<Dependency addin = "SoftVelocity.DataDictionary"/>
+	</Manifest>
+
+	<Runtime>
+		<Import assembly = "CommonSources.dll"/>
+		<Import assembly = "Browser.dll"/>
+	</Runtime>
+
+	<StringResources file="Resources\Browser.StringResources.resources" />
+	<BitmapResources file="Resources\Browser.BitmapResources.resources" />
+
+  	<!-- Tools Menu-->
+	<Path name = "/SharpDevelop/Workbench/MainMenu/Tools">
+		<MenuItem id           = "BrowserSeparator"
+		          insertbefore = "Separator2"
+		          type         = "Separator"/>
+		<MenuItem id           = "BrowseTable"
+		          insertafter  = "BrowserSeparator"
+		          insertbefore = "Separator2"
+		          label        = "${res:MainMenu.ToolsMenu.BrowseTable}"
+		          class        = "SoftVelocity.DataBrowser.BrowseTable"/>
+	</Path>
+
+	<Path name = "/SharpDevelop/RecentOpenCategories">
+		<String id = "browser" insertbefore = "file" text = "Table"/>
+	</Path>
+
+	<Path name = "/SharpDevelop/StartPage/RecentOpenEvents">
+		<Class id = "OpenTable"
+				class = "SoftVelocity.DataBrowser.BrowseTable"/>
+		<Class id = "OpenRecentTable"
+				class = "SoftVelocity.DataBrowser.BrowseRecent"/>
+	</Path>
+	<Path name = "/SharpDevelop/Workbench/MainMenu/File">
+		<MenuItem id = "RecentTables"
+		          insertafter = "RecentProjects"
+		          insertbefore = "ExitSC:eparator"
+		          label = "${res:SoftVelocity.DataBrowser.FileMenu.RecentTables}"
+		          type="Menu">
+		<MenuItem id = "RecentTablesBuilder" type = "Builder" class = "SoftVelocity.DataBrowser.Commands.RecentTablesMenuBuilder" />
+		<MenuItem id = "RecentTablesSeparator" type = "Separator"  />
+		<MenuItem id = "ClearRecentTables"
+		          label = "${res:SoftVelocity.DataBrowser.FileMenu.ClearRecentTables}"
+		          class = "SoftVelocity.DataBrowser.Commands.ClearRecentTables" />
+		</MenuItem>
+	</Path>
+</AddIn>

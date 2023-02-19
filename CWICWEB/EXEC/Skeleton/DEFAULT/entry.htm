@@ -1,0 +1,43 @@
+<HTML>
+<head>
+<meta name="ts-control" content="entry">
+</head>
+<BODY>
+<FORM>
+<!--Entry.htm -- Start -->
+<TSSCRIPT value="EmbedBeforeControl" type=html>
+</TSSCRIPT>
+<TSSCRIPT include="Disabled || ReadOnly">
+  <TSINCLUDE Name="displayText.htm">
+</TSSCRIPT>
+<TSSCRIPT omit="Disabled || ReadOnly">
+  <TSSCRIPT tag=input attr=name value="Name">
+  <TSSCRIPT tag=input attr=value value="DisplayText">
+  <TSSCRIPT tag=input attr=type text="Password" when="Password">
+  <TSSCRIPT tag=input attr=size value="(Width+2)/4">
+  <TSSCRIPT tag=input attr=onChange text="icSubmitForm()" when="SubmitOnChange">
+  <TSSCRIPT tag=input attr=onFocus text="this.select()" when=SelectOnFocus>
+    <TSSCRIPT include="Req">
+      <table border="0" bgcolor="#FF0000" cellspacing="1" cellpadding="0">
+        <tr><td>
+          <input type=text>
+        </td></tr>
+      </table>
+    </TSSCRIPT>
+    <TSSCRIPT omit="Req">
+      <input type=text>
+    </TSSCRIPT>
+  </TSSCRIPT>
+  </TSSCRIPT>
+  </TSSCRIPT>
+  </TSSCRIPT>
+  </TSSCRIPT>
+  </TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT value="EmbedAfterControl" type=html>
+</TSSCRIPT>
+<!--Entry.htm -- End -->
+</FORM>
+</BODY>
+</HTML>
+

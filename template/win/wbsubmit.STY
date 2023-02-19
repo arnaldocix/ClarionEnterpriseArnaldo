@@ -1,0 +1,204 @@
+[PROPERTYCLASS]
+  NAME: TOPSPEED:Application
+  DESCRIPTOR: 1
+  PROPERTY: NAME(QuickStart.SearchEngines),DESCRIPTION(Select the Search Engines you wish to submit static indexing pages to.),DEVIMP(ASK),DTYPE(MULTIDROP),MULTI(1),QUICKSTART(TOPSPEED:Default),QUICKSTART.PRIORITY(200),QUICKSTART.PROMPT(Search Engines to include),QUICKSTART.WHENAPPLY('TOPSPEED:Frame.SearchEngines(%_Value_%)'),TYPE(STRING)
+  PROPERTY: NAME(QuickStart.SearchEngines.List),DTYPE(ENTRY),HIDDEN(1),LIST(1),LISTFILL.AUTO(1),MULTI(1),TYPE(STRING)
+  [DEFINITION]
+    QUICKSTART.SEARCHENGINES()
+    QUICKSTART.SEARCHENGINES.LIST(Altavista,Excite)
+    SKELETONSUPPORT(1)
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:Frame
+  DESCRIPTOR: 1
+  PROPERTY: NAME(SearchEngines),DESCRIPTION(Select the Search Engines you wish to submit static indexing pages to.),DEVIMP(ASK),DTYPE(MULTIDROP),MULTI(1),TYPE(STRING)
+  PROPERTY: NAME(SearchEngines.List),DTYPE(ENTRY),HIDDEN(1),LIST(1),MULTI(1),TYPE(STRING),LISTFILL.FUNC(%Scope.QuickStart.SearchEngines.List%)
+  PROPERTY: NAME(SearchEngineSubmit),ACORN(1),ACORN.NAME(SearchEngineSubmit),ACORN.WIZARD(*TOPSPEED:ProcedureComponent#SearchEngineSubmission),DESCRIPTION(Test),DEVIMP(USEFUL),DTYPE(CHECK),HIDDEN(1),TYPE(BOOLEAN)
+  [DEFINITION]
+    SEARCHENGINES()
+    SEARCHENGINES.LIST()
+    SEARCHENGINESUBMIT('@EVAL(CHOOSE(@COUNT(SearchEngines)>0))')
+    STATICSITEPAGEGENERATION(1)
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:MenuItem#SearchEngineSubmission
+  DESCRIPTOR: 1
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:MenuItem)
+    MENU(Utility)
+    NAME(TOPSPEED:MenuItem#SearchEngineSubmission)
+    TEXT(Register Site Pages)
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:ControlTemplate#SearchEngineCheckbox
+  DESCRIPTOR: 1
+  PROPERTY: NAME(EngineCheckbox),ACORN(1),ACORN.NAME(Checkbox:%SearchEngineName%),ACORN.WIZARD(^TOPSPEED:Checkbox#SearchEngineSubmission),ACORN.CONTEXT('SearchEngineName(%SearchEngineName%)'),DEVIMP(3),DTYPE(2),LOCKED(1),TYPE(7)
+  PROPERTY: NAME(SearchEngineName),DEVIMP(3),DTYPE(5),HIDDEN(1),LOCKED(1),TYPE(3)
+  PROPERTY: NAME(EngineCheckboxName),DEVIMP(3),DTYPE(5),HIDDEN(1),LOCKED(1),TYPE(3)
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:ControlTemplate)
+    CONTROLTEMPLATEINSTANCE('@CONTAINER(Name)')
+    NAME(TOPSPEED:ControlTemplate#SearchEngineCheckbox)
+    ENGINECHECKBOX(1)
+    ENGINECHECKBOXNAME('@EXTRACT(EngineCheckbox,Use.Label)')
+    SEARCHENGINENAME()
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:Checkbox#SearchEngineSubmission
+  DESCRIPTOR: 1
+  PROPERTY: NAME(SearchEngineName),DEVIMP(3),DTYPE(5),HIDDEN(1),LOCKED(1),TYPE(3)
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:Checkbox)
+    NAME(TOPSPEED:Checkbox#SearchEngineSubmission)
+    TEXT(Submit to %SearchEngineName%)
+    TRANSPARENT(1)
+    USE.LABEL(?%SearchEngineName%)
+    ALLOCATION.ZONE(Zone:SouthWest)
+    SEARCHENGINENAME()
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:Window#SearchEngineSubmission
+  DESCRIPTOR: 1
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:Window)
+    ALLOCATION.XSPACING(2)
+    ALLOCATION.YSPACING(2)
+    AT.EASTMARGIN(5)
+    AT.NORTHMARGIN(5)
+    AT.WESTMARGIN(5)
+    FRAMESTYLE(Double)
+    ICON()
+    MAX(0)
+    NAME(TOPSPEED:Window#SearchEngineSubmission)
+    TYPE(SDI Child)
+    TITLE(Register static Site Pages)
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:ProcedureComponent#SearchEngineSubmission
+  DESCRIPTOR: 1
+  PROPERTY: NAME(MenuItem),ACORN(1),ACORN.NAME(ITEM: SubmitToSearchEngines),ACORN.CONTEXT('Text(Register with Search Engines),Item.Procedure(SubmitToSearchEngines)'),ACORN.NAME(Search Engine Registration Menu Item),ACORN.WIZARD('^(Scope.MenuManager)MenuItem#SearchEngineSubmission'),DTYPE(CHECK),TYPE(BOOLEAN)
+  PROPERTY: NAME(WindowManager),ACORN.WIZARD(Window#SearchEngineSubmission)
+  PROPERTY: NAME(Output.Category),STOP(1)
+  PROPERTY: NAME(PostToSearchEngine),ACORN(1),ACORN.NAME(HttpPostEngine),ACORN.WIZARD(TOPSPEED:ControlTemplate#PostToSearchEngine),DEVIMP(3),DTYPE(2),LOCKED(1),TYPE(7)
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:ProcedureComponent)
+    MENUITEM(1)
+    NAME(TOPSPEED:ProcedureComponent#SearchEngineSubmission)
+    OUTPUT.DESCRIPTION(Submit static site pages to Search Engines)
+    OUTPUT.PROCNAME(SubmitToSearchEngines)
+    POSTTOSEARCHENGINE(1)
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:ControlTemplate#SearchEngineSubmission
+  DESCRIPTOR: 1
+  PROPERTY: NAME(HttpStrings),DEVIMP(BAROQUE),DTYPE(EDITLIST),HIDDEN(1),LISTFILL.CONVERT('''%_Value_%'''),LOCKED(1),MULTI(1),OUTPUT.NAME(HttpStrings),OUTPUT.DEPENDS(EngineSubmitter),OUTPUT.INSTANCEPARENTVALUE(%SearchEngineName%),OUTPUT.INSTANCEVALUE(%_Value_%),OUTPUT.TYPE(STRING)
+  PROPERTY: NAME(HttpStringValues),DEVIMP(BAROQUE),DTYPE(EDITLIST),HIDDEN(1),LOCKED(1),MULTI(1),OUTPUT.DEPENDS(HttpStrings),OUTPUT.NAME(HttpStringValues),OUTPUT.TYPE(STRING)
+  PROPERTY: NAME(SearchEngineName),DEVIMP(3),DTYPE(5),HIDDEN(1),LOCKED(1),TYPE(3)
+  PROPERTY: NAME(ServerName),DEVIMP(3),DTYPE(5),TYPE(3)
+  PROPERTY: NAME(URLOfSubmitPage),DEVIMP(3),DTYPE(5),TYPE(3)
+  PROPERTY: NAME(URLToSubmit),DEVIMP(3),DTYPE(5),TYPE(3)
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:ControlTemplate)
+    CONTROLTEMPLATEINSTANCE('@CONTAINER(Name)')
+    GENERATEPRIORITY(20)
+    HTTPSTRINGS()
+    HTTPSTRINGVALUES()
+    NAME(TOPSPEED:ControlTemplate#SearchEngineSubmission)
+    SEARCHENGINENAME()
+    SERVERNAME()
+    TEMPLATECHAIN(Web)
+    URLOFSUBMITPAGE()
+    URLTOSUBMIT(My_Site_URL)
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:ControlTemplate#SearchEngineSubmission#Altavista
+  DESCRIPTOR: 1
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:ControlTemplate#SearchEngineSubmission)
+    NAME(TOPSPEED:ControlTemplate#SearchEngineSubmission#Altavista)
+    SERVERNAME(add-url.altavista.com)
+    URLOFSUBMITPAGE(cgi-bin\newurl)
+    HTTPSTRINGS(ad,q)
+    HTTPSTRINGVALUES(1,%UrlToSubmit%)
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:ControlTemplate#SearchEngineSubmission#Excite
+  DESCRIPTOR: 1
+  PROPERTY: NAME(EmailAddress),DEVIMP(3),DTYPE(5),TYPE(3)
+  PROPERTY: NAME(Language),DEVIMP(3),DTYPE(SINGLEDROP),TYPE(3)
+  PROPERTY: NAME(Language.List),DTYPE(ENTRY),HIDDEN(1),LIST(1),MULTI(1),TYPE(STRING)
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:ControlTemplate#SearchEngineSubmission)
+    NAME(TOPSPEED:ControlTemplate#SearchEngineSubmission#Excite)
+    SERVERNAME(www.excite.com)
+    URLOFSUBMITPAGE(cgi\add_url_new.cgi)
+    EMAILADDRESS(My_Email_Address)
+    LANGUAGE(English)
+    LANGUAGE.LIST(English,Chinese,Dutch,French,German,Italian,Japanese,Norwegian,Portugese,Spanish,Other)
+    HTTPSTRINGS(url,email,language,country)
+    HTTPSTRINGVALUES(%UrlToSubmit%,%EmailAddress%,%Language%,)
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:ControlTemplate#PostToSearchEngine
+  DESCRIPTOR: 1
+  PROPERTY: NAME(SubmitButtonControl),ACORN(1),ACORN.NAME(SubmitButtonControl),ACORN.WIZARD(TOPSPEED:ControlTemplate#SubmitButton),DEVIMP(3),DTYPE(2),TYPE(7)
+  PROPERTY: NAME(SearchEngineCheckbox),ACORN(1),ACORN.PRIORITY(100),ACORN.NAME(SearchEngineCheckbox:%_VALUE_%),ACORN.WIZARD(TOPSPEED:ControlTemplate#SearchEngineCheckbox),ACORN.CONTEXT('SearchEngineName(%_VALUE_%)'),DEVIMP(3),DTYPE(MULTIDROP),MULTI(1),LOCKED(1),TYPE(7)
+  PROPERTY: NAME(SearchEngineCheckbox.List),DTYPE(ENTRY),HIDDEN(1),LIST(1),MULTI(1),TYPE(STRING),LISTFILL.AUTO(1),LISTFILL.FUNC(%Scope.SearchEngines%)
+  PROPERTY: NAME(EngineSubmitter),ACORN(1),ACORN.NAME(SearchEngineSubmitter:%_VALUE_%),ACORN.CONTEXT('SearchEngineName(%_VALUE_%)'),ACORN.WIZARD(TOPSPEED:ControlTemplate#SearchEngineSubmission#%_VALUE_%),DESCRIPTION(),DEVIMP(ASK),DTYPE(MULTIDROP),MULTI(1),TYPE(STRING),HIDDEN(1),LOCKED(1),OUTPUT.NAME(SearchEngines),OUTPUT.TYPE(STRING)
+  PROPERTY: NAME(EngineSubmitter.List),DTYPE(ENTRY),HIDDEN(1),LIST(1),MULTI(1),TYPE(STRING),LISTFILL.AUTO(1),LISTFILL.FUNC(%Scope.SearchEngines%)
+  PROPERTY: NAME(ServerNames),DEVIMP(5),DTYPE(16),HIDDEN(1),LISTFILL.CONVERT('@EXTRACT(EngineSubmitter[@INDEX(EngineSubmitter,%_VALUE_%)],ServerName)'),LISTFILL.FUNC(%EngineSubmitter%),LOCKED(1),MULTI(1),OUTPUT.DEPENDS(EngineSubmitter),OUTPUT.NAME(ServerName),TYPE(3)
+  PROPERTY: NAME(URLsOfSubmitPages),DEVIMP(5),DTYPE(16),HIDDEN(1),TYPE(3),LISTFILL.CONVERT('@EXTRACT(EngineSubmitter[@INDEX(EngineSubmitter,%_VALUE_%)],URLOfSubmitPage)'),LISTFILL.FUNC(%EngineSubmitter%),LOCKED(1),MULTI(1),OUTPUT.DEPENDS(EngineSubmitter),OUTPUT.NAME(URLOfSubmitPage)
+  PROPERTY: NAME(URLsToSubmit),DEVIMP(5),DTYPE(16),HIDDEN(1),TYPE(3),LISTFILL.CONVERT('@EXTRACT(EngineSubmitter[@INDEX(EngineSubmitter,%_VALUE_%)],URLToSubmit)'),LISTFILL.FUNC(%EngineSubmitter%),LOCKED(1),MULTI(1),OUTPUT.DEPENDS(EngineSubmitter),OUTPUT.NAME(URLToSubmit)
+  PROPERTY: NAME(CheckboxControls),DEVIMP(5),DTYPE(16),LISTFILL.CONVERT('@EXTRACT(SearchEngineCheckbox[@INDEX(SearchEngineCheckbox,%_VALUE_%)],EngineCheckboxName)'),LISTFILL.FUNC(%SearchEngineCheckbox%),LISTFILL.AUTO(1),LOCKED(1),MULTI(1),OUTPUT.DEPENDS(EngineSubmitter),OUTPUT.NAME(SearchEngineControl),TYPE(3)
+  PROPERTY: NAME(UserName),DEVIMP(3),DTYPE(5),OUTPUT.NAME(UserName),TYPE(3)
+  PROPERTY: NAME(Password),DEVIMP(3),DTYPE(5),OUTPUT.NAME(Password),TYPE(3)
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:ControlTemplate)
+    CONTROLTEMPLATE(WebHttpEngine)
+    ENGINESUBMITTER()
+    ENGINESUBMITTER.LIST()
+    FIELD.LABELS()
+    GENERATEPRIORITY(200)
+    NAME(TOPSPEED:ControlTemplate#PostToSearchEngine)
+    SEARCHENGINECHECKBOX()
+    SEARCHENGINECHECKBOX.LIST()
+    SUBMITBUTTONCONTROL(1)
+    TEMPLATECHAIN(Web)
+    USERNAME(Anonymous)
+    PASSWORD()
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:ControlTemplate#SubmitButton
+  DESCRIPTOR: 1
+  PROPERTY: NAME(SubmitButton),ACORN(1),ACORN.NAME(SubmitButton),ACORN.WIZARD(^TOPSPEED:Button#Submit),DEVIMP(3),DTYPE(2),LOCKED(1),TYPE(7)
+  PROPERTY: NAME(SubmitButtonName),DEVIMP(3),DTYPE(5),HIDDEN(1),LOCKED(1),OUTPUT.NAME(SubmitControl),TYPE(3)
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:ControlTemplate)
+    CONTROLTEMPLATEINSTANCE('@CONTAINER(Name)')
+    NAME(TOPSPEED:ControlTemplate#SubmitButton)
+    SUBMITBUTTON(1)
+    SUBMITBUTTONNAME('@EXTRACT(SubmitButton,Use.Label)')
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:Button#Submit
+  DESCRIPTOR: 1
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:Button)
+    NAME(TOPSPEED:Button#Submit)
+    TEXT(&Submit)
+    USE.LABEL(?Submit)
+    AT.WESTOFFSET(130)
+  [END]
+[END]

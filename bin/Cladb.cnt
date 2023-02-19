@@ -1,0 +1,14 @@
+:Base C70db.hlp
+:Title Clarion 7 Win32 Debugger
+1 The Clarion 7 Win32 Debugger
+2 Contents=Contents
+2 New Debugger Features=New_Features_in_Version_6_2
+2 Overview: The Debugging Process=Overview__The_Debugging_Process
+2 Preparing Your Projects for Debugging=Preparing_Your_Projects_for_Debugging
+2 Starting the Debugger=Starting_the_Debugger
+2 Loading the Source Files=Loading_the_Source_Files
+2 Setting Debugger Options=Setting_Debugger_Options
+2 The Debugger Windows=The_Debugger_Windows
+2 Setting Breakpoints=Setting_Breakpoints
+2 Running the Program=Running_the_Program
+2 Editing Variables at Run Time=Editing_Variables_at_Run_Time

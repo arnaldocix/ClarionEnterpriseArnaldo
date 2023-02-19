@@ -1,0 +1,50 @@
+#CONTROL(Evolution_PDP,'EC Reporte - Pagina de Pagina (Reports)'),REPORT,MULTI,REQ(Ec_Rpt_Ex_Global)
+#RESTRICT
+  #IF(UPPER(%ProcedureTemplate) = 'REPORT')
+    #ACCEPT
+  #ELSE
+    #REJECT
+  #ENDIF
+#ENDRESTRICT
+ CONTROLS
+  STRING('PrintPages_to_Pages'),AT(3500,0),TRN,USE(?PaginaNdeX),FONT('Courier New',7,,)
+  END
+#SHEET
+  #Tab('General')
+ #INSERT(%EvoVersion)
+  #DISPLAY('Cararteristicas del Control Template')
+  #DISPLAY('Inserta Pagina de Pagina')
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #DISPLAY()
+  #EndTab
+#TAB('&About')
+#INSERT(%EvoVersion)
+#INSERT(%EvoImage)
+#ENDTAB
+#ENDSHEET
+
+#LOCALDATA
+NumberRecords LONG
+#ENDLOCALDATA
+
+#AT(%PreviewerManagerMethodCodeSection,'Ask','()'),PRIORITY(4500)
+  #CALL(%ecstart)
+  NumberRecords = Records(SELF.ImageQueue)
+  PDP(SELF.ImageQueue,NumberRecords)        
+  #CALL(%ecend)
+#ENDAT

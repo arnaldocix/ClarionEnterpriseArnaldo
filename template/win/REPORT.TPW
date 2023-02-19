@@ -1,0 +1,1035 @@
+#GROUP(%PreviewerVirtuals, %TreeText, %DataText, %CodeText)
+#EMBED(%PreviewerMethodDataSection,'Print Previewer Method Data Section'),%pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(%FixClassName(%FixBaseClassToUse('Previewer'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%PreviewerManagerMethodCodeSection,'Print Previewer Method Executable Code Section'),%pClassMethod,%pClassMethodPrototype,PREPARE(%FixClassName(%FixBaseClassToUse('Previewer'))),TREE(%TreeText & %CodeText)
+#!
+#!
+#PROCEDURE(Report,'Generic Reporting Procedure'),REPORT,WINDOW,PRIMARY('Report Procedure',OPTKEY),HLP('~TPLProcReport.htm'),QUICK(ReportWizard(Wizards))
+#LOCALDATA
+RejectRecord         LONG
+LocalRequest         LONG
+OriginalRequest      LONG
+LocalResponse        LONG
+FilesOpened          LONG
+WindowOpened         LONG
+RecordsToProcess     LONG,AUTO
+RecordsProcessed     LONG,AUTO
+RecordsPerCycle      LONG,AUTO
+RecordsThisCycle     LONG,AUTO
+PercentProgress      BYTE
+RecordStatus         BYTE,AUTO
+WindowInitialized    LONG
+ForceRefresh         LONG
+#ENDLOCALDATA
+#PREPARE
+  #IF(%GlobalUseABCClasess AND %GlobalReportPreviewMode<>'Procedure')
+    #CALL(%ReadABCFiles)
+    #CALL(%SetClassDefaults, 'Previewer','Previewer',%PrintPreviewType)
+  #ENDIF
+#ENDPREPARE
+#ENABLE(%ProcedureType='FUNCTION')
+  #PROMPT('Return Value:',FIELD),%ReturnValue
+#ENDENABLE
+#INSERT(%StandardWindowPrompts)
+#PROMPT('Window Message:',@S40),%WindowMessage
+#BUTTON('Report Propert&ies'),AT(10,,180)
+  #BOXED,HIDE
+    #INSERT(%OOPHiddenPrompts)
+  #ENDBOXED
+  #BOXED,HIDE
+    #BUTTON('TargetList'),MULTI(%ReportTargetList,%ReportTargetListName),INLINE
+      #PROMPT('',@S100),%ReportTargetListName
+      #PROMPT('',@S100),%ReportTargetListClass
+      #PROMPT('',@S100),%ReportTargetListObject
+      #PROMPT('',@S200),%ReportTargetListCondition
+    #ENDBUTTON
+  #ENDBOXED
+  #BOXED,HIDE
+    #BUTTON('Hidden Controls'),MULTI(%ReportTargetHiddenControls,%ReportTargetHiddenControl),INLINE
+      #PROMPT('Control:',@S100),%ReportTargetHiddenControl
+      #PROMPT('Template:',@S100),%ReportTargetHiddenControlTemplate
+    #ENDBUTTON
+  #ENDBOXED
+  #SHEET,HSCROLL
+    #TAB('&General'),HLP('~TPLProcReport.htm#General')
+      #PROMPT('Print Preview',CHECK),%EnablePrintPreview,DEFAULT(1)
+      #PROMPT('Data Source:',DROP('File|Queue|Memory')),%ReportDataSource,DEFAULT('File')
+      #BOXED,SECTION
+        #BOXED,WHERE(%ReportDataSource='File'),AT(,0)
+          #PROMPT('Quick-Scan Records',CHECK),%EnableQuickScan,DEFAULT(1)
+          #PROMPT('&Record Filter:',EDIT),%RecordFilter,WHENACCEPTED(%SVExpresionEditor(%RecordFilter))
+          #ENABLE(%RecordFilter OR %RangeField)
+            #PROMPT('Approx. Record Count:',@N6),%ApproxRecordCount
+          #ENDENABLE
+          #INSERT(%AdditionalSortFieldsOptions)
+        #ENDBOXED
+        #BOXED,WHERE(%ReportDataSource='Queue'),AT(,0)
+          #PROMPT('Queue Name:',EXPR),%ReportDataSourceQueueName,REQ
+        #ENDBOXED
+        #BOXED,WHERE(%ReportDataSource='Memory'),AT(,0)
+          #DISPLAY
+          #DISPLAY('The report will be executed and no iteration')
+          #DISPLAY('will be made over the file.')
+        #ENDBOXED
+      #ENDBOXED
+      #BUTTON('&IPDRV Options'),AT(,,175),HLP('~TPLProcReport_IPDRV.htm')
+        #PROMPT('Use MRP (Multiple Request Packet)',CHECK),%UseMRP,AT(10),DEFAULT(%True)
+        #DISPLAY
+        #DISPLAY('If you have any file access commands in your embed code')
+        #DISPLAY('that are issued in the LOOP where Process')
+        #DISPLAY('each record, set the "Use MRP" to FALSE')
+      #ENDBUTTON
+    #ENDTAB
+    #TAB('Report &Targets'),WHERE(ITEMS(%ReportTargetList)>0 AND %GlobalUseABCClasess),HLP('~TPLProcReport.htm#Targets')
+      #BOXED,SECTION
+        #BOXED,AT(0,0)
+          #PROMPT('Report Target:',DROP('Printer[Printer]|Other[Other]|Ask at Runtime[Ask]')),%ReportTargetOutput,DEFAULT('Printer')
+          #ENABLE(%ReportTargetOutput='Ask')
+            #PROMPT('Add Printer as an option',CHECK),%ReportTargetAskWithPrint,DEFAULT(%True)
+          #ENDENABLE
+          #ENABLE(%ReportTargetOutput='Other')
+            #PROMPT('Other Target:',FROM(%ReportTargetList,CLIP(%ReportTargetListCondition)='',%ReportTargetListName)),%ReportTargetOtherOutput,REQ
+          #ENDENABLE
+          #PROMPT('Hide report output progress window',CHECK),%HideOutputProgress,DEFAULT(%False),AT(10)
+          #BUTTON('Hidden Controls'),FROM(%ReportTargetHiddenControls,%ReportTargetHiddenControl&' - BY:'&%ReportTargetHiddenControlTemplate),HLP('~TPLProcReport.htm#Targets'),AT(10,,175)
+            #DISPLAY('Control:'&%ReportTargetHiddenControl)
+            #DISPLAY('Template:'&%ReportTargetHiddenControlTemplate)
+            #DISPLAY
+            #DISPLAY('This control will be hide in runtime')
+            #DISPLAY('and will not be displayed on the Preview')
+            #DISPLAY('or printed.')
+          #ENDBUTTON
+        #ENDBOXED
+      #ENDBOXED
+    #ENDTAB
+    #TAB('&Preview Options'),WHERE(%EnablePrintPreview AND %GlobalUseABCClasess AND %GlobalReportPreviewMode<>'Procedure')
+      #PROMPT('Runtime Skip Preview:',EDIT(1024)),%RuntimeSkipPreview,DEFAULT('False'),REQ,WHENACCEPTED(%SVExpresionEditor(%RuntimeSkipPreview))
+      #PROMPT('Initial Zoom Setting:',DROP('No Zoom|Page Width|50%|75%|100%|200%|300%')),%InitialZoom,DEFAULT('No Zoom')
+      #PROMPT('Allow User Variable Zooms',CHECK),%AllowUserZooms,DEFAULT(%True),AT(10)
+      #PROMPT('Set Initial Window &Position',CHECK),%InitWindowPosition,DEFAULT(%False),AT(10)
+      #ENABLE(%InitWindowPosition)
+        #PROMPT('&X Position:',SPIN(@N5,0,65535)),%WinXPos,AT(,,40),REQ
+        #PROMPT('&Y Position:',SPIN(@N5,0,65535)),%WinYPos,AT(,,40),REQ
+        #PROMPT('&Width:',SPIN(@N5,0,65535)),%WinWidth,AT(,,40),DEFAULT(315),REQ
+        #PROMPT('&Height:',SPIN(@N5,0,65535)),%WinHeight,AT(,,40),DEFAULT(200),REQ
+      #ENDENABLE
+      #PROMPT('&Maximize Preview Window:',CHECK),%MaximizePreviewWindow,DEFAULT(%False),AT(10)
+    #ENDTAB
+    #TAB('&Preview Options'),WHERE(%EnablePrintPreview AND (NOT %GlobalUseABCClasess OR (%GlobalUseABCClasess AND %GlobalReportPreviewMode='Procedure')))
+      #PROMPT('Runtime Skip Preview:',EDIT(1024)),%RuntimeSkipPreview,DEFAULT('False'),REQ,WHENACCEPTED(%SVExpresionEditor(%RuntimeSkipPreview))
+      #PROMPT('Override Global Report Preview Procedure',CHECK),%OverrideGlobalReportPreviewProcedure,DEFAULT(%False),AT(10)
+      #ENABLE(%OverrideGlobalReportPreviewProcedure)
+        #PROMPT('Report Preview Procedure',PROCEDURE),%ReportPreviewProcedure,DEFAULT(%GlobalReportPreview),REQ
+      #ENDENABLE
+    #ENDTAB
+    #TAB('&Range Limits'),WHERE(%PrimaryKey AND %ReportDataSource='File'),HLP('~TPLProcReport.htm#Range_Limits')
+      #INSERT(%RangeLimitOptions)
+    #ENDTAB
+    #TAB('&Range Limits'),WHERE(NOT %PrimaryKey AND %ReportDataSource='File'),HLP('~TPLProcReport.htm#Range_Limits')
+      #DISPLAY('To use a range limit, your report must use a key. You will not be able to specify a range limit until you''ve specified the report''s key.'),AT(10,30,175,30)
+    #ENDTAB
+    #TAB('&Hot Fields'),WHERE(%ReportDataSource='File'),HLP('~TPLProcReport_Hot_Fields')
+      #BUTTON('"Hot" Fields'),AT(10,,180),MULTI(%HotFields,%HotField),INLINE,HLP('~TPLProcReport.htm#HotFields')
+        #PROMPT('Hot Field:',FIELD),%HotField,REQ
+        #PROMPT('BIND Field',CHECK),%HotFieldBound
+      #ENDBUTTON
+    #ENDTAB
+    #TAB('&Detail Filters'),HLP('~TPLProcReport.htm#DetailFilters')
+      #BUTTON('&Detail Filters'),FROM(%ReportControl,%ReportControlLabel&' - '&%DetailFilter),WHERE(%ReportControlType = 'DETAIL'),INLINE,HLP('~TPLProcReport.htm#DetailFilters')
+        #PROMPT('Filter:',EDIT),%DetailFilter,WHENACCEPTED(%SVExpresionEditorWithFind(%DetailFilter,%ReportControl,%ReportControl,%Report))
+        #ENABLE(%DetailFilter)
+          #PROMPT('Exclude unfiltered:',CHECK),%DetailFilterExclusive
+        #ENDENABLE
+      #ENDBUTTON
+    #ENDTAB
+    #TAB('&Classes'),WHERE(%GlobalUseABCClasess AND %EnablePrintPreview AND %GlobalReportPreviewMode<>'Procedure'),HLP('~TPLProcReport.htm')
+      #BUTTON('P&reviewer Class'),AT(,,180),WHERE(%EnablePrintPreview)
+        #WITH(%ClassItem,'Previewer')
+          #INSERT(%ClassPrompts)
+        #ENDWITH
+      #ENDBUTTON
+    #ENDTAB
+  #ENDSHEET
+#ENDBUTTON
+#!
+#CLASS('Procedure Setup','Upon Entry into the Procedure')
+#CLASS('Before Lookups','After Record Retrieved, Before Lookups')
+#CLASS('After Lookups','After Record Retrieved, After Lookups')
+#CLASS('Procedure Exit','Before Leaving the Procedure')
+#CLASS('Before Range Check','In Validate Record ROUTINE, Before Range Limit Code')
+#CLASS('Before Filter Check','In Validate Record ROUTINE, Before Filter Code')
+#CLASS('Before Print Detail','Before Printing Report Detail')
+#!
+#ATSTART
+  #FREE(%ReportTargetHiddenControls)
+  #FREE(%ReportTargetList)
+  #DECLARE(%LocalReportPreviewProcedure)
+  #DECLARE(%LocalReportPreviewQueue)
+  #DECLARE(%PreviewZoomValue)
+  #DECLARE(%ListView)
+  #SET(%ListView,'Process:View')
+  #DECLARE(%QueueField),UNIQUE
+  #DECLARE(%ListViewBoundField),UNIQUE
+  #DECLARE(%QueueFieldAssignment,%QueueField)
+  #DECLARE(%ProcessFilter)
+  #DECLARE(%InstancePrefix)
+  #DECLARE(%Temp1)
+  #DECLARE(%Temp2)
+  #CASE(%RangeLimitType)
+  #OF('Range of Values')
+    #SET(%Temp1,%RangeLow)
+    #SET(%Temp2,%RangeHigh)
+  #OF('Single Value')
+    #SET(%Temp1,%RangeLimit)
+  #OF('File Relationship')
+    #SET(%Temp1,%RangeFile)
+  #ENDCASE
+  #INSERT(%StandardViewFilter,%RecordFilter,%PrimaryKey,%RangeField,%RangeLimitType,'Report:Save:',%Temp1,%Temp2,'Construct')
+  #SET(%ProcessFilter,%ValueConstruct)
+  #IF(%PrimaryKey)
+    #FIX(%File,%Primary)
+    #FIX(%Key,%PrimaryKey)
+    #FOR(%KeyField)
+      #ADD(%QueueField,%KeyField)
+    #ENDFOR
+  #ENDIF
+  #FOR (%HotFields)
+    #ADD(%QueueField,%HotField)
+    #SET(%QueueFieldAssignment,%HotField)
+    #IF (%HotFieldBound)
+      #ADD(%ListViewBoundField,%HotField)
+    #ENDIF
+  #ENDFOR
+  #FOR (%Formula), WHERE( ITEMS(%FormulaField) )
+    #FOR (%FormulaField)
+      #ADD(%QueueField,%FormulaField)
+      #SET(%QueueFieldAssignment,%FormulaField)
+    #ENDFOR
+  #ENDFOR
+  #FOR (%ReportControl), WHERE(%ReportControlUse)
+    #ADD(%QueueField,%ReportControlUse)
+    #SET(%QueueFieldAssignment,%ReportControlUse)
+  #ENDFOR
+  #INSERT(%FindProcessControls)
+  #DECLARE(%PreviewerObjectName)
+  #IF(%GlobalUseABCClasess AND %EnablePrintPreview AND %GlobalReportPreviewMode<>'Procedure')
+      #CALL(%SetClassDefaults, 'Previewer','Previewer',%PrintPreviewType)
+      #CALL(%SetClassItem,'Previewer')
+      #SET(%PreviewerObjectName,%ThisObjectName)
+  #ENDIF
+#ENDAT
+#AT(%CustomGlobalDeclarations)
+  #IF(%EnablePrintPreview)
+    #SET(%PrintPreviewUsed,%True)
+  #ENDIF
+  #INSERT(%StandardGlobalSetup)
+#ENDAT
+#AT(%CustomModuleDeclarations)
+  #IF(%GlobalUseABCClasess AND %EnablePrintPreview)
+  #CALL(%AddModuleIncludeFile,%ReportTargetSelectorManagerType)
+  #CALL(%AddModuleIncludeFile,'WMFDocumentParser')
+  #ENDIF
+#ENDAT
+#INSERT(%StandardWindowCode)
+#AT(%BeforeBind)
+  #INSERT(%StandardViewFilter,%RecordFilter,%PrimaryKey,%RangeField,%RangeLimitType,'Report:Save:',%Temp1,%Temp2,'Bind')
+  #FOR( %ListViewBoundField )
+    #FIND(%Field,%ListViewBoundField)
+    #IF (NOT %FieldFile OR %FieldName)
+    #CALL(%AddFieldToBindToList,%ListViewBoundField)
+    #ENDIF
+  #ENDFOR
+  #IF(%RecordFilter)
+      #CALL(%ProcedureBindParseText,%RecordFilter)
+  #ENDIF
+#ENDAT
+#!
+#! ABC
+#!
+#AT(%CustomModuleDeclarations),WHERE(%GlobalUseABCClasess AND %EnablePrintPreview AND %GlobalReportPreviewMode<>'Procedure' AND ITEMS(%ReportTargetList)<1)
+        #CALL(%SVAddProcedureToModule, %Procedure&'_ABCReportPreview','(PreviewQueue ImageQueue, PrintPreviewClass PV)')
+#ENDAT
+#AT(%CustomModuleDeclarations),WHERE(%GlobalUseABCClasess AND %EnablePrintPreview AND %GlobalReportPreviewMode<>'Procedure' AND ITEMS(%ReportTargetList))
+        #CALL(%SVAddProcedureToModule, %Procedure&'_ABCReportPreview','(PreviewQueue ImageQueue, PrintPreviewClass PV, <ReportTargetSelectorClass pTargetSelector>, <WMFDocumentParser pWMFDocParser>)')
+#ENDAT
+#AT(%CustomModuleDeclarations),WHERE(%GlobalUseABCClasess AND %EnablePrintPreview AND %GlobalReportPreviewMode<>'Procedure')
+  #CALL(%AddObjectList, 'Previewer')
+#ENDAT
+#!
+#AT(%PreviewerManagerMethodCodeSection),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE((%GlobalUseABCClasess AND %EnablePrintPreview AND %GlobalReportPreviewMode<>'Procedure') AND %ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#!
+#!
+#AT(%LocalProcedures),WHERE(%GlobalUseABCClasess AND %EnablePrintPreview AND %GlobalReportPreviewMode<>'Procedure')
+  #IF(%EnablePrintPreview)
+    #CALL(%GenerateVirtuals, 'Previewer', 'Local Objects|Abc Objects|Previewer', '%PreviewerVirtuals(Clarion)')
+    #IF(ITEMS(%ReportTargetList))
+%Procedure_ABCReportPreview              PROCEDURE(PreviewQueue ImageQueue,PrintPreviewClass PV, <ReportTargetSelectorClass pTargetSelector>, <WMFDocumentParser pWMFDocParser>)
+    #ELSE
+%Procedure_ABCReportPreview              PROCEDURE(PreviewQueue ImageQueue,PrintPreviewClass PV)
+    #ENDIF
+#EMBED(%PreviewerProcedureDataSection,'Print Previewer Procedure Data Section')
+  CODE
+  #EMBED(%PreviewerProcedureCodeSection,'Print Previewer Procedure Executable Code Section')
+  #ENDIF
+#ENDAT
+#AT(%PreviewerProcedureDataSection),PRIORITY(5000),WHERE(%GlobalUseABCClasess AND %EnablePrintPreview AND %GlobalReportPreviewMode<>'Procedure')
+DoFlush     UNSIGNED,AUTO
+#ENDAT
+#AT(%PreviewerProcedureCodeSection),PRIORITY(5000),WHERE(%GlobalUseABCClasess AND %EnablePrintPreview AND %GlobalReportPreviewMode<>'Procedure')
+#IF(ITEMS(%ReportTargetList))
+IF OMITTED(3)
+   PV.Init(ImageQueue)
+ELSE
+   PV.Init(ImageQueue,pTargetSelector, pWMFDocParser)
+END
+#ELSE
+PV.Init(ImageQueue)
+#ENDIF
+  #CASE(%InitialZoom)
+  #OF('Page Width')
+    #SET(%PreviewZoomValue,'PageWidth')
+  #OF('50%')
+    #SET(%PreviewZoomValue,'50')
+  #OF('75%')
+    #SET(%PreviewZoomValue,'75')
+  #OF('100%')
+    #SET(%PreviewZoomValue,'100')
+  #OF('200%')
+    #SET(%PreviewZoomValue,'200')
+  #OF('300%')
+    #SET(%PreviewZoomValue,'300')
+  #ENDCASE
+#!PV.SetINIManager(INIMgr)
+  #IF(%AllowUserZooms)
+PV.AllowUserZoom=True
+  #ENDIF
+#!  #IF(%EnableRunTimeTranslator)
+#!PV.AddItem(Translator)
+#!  #ENDIF
+  #IF(%InitWindowPosition)
+PV.SetPosition(%WinXPos,%WinYPos,%WinWidth,%WinHeight)
+  #ENDIF
+  #IF(%MaximizePreviewWindow)
+PV.Maximize=True
+  #ENDIF
+DoFlush = PV.Display(%PreviewZoomValue)
+PV.Kill
+IF DoFlush
+   GlobalResponse = RequestCompleted
+ELSE
+   GlobalResponse = RequestCancelled
+END
+#ENDAT
+#!
+#!
+#AT(%LocalDataClasses),WHERE(%GlobalUseABCClasess AND %EnablePrintPreview AND %GlobalReportPreviewMode<>'Procedure')
+#INSERT(%GenerateClass, 'Previewer', 'Print Previewer')
+#ENDAT
+#AT(%LocalDataClasses),WHERE(%GlobalUseABCClasess AND %EnablePrintPreview AND ITEMS(%ReportTargetList)>0)
+  #CALL(%MakeDeclr, 22, %OOPConstruct, 'LocalTargetSelector', %ReportTargetSelectorManagerType)
+%OOPConstruct                                                            #<! TargetSelector for the Report Processors
+  #CALL(%MakeDeclr, 22, %OOPConstruct, 'LocalReportTarget', '&IReportGenerator')
+%OOPConstruct                                                            #<! ReportTarget for the Report Processors
+  #CALL(%MakeDeclr, 22, %OOPConstruct, 'LocalAttribute', 'ReportAttributeManager')
+%OOPConstruct                                                            #<! Attribute manager for the Report Processors
+  #CALL(%MakeDeclr, 22, %OOPConstruct, 'LocalWMFParser', 'WMFDocumentParser')
+%OOPConstruct                                                            #<! WMFParser for the Report Processors
+#ENDAT
+#!
+#! ABC
+#!
+#AT(%WindowEventHandling,'OpenWindow'),PRIORITY(5000)
+ #INSERT(%ProcessSaveLimits)
+ #INSERT(%ReportEventOpenWindow)
+#ENDAT
+#AT(%WindowEventHandling,'Timer'),PRIORITY(5000)
+ #IF(%UseMRP)
+ !Set the MRP to RecordsPerCycle
+ IF %ListView{PROP:IPRequestCount}=0
+    %ListView{PROP:IPRequestCount}=RecordsPerCycle
+ END
+ #ENDIF
+ LOOP RecordsPerCycle TIMES
+   #INSERT(%ReportEventTimer)
+   LOOP
+     #EMBED(%BeforeSubsequentRead,'Before subsequent record retrieval')
+     DO GetNextRecord
+     #EMBED(%AfterSubsequentRead,'After subsequent record retrieval')
+     DO ValidateRecord
+     CASE RecordStatus
+       OF Record:OutOfRange
+         LocalResponse = RequestCancelled
+         BREAK
+       OF Record:OK
+         BREAK
+     END
+   END
+   IF LocalResponse = RequestCancelled
+      LocalResponse = RequestCompleted
+      BREAK
+   END
+   LocalResponse = RequestCancelled
+ END
+ IF LocalResponse = RequestCompleted
+   POST(Event:CloseWindow)
+ END
+#ENDAT
+#!AT(%ControlEventHandling,'?Progress:Cancel','Accepted'),PRIORITY(5000)
+#AT(%ControlEventHandling,%CancelControl,'Accepted'),PRIORITY(5000)
+ #EMBED(%ProgressCancel,'When the process is cancelled')
+ LocalResponse = RequestCancelled
+ POST(EVENT:CloseWindow)
+#ENDAT
+#!
+#AT (%ProcedureSetup),WHERE(%EnablePrintPreview)
+SkipPreview = %RuntimeSkipPreview
+#IF(%HideOutputProgress)
+ShowOutputProgress = False
+#ENDIF
+#ENDAT
+#AT (%ProcedureSetup),WHERE((%AdditionalSortType='DynamicNamed' OR %AdditionalSortType='DynamicSorting') AND %ReportDataSource='File')
+#INSERT(%ProcessSortSelectionCall)
+#ENDAT
+#!
+#AT (%DeclarationSection),WHERE((%AdditionalSortType='DynamicNamed' OR %AdditionalSortType='DynamicSorting') AND %ReportDataSource='File')
+#INSERT(%ProcessSortSelectionData)
+#ENDAT
+#!
+#AT(%ProcedureRoutines),WHERE((%AdditionalSortType='DynamicNamed' OR %AdditionalSortType='DynamicSorting') AND %ReportDataSource='File')
+#INSERT(%ProcessSortSelectionRoutine)
+#ENDAT
+#!
+#AT (%DataSection),WHERE(%ReportDataSource='Memory')
+ReportMemoryRecords     BYTE(0)            #<! Used to do the first Next call
+#ENDAT
+#!
+#!
+#!
+#!
+#!
+#! Report Target Support
+#!
+#AT(%SetStaticControlsAttributes),PRIORITY(5000),WHERE(%EnablePrintPreview AND ITEMS(%ReportTargetList)),DESCRIPTION('Setting Hidden Controls')
+#FOR(%ReportTargetHiddenControls)
+LocalAttribute.Set(%ReportTargetHiddenControl,RepGen:All,TargetAttr:HIDE,True)
+#ENDFOR
+#IF(ITEMS(%ReportTargetHiddenControls))
+LocalAttribute.SetHideControls()
+#ENDIF
+#ENDAT
+#AT(%BeforeAccept),PRIORITY(5050),WHERE(%EnablePrintPreview AND ITEMS(%ReportTargetList)),DESCRIPTION('Target Selection')
+#FOR(%ReportTargetList)
+    #IF(%ReportTargetListCondition)
+IF %ReportTargetListCondition THEN
+   LocalTargetSelector.AddItem(%ReportTargetListObject.IReportGenerator)
+END
+    #ELSE
+LocalTargetSelector.AddItem(%ReportTargetListObject.IReportGenerator)
+    #ENDIF
+#ENDFOR
+#IF(%ReportTargetOutput='Ask')
+IF NOT LocalTargetSelector.ASK(%ReportTargetAskWithPrint) THEN
+   DO ProcedureReturn
+ELSE
+   IF NOT LocalTargetSelector.GetPrintSelected() THEN
+      LocalReportTarget &= LocalTargetSelector.GetReportSelected()
+   END
+END
+#ELSE
+    #IF(%ReportTargetOutput='Other')
+        #FIND(%ReportTargetListName,%ReportTargetOtherOutput)
+        #IF(%ReportTargetList AND %ReportTargetListName=%ReportTargetOtherOutput AND CLIP(%ReportTargetListCondition)='')
+LocalReportTarget &= %ReportTargetListObject.IReportGenerator
+        #ENDIF
+    #ENDIF
+#ENDIF
+#ENDAT
+#AT(%BeforeOpeningReport),PRIORITY(5000),WHERE(%EnablePrintPreview AND ITEMS(%ReportTargetList))
+SYSTEM{PROP:PrintMode} = 3
+#ENDAT
+#AT(%AfterOpeningReport),PRIORITY(5000),WHERE(%EnablePrintPreview AND ITEMS(%ReportTargetList))
+%Report{PROPPRINT:Extend}=True
+#ENDAT
+#!
+#!
+#!
+#!
+#!
+#!
+#AT(%DerivedEmbedAfterLocalData)
+#IF(UPPER(%ProcedureTemplate) = 'REPORT' OR UPPER(%ProcedureTemplate) = 'PROCESS')
+#INSERT(%StandardViewFilter,%RecordFilter,%PrimaryKey,%RangeField,%RangeLimitType,'Report:Save:',%Temp1,%Temp2,'Declare')
+#!INSERT(%ProcessDeclarations)
+#INSERT(%ConstructView)
+#IF(UPPER(%ProcedureTemplate) = 'REPORT')
+PrintSkipDetails     BOOL,AUTO
+   #IF(%EnablePrintPreview)
+SkipPreview          BYTE
+PreviewQueueIndex    LONG
+LocalOutputFileQueue PrintPreviewFileQueue
+     #IF(%GlobalUseABCClasess AND %GlobalReportPreviewMode<>'Procedure')
+PrintPreviewQueue    PreviewQueue
+     #ELSE
+PrintPreviewQueue    PrintPreviewFileQueue
+     #ENDIF
+   #ENDIF
+ShowOutputProgress   BYTE(1)   
+#ENDIF
+Progress:Thermometer BYTE
+#ENDIF
+#ENDAT
+#AT(%DerivedEmbedAfterAcceptLoop)
+#IF(UPPER(%ProcedureTemplate) = 'PROCESS')
+#INSERT(%ProcessEndOfProcedure)
+#ENDIF
+#IF(UPPER(%ProcedureTemplate) = 'REPORT')
+#INSERT(%ReportEndOfProcedure)
+#ENDIF
+#ENDAT
+#AT(%DerivedEmbedAfterFileOpen)
+  #IF(UPPER(%ProcedureTemplate) = 'REPORT' OR UPPER(%ProcedureTemplate) = 'PROCESS')
+     #IF(%ReportDataSource='File')
+  #INSERT(%StandardViewFilter,%RecordFilter,%PrimaryKey,%RangeField,%RangeLimitType,'Report:Save:',%Temp1,%Temp2,'Save')
+     #ENDIF
+  #IF(%ReportDataSource='File')
+    #IF(%PrimaryKey)
+        #IF(%RecordFilter OR %RangeField)
+            #IF(NOT(%ApproxRecordCount))
+  RecordsToProcess = 500
+            #ELSE
+  RecordsToProcess = %ApproxRecordCount
+            #ENDIF
+        #ELSE
+  RecordsToProcess = RECORDS(%Primary)
+        #ENDIF
+  RecordsPerCycle = 25
+    #ELSE
+        #IF(%RecordFilter)
+            #IF(NOT(%ApproxRecordCount))
+  RecordsToProcess = 10000
+            #ELSE
+  RecordsToProcess = %ApproxRecordCount
+            #ENDIF
+        #ELSE
+  RecordsToProcess = %Primary{PROP:FileSize}
+        #ENDIF
+  RecordsPerCycle = 1000
+    #ENDIF
+  #ELSIF(%ReportDataSource='Queue')
+  RecordsToProcess = RECORDS(%ReportDataSourceQueueName)
+  RecordsPerCycle = 1
+  #ELSE
+  RecordsToProcess = 1
+  RecordsPerCycle = 1
+  #ENDIF
+  RecordsProcessed = 0
+  PercentProgress = 0
+  #EMBED(%BeforeOpeningWindow,'Before Opening Progress Window')
+  #ENDIF
+#ENDAT
+#AT(%AfterOpeningWindow),WHERE(UPPER(%ProcedureTemplate) = 'REPORT' OR UPPER(%ProcedureTemplate) = 'PROCESS'),PRIORITY(3000)
+    #IF(UPPER(%ProcedureTemplate) = 'PROCESS')
+     #CASE(%ProcessAction)
+     #OF('Put Record')
+ProgressWindow{Prop:Text} = 'Updating Records'
+     #OF('Delete Record')
+ProgressWindow{Prop:Text} = 'Deleting Records'
+     #ELSE
+ProgressWindow{Prop:Text} = 'Processing Records'
+     #ENDCASE
+  #ELSIF(UPPER(%ProcedureTemplate) = 'REPORT')
+     #IF(%EnablePrintPreview)
+ProgressWindow{Prop:Text} = 'Generating Report'
+     #ELSE
+ProgressWindow{Prop:Text} = 'Printing Report'
+     #ENDIF
+    #ELSE
+ProgressWindow{Prop:Text} = 'Processing Records'
+    #ENDIF
+%PctTextControl{Prop:Text} = '0% Completed'
+    #IF(SUB(%WindowMessage,1,1)='!')
+      #SET(%ValueConstruct,SUB(%WindowMessage,2,LEN(%WindowMessage)-1))
+%UserStringControl{Prop:Text}=%ValueConstruct
+    #ELSE
+%UserStringControl{Prop:Text}='%'WindowMessage'
+    #ENDIF
+#ENDAT
+#AT(%DerivedEmbedAfterStandardWindowOpening)
+  #IF(UPPER(%ProcedureTemplate) = 'REPORT' OR UPPER(%ProcedureTemplate) = 'PROCESS')
+#EMBED(%AfterOpeningWindow,'After Opening Progress Window')
+    #IF(%EnableQuickScan)
+#EMBED(%BeforeTurnQuickScanOn,'Before Turning QuickScan On'),WHERE(%EnableQuickScan)
+       #IF(%ReportDataSource='File')
+SEND(%Primary,'QUICKSCAN=on')
+      #FOR(%Secondary),WHERE(%SecondaryType = '1:MANY')
+SEND(%Secondary,'QUICKSCAN=on')
+      #ENDFOR
+       #ENDIF
+#EMBED(%AfterTurnQuickScanOn,'After Turning QuickScan On'),WHERE(%EnableQuickScan)
+    #ENDIF
+  #ENDIF
+#ENDAT
+#AT(%DerivedEmbedBeforeRoutines)
+  #IF(UPPER(%ProcedureTemplate) = 'REPORT' OR UPPER(%ProcedureTemplate) = 'PROCESS')
+#INSERT(%ProcessValidateRecord)
+#INSERT(%ProcessGetRecords)
+#INSERT(%ProcessGetFirstRecord)
+  #ENDIF
+  #IF(UPPER(%ProcedureTemplate) = 'REPORT')
+    #IF(%EnablePrintPreview)
+ProcessOutputFileQueue          ROUTINE
+ #EMBED(%ProcessOutputFileQueue,'Process Output File Queue'),WHERE(%EnablePrintPreview)
+    #ENDIF
+SetStaticControlsAttributes     ROUTINE
+ #EMBED(%SetStaticControlsAttributes,'Set Static Controls Attributes')
+SetDynamicControlsAttributes    ROUTINE
+ #EMBED(%SetDynamicControlsAttributes,'Set Dynamic Controls Attributes')
+  #ENDIF
+#ENDAT
+#AT(%BeforeFileClose)
+CLOSE(%ListView)
+#ENDAT
+#!---------------------------------------------------------------------
+#!---------------------------------------------------------------------
+#DEFAULT
+NAME DefaultReportA4Portrait
+[COMMON]
+DESCRIPTION 'A reporting procedure (A4-Portrait)'
+FROM Clarion Report
+[DATA]
+RejectRecord         LONG
+LocalRequest         LONG
+OriginalRequest      LONG
+LocalResponse        LONG
+FilesOpened          LONG
+WindowOpened         LONG
+RecordsToProcess     LONG,AUTO
+RecordsProcessed     LONG,AUTO
+RecordsPerCycle      LONG,AUTO
+RecordsThisCycle     LONG,AUTO
+PercentProgress      BYTE
+RecordStatus         BYTE,AUTO
+WindowInitialized    LONG
+ForceRefresh         LONG
+[PROMPTS]
+%RangeLimitType STRING  ('Current Value')
+[REPORT]
+Report REPORT,AT(1000,2000,6250,7688),PAPER(PAPER:A4),PRE(RPT),FONT('Arial',10,,FONT:regular,CHARSET:ANSI),THOUS
+       HEADER,AT(1000,1000,6250,1000),USE(?Header)
+       END
+Detail DETAIL,USE(?Detail)
+       END
+       FOOTER,AT(1000,9688,6250,1000),USE(?Footer)
+       END
+       FORM,AT(1000,1000,6250,9688),USE(?Form)
+       END
+     END
+[WINDOW]
+ProgressWindow WINDOW('Progress...'),AT(,,142,59),CENTER,TIMER(1),GRAY,DOUBLE
+       PROGRESS,USE(Progress:Thermometer),AT(15,15,111,12),RANGE(0,100),#ORIG(Progress:Thermometer)
+       STRING(''),AT(0,3,141,10),USE(?Progress:UserString),CENTER,#ORIG(?Progress:UserString)
+       STRING(''),AT(0,30,141,10),USE(?Progress:PctText),CENTER,#ORIG(?Progress:PctText)
+       BUTTON('Cancel'),AT(45,42,50,15),USE(?Progress:Cancel),#ORIG(?Progress:Cancel)
+     END
+#ENDDEFAULT
+#DEFAULT
+NAME DefaultReportA4Landscape
+[COMMON]
+DESCRIPTION 'A reporting procedure (A4-Landscape)'
+FROM Clarion Report
+[DATA]
+RejectRecord         LONG
+LocalRequest         LONG
+OriginalRequest      LONG
+LocalResponse        LONG
+FilesOpened          LONG
+WindowOpened         LONG
+RecordsToProcess     LONG,AUTO
+RecordsProcessed     LONG,AUTO
+RecordsPerCycle      LONG,AUTO
+RecordsThisCycle     LONG,AUTO
+PercentProgress      BYTE
+RecordStatus         BYTE,AUTO
+WindowInitialized    LONG
+ForceRefresh         LONG
+[PROMPTS]
+%RangeLimitType STRING  ('Current Value')
+[REPORT]
+Report REPORT,AT(1000,2000,7688,4250),PAPER(PAPER:A4),PRE(RPT),FONT('Arial',10,,FONT:regular,CHARSET:ANSI),LANDSCAPE,THOUS
+       HEADER,AT(1000,1000,7688,1000),USE(?Header)
+       END
+Detail DETAIL,USE(?Detail)
+       END
+       FOOTER,AT(1000,6250,7688,1000),USE(?Footer)
+       END
+       FORM,AT(1000,1000,7688,6250),USE(?Form)
+       END
+     END
+[WINDOW]
+ProgressWindow WINDOW('Progress...'),AT(,,142,59),CENTER,TIMER(1),GRAY,DOUBLE
+       PROGRESS,USE(Progress:Thermometer),AT(15,15,111,12),RANGE(0,100),#ORIG(Progress:Thermometer)
+       STRING(''),AT(0,3,141,10),USE(?Progress:UserString),CENTER,#ORIG(?Progress:UserString)
+       STRING(''),AT(0,30,141,10),USE(?Progress:PctText),CENTER,#ORIG(?Progress:PctText)
+       BUTTON('Cancel'),AT(45,42,50,15),USE(?Progress:Cancel),#ORIG(?Progress:Cancel)
+     END
+#ENDDEFAULT
+#DEFAULT
+NAME DefaultReportLegalPortrait
+[COMMON]
+DESCRIPTION 'A reporting procedure (Legal-Portrait)'
+FROM Clarion Report
+[DATA]
+RejectRecord         LONG
+LocalRequest         LONG
+OriginalRequest      LONG
+LocalResponse        LONG
+FilesOpened          LONG
+WindowOpened         LONG
+RecordsToProcess     LONG,AUTO
+RecordsProcessed     LONG,AUTO
+RecordsPerCycle      LONG,AUTO
+RecordsThisCycle     LONG,AUTO
+PercentProgress      BYTE
+RecordStatus         BYTE,AUTO
+WindowInitialized    LONG
+ForceRefresh         LONG
+[PROMPTS]
+%RangeLimitType STRING  ('Current Value')
+[REPORT]
+Report REPORT,AT(1000,2000,6500,10000),PAPER(PAPER:LEGAL),PRE(RPT),FONT('Arial',10,,FONT:regular,CHARSET:ANSI),THOUS
+       HEADER,AT(1000,1000,6500,1000),USE(?Header)
+       END
+Detail DETAIL,USE(?Detail)
+       END
+       FOOTER,AT(1000,12000,6500,1000),USE(?Footer)
+       END
+       FORM,AT(1000,1000,6500,12000),USE(?Form)
+       END
+     END
+[WINDOW]
+ProgressWindow WINDOW('Progress...'),AT(,,142,59),CENTER,TIMER(1),GRAY,DOUBLE
+       PROGRESS,USE(Progress:Thermometer),AT(15,15,111,12),RANGE(0,100),#ORIG(Progress:Thermometer)
+       STRING(''),AT(0,3,141,10),USE(?Progress:UserString),CENTER,#ORIG(?Progress:UserString)
+       STRING(''),AT(0,30,141,10),USE(?Progress:PctText),CENTER,#ORIG(?Progress:PctText)
+       BUTTON('Cancel'),AT(45,42,50,15),USE(?Progress:Cancel),#ORIG(?Progress:Cancel)
+     END
+#ENDDEFAULT
+#DEFAULT
+NAME DefaultReportLegalLandscape
+[COMMON]
+DESCRIPTION 'A reporting procedure (Legal-Landscape)'
+FROM Clarion Report
+[DATA]
+RejectRecord         LONG
+LocalRequest         LONG
+OriginalRequest      LONG
+LocalResponse        LONG
+FilesOpened          LONG
+WindowOpened         LONG
+RecordsToProcess     LONG,AUTO
+RecordsProcessed     LONG,AUTO
+RecordsPerCycle      LONG,AUTO
+RecordsThisCycle     LONG,AUTO
+PercentProgress      BYTE
+RecordStatus         BYTE,AUTO
+WindowInitialized    LONG
+ForceRefresh         LONG
+[PROMPTS]
+%RangeLimitType STRING  ('Current Value')
+[REPORT]
+Report REPORT,AT(1000,2000,10000,4500),PAPER(PAPER:LEGAL),PRE(RPT),FONT('Arial',10,,FONT:regular,CHARSET:ANSI),LANDSCAPE,THOUS
+       HEADER,AT(1000,1000,10000,1000),USE(?Header)
+       END
+Detail DETAIL,USE(?Detail)
+       END
+       FOOTER,AT(1000,6500,10000,1000),USE(?Footer)
+       END
+       FORM,AT(1000,1000,10000,6500),USE(?Form)
+       END
+     END
+[WINDOW]
+ProgressWindow WINDOW('Progress...'),AT(,,142,59),CENTER,TIMER(1),GRAY,DOUBLE
+       PROGRESS,USE(Progress:Thermometer),AT(15,15,111,12),RANGE(0,100),#ORIG(Progress:Thermometer)
+       STRING(''),AT(0,3,141,10),USE(?Progress:UserString),CENTER,#ORIG(?Progress:UserString)
+       STRING(''),AT(0,30,141,10),USE(?Progress:PctText),CENTER,#ORIG(?Progress:PctText)
+       BUTTON('Cancel'),AT(45,42,50,15),USE(?Progress:Cancel),#ORIG(?Progress:Cancel)
+     END
+#ENDDEFAULT
+#DEFAULT
+NAME DefaultReportLetterLandscape
+[COMMON]
+DESCRIPTION 'A reporting procedure (Letter-Landscape)'
+FROM Clarion Report
+[DATA]
+RejectRecord         LONG
+LocalRequest         LONG
+OriginalRequest      LONG
+LocalResponse        LONG
+FilesOpened          LONG
+WindowOpened         LONG
+RecordsToProcess     LONG,AUTO
+RecordsProcessed     LONG,AUTO
+RecordsPerCycle      LONG,AUTO
+RecordsThisCycle     LONG,AUTO
+PercentProgress      BYTE
+RecordStatus         BYTE,AUTO
+WindowInitialized    LONG
+ForceRefresh         LONG
+[PROMPTS]
+%RangeLimitType STRING  ('Current Value')
+[REPORT]
+Report REPORT,AT(1000,2000,9000,4500),PAPER(PAPER:LETTER),PRE(RPT),FONT('Arial',10,,FONT:regular,CHARSET:ANSI), |
+         LANDSCAPE,THOUS
+       HEADER,AT(1000,1000,9000,1000),USE(?Header)
+       END
+Detail DETAIL,USE(?Detail)
+       END
+       FOOTER,AT(1000,6500,9000,1000),USE(?Footer)
+       END
+       FORM,AT(1000,1000,9000,6500),USE(?Form)
+       END
+     END
+[WINDOW]
+ProgressWindow WINDOW('Progress...'),AT(,,142,59),CENTER,TIMER(1),GRAY,DOUBLE
+       PROGRESS,USE(Progress:Thermometer),AT(15,15,111,12),RANGE(0,100),#ORIG(Progress:Thermometer)
+       STRING(''),AT(0,3,141,10),USE(?Progress:UserString),CENTER,#ORIG(?Progress:UserString)
+       STRING(''),AT(0,30,141,10),USE(?Progress:PctText),CENTER,#ORIG(?Progress:PctText)
+       BUTTON('Cancel'),AT(45,42,50,15),USE(?Progress:Cancel),#ORIG(?Progress:Cancel)
+     END
+#ENDDEFAULT
+#DEFAULT
+NAME DefaultReportLetterPortrait
+[COMMON]
+DESCRIPTION 'A reporting procedure (Letter-Portrait)'
+FROM Clarion Report
+[DATA]
+RejectRecord         LONG
+LocalRequest         LONG
+OriginalRequest      LONG
+LocalResponse        LONG
+FilesOpened          LONG
+WindowOpened         LONG
+RecordsToProcess     LONG,AUTO
+RecordsProcessed     LONG,AUTO
+RecordsPerCycle      LONG,AUTO
+RecordsThisCycle     LONG,AUTO
+PercentProgress      BYTE
+RecordStatus         BYTE,AUTO
+WindowInitialized    LONG
+ForceRefresh         LONG
+[PROMPTS]
+%RangeLimitType STRING  ('Current Value')
+[REPORT]
+Report REPORT,AT(1000,2000,6500,7000),PAPER(PAPER:LETTER),PRE(RPT),FONT('Arial',10,,FONT:regular,CHARSET:ANSI), |
+         THOUS
+       HEADER,AT(1000,1000,6500,1000),USE(?Header)
+       END
+Detail DETAIL,USE(?Detail)
+       END
+       FOOTER,AT(1000,9000,6500,1000),USE(?Footer)
+       END
+       FORM,AT(1000,1000,6500,9000),USE(?Form)
+       END
+     END
+[WINDOW]
+ProgressWindow WINDOW('Progress...'),AT(,,142,59),CENTER,TIMER(1),GRAY,DOUBLE
+       PROGRESS,USE(Progress:Thermometer),AT(15,15,111,12),RANGE(0,100),#ORIG(Progress:Thermometer)
+       STRING(''),AT(0,3,141,10),USE(?Progress:UserString),CENTER,#ORIG(?Progress:UserString)
+       STRING(''),AT(0,30,141,10),USE(?Progress:PctText),CENTER,#ORIG(?Progress:PctText)
+       BUTTON('Cancel'),AT(45,42,50,15),USE(?Progress:Cancel),#ORIG(?Progress:Cancel)
+     END
+#ENDDEFAULT
+#!-------------------------------------------------------------------------
+#CONTROL(ReportDateStamp,'Report Date Stamp'),REPORT,MULTI
+#PREPARE
+#ENDPREPARE
+  CONTROLS
+    STRING('Report Date:'),USE(?ReportDatePrompt),TRN
+    STRING('<<-- Date Stamp -->'),USE(?ReportDateStamp),TRN,#REQ,#ORIG(?ReportDateStamp),AT(1000,0)
+  END
+#BOXED('Report Date Stamp Options')
+  #PROMPT('&Format Picture:',PICTURE),%DateStampFormat,DEFAULT('@D17'),REQ
+  #PROMPT('Use System Clock',CHECK),%UseSystemDate,DEFAULT(%True)
+  #ENABLE(~%UseSystemDate),CLEAR
+    #PROMPT('&Date Variable:',FIELD),%DateValueToUse,REQ
+  #ENDENABLE
+#ENDBOXED
+#!
+#ATSTART
+#DECLARE(%Ctrl)
+#FOR(%ReportControl),WHERE(%ReportControlOriginal='?ReportDateStamp' AND %ReportControlInstance=%ActiveTemplateInstance)
+  #SET(%Ctrl,%ReportControl)
+#ENDFOR
+#ENDAT
+#!
+#AT(%AfterOpeningReport),PRIORITY(5000)
+IF NOT ERRORCODE() THEN
+  #IF(%UseSystemDate)
+  %Report$%Ctrl{PROP:Text}=FORMAT(TODAY(),%DateStampFormat)
+  #ELSE
+  %Report$%Ctrl{PROP:Text}=FORMAT(%DateValueToUse,%DateStampFormat)
+  #ENDIF
+END
+#ENDAT
+#!
+#!-------------------------------------------------------------------------
+#!
+#!
+#CONTROL(ReportTimeStamp,'Report Time Stamp'),REPORT,MULTI
+#PREPARE
+#ENDPREPARE
+  CONTROLS
+    STRING('Report Time:'),USE(?ReportTimePrompt),TRN
+    STRING('<<-- Time Stamp -->'),USE(?ReportTimeStamp),TRN,#REQ,#ORIG(?ReportTimeStamp),AT(1000,0)
+  END
+#BOXED('Report Time Stamp Options')
+  #PROMPT('&Format Picture:',PICTURE),%TimeStampFormat,DEFAULT('@T7'),REQ
+  #PROMPT('Use System Clock',CHECK),%UseSystemTime,DEFAULT(%True)
+  #ENABLE(~%UseSystemTime),CLEAR
+    #PROMPT('&Time Variable:',FIELD),%TimeValueToUse,REQ
+  #ENDENABLE
+#ENDBOXED
+#!
+#ATSTART
+#DECLARE(%Ctrl)
+#FOR(%ReportControl),WHERE(%ReportControlOriginal='?ReportTimeStamp' AND %ReportControlInstance=%ActiveTemplateInstance)
+  #SET(%Ctrl,%ReportControl)
+#ENDFOR
+#ENDAT
+#!
+#AT(%AfterOpeningReport),PRIORITY(5000)
+IF NOT ERRORCODE() THEN
+  #IF(%UseSystemTime)
+  %Report$%Ctrl{PROP:Text}=FORMAT(CLOCK(),%TimeStampFormat)
+  #ELSE
+  %Report$%Ctrl{PROP:Text}=FORMAT(%DateValueToUse,%TimeStampFormat)
+  #ENDIF
+END
+#ENDAT
+#!
+#!-------------------------------------------------------------------------
+#!
+#!
+#CONTROL(ReportPageNumber,'Report Page Number'),REPORT,MULTI
+#PREPARE
+#ENDPREPARE
+  CONTROLS
+    STRING(@pPage <<<<#p),USE(ReportPageNumber)
+  END
+#!
+#ATSTART
+#EQUATE(%Ctrl,%GetControlName(1))
+#ENDAT
+#!
+#AT(%DeclarationSection),PRIORITY(3500)
+ReportPageNumber  LONG,AUTO
+#ENDAT
+#!
+#AT(%AfterOpeningReport),PRIORITY(5000)
+IF NOT ERRORCODE() THEN
+  %Report$%Ctrl{PROP:PageNo}=True
+END
+#ENDAT
+#!-------------------------------------------------------------------------
+#CONTROL(PauseButton,'Pause the Process'),WINDOW,HLP('~TPLControlPauseButton.htm')
+#RESTRICT
+  #IF ( UPPER(%ProcedureTemplate) = 'REPORT2' OR UPPER(%ProcedureTemplate) = 'PROCESS2' )
+    #ACCEPT
+  #ELSE
+    #REJECT
+  #ENDIF
+#ENDRESTRICT
+  #PROMPT('Pause Text',@S20),%PauseText,DEFAULT('Pause')
+  #PROMPT('Pause Icon',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%PauseIcon
+  #PROMPT('Restart Text',@S20),%RestartText,DEFAULT('Restart')
+  #PROMPT('Restart Icon',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%RestartIcon
+  #PROMPT('Start Paused',CHECK),%DeferOpen,DEFAULT(0)
+  #ENABLE(%DeferOpen)
+    #PROMPT('Start Text',@S20),%StartText,DEFAULT('Go')
+    #PROMPT('Start Icon',ICON('Select an Icon','Icons|*.ICO|GIF|*.GIF|JPEG|*.JPG|BitMap|*.BMP|Pcx|*.PCX|All|*.*')),%StartIcon
+    #!PROMPT('Allow multiple starts',CHECK),%MultiStart,DEFAULT(0)
+  #ENDENABLE
+  CONTROLS
+    BUTTON('Pause'),USE(?Pause)
+  END
+#ATSTART
+  #DECLARE(%PauseControl)
+  #FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+  #SET(%PauseControl,%Control)
+#ENDAT
+#AT(%DeclarationSection),PRIORITY(3500)
+#INSERT(%StandardAddIconToProject,%PauseIcon)
+#INSERT(%StandardAddIconToProject,%RestartIcon)
+#INSERT(%StandardAddIconToProject,%StartIcon)
+DeferOpenReport   BYTE(0)
+ReportPaused      BYTE(0)
+OldWindowTimer    SHORT(0)
+ReportCancelled   BYTE(0)
+ReportKeepVisible BYTE(0)
+#ENDAT
+#AT(%AfterOpeningWindow),WHERE(%DeferOpen)
+DeferOpenReport = 1
+OldWindowTimer  = TARGET{PROP:Timer}
+TARGET{PROP:Timer} = 0
+%PauseControl{PROP:Text} = '%'StartText'
+#IF(%StartIcon)
+  #SET(%ValueConstruct,%StandardReturnIconName(%StartIcon))
+%PauseControl{PROP:Icon} = %ValueConstruct
+#ENDIF
+ReportPaused = 1
+%CancelControl{PROP:Key} = EscKey
+#ENDAT
+#AT(%ControlEventHandling,%PauseControl,'Accepted'),PRIORITY(2500)
+IF ReportPaused
+#PRIORITY(2600)
+  TARGET{PROP:Timer} = OldWindowTimer
+  %PauseControl{PROP:Text} = '%'PauseText'
+  #IF(%PauseIcon)
+    #SET(%ValueConstruct,%StandardReturnIconName(%PauseIcon))
+  %PauseControl{PROP:Icon} = %ValueConstruct
+  #ENDIF
+#PRIORITY(2700)
+ELSE
+#PRIORITY(2800)
+  OldWindowTimer = TARGET{PROP:Timer}
+  TARGET{PROP:Timer} = 0
+  %PauseControl{PROP:Text} = '%'RestartText'
+  #IF(%RestartIcon)
+    #SET(%ValueConstruct,%StandardReturnIconName(%RestartIcon))
+  %PauseControl{PROP:Icon} = %ValueConstruct
+  #ENDIF
+#PRIORITY(2900)
+END
+ReportPaused = 1 - ReportPaused
+#ENDAT
+#AT(%WindowEventHandling,'Timer'),PRIORITY(2500)
+IF ReportPaused THEN CYCLE.
+#ENDAT
+#!#AT(%ControlEventHandling,'?Progress:Cancel','Accepted'),WHERE(%MultiStart)
+#!ReportCancelled = 1
+#!#ENDAT
+#!#AT(%WindowEventHandling,'CloseWindow'),WHERE(%MultiStart),PRIORITY(2500)
+#!ReportKeepVisible = 1
+#!#PRIORITY(7500)
+#!IF NOT ReportCancelled THEN
+#!#PRIORITY(7600)
+#!  %ThermometerUseVariable = 0
+#!  %PctTextControl{PROP:Text} = '0% Completed'
+#!  DeferOpenReport = 1
+#!  TARGET{PROP:Timer} = 0
+#!  %PauseControl{PROP:Text} = '%'StartText'
+#!  ReportPaused = 1
+#!  LocalResponse = RequestCancelled
+#!  Do GetFirstRecord
+#!  !POST(Event:CloseWindow)
+#!#PRIORITY(7700)
+#!  DISPLAY
+#!  CYCLE
+#!END
+#!#ENDAT
+#!-------------------------------------------------------------------------
+#!
+#!
+#INCLUDE('GPReport.TPW')

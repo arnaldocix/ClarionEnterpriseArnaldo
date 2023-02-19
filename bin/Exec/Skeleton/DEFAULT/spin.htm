@@ -1,0 +1,62 @@
+<html>
+<head>
+<meta name="ts-control" content="spin">
+</head>
+<body>
+<form>
+<!-- Spin.htm -- Start -->
+<TSSCRIPT value="EmbedBeforeControl" type=html>
+</TSSCRIPT>
+<TSSCRIPT include="Disabled || ReadOnly">
+  <TSINCLUDE Name="displayText.htm">
+</TSSCRIPT>
+<TSSCRIPT omit="Disabled || ReadOnly">
+  <TSSCRIPT Include="From!=''">
+    <TSSCRIPT tag=input attr=name value="Name">
+    <TSSCRIPT tag=input attr=value value="DisplayText">
+    <TSSCRIPT tag=input attr=size value="(Width+2)/4">
+    <TSSCRIPT tag=input attr=onChange text="icSubmitForm()" when="SubmitOnChange">
+    <TSSCRIPT tag=input attr=onFocus text="this.select()" when=SelectOnFocus>
+      <TSSCRIPT include="Req">
+        <table border="0" bgcolor="#FF0000" cellspacing="1" cellpadding="0">
+          <tr><td>
+            <input type=text>
+          </td></tr>
+        </table>
+      </TSSCRIPT>
+      <TSSCRIPT omit="Req">
+        <input type=text>
+      </TSSCRIPT>
+    </TSSCRIPT>
+    </TSSCRIPT>
+    </TSSCRIPT>
+    </TSSCRIPT>
+    </TSSCRIPT>
+  </TSSCRIPT>
+  <TSSCRIPT Omit="From!=''">
+    <table cellpadding="0" cellspacing="0"><tr><td>
+    <TSSCRIPT tag=input attr=value value="DisplayText">
+    <TSSCRIPT tag=input attr=name value="Name">
+    <TSSCRIPT tag=input attr=size value="(Width+2)/4">
+    <input type="TEXT" value="Text" name="NAME">
+    </TSSCRIPT>
+    </TSSCRIPT>
+    </TSSCRIPT></td>
+    <TSSCRIPT tag=input attr=onClick replace="NAME" value="Name">
+    <TSSCRIPT tag=input attr=onClick replace="RANGEHIGH" value="RangeHigh">
+    <TSSCRIPT tag=input attr=onClick replace="RANGELOW" value="RangeLow">
+    <TSSCRIPT tag=input attr=onClick replace="STEP" value="Step">
+    <td><input type="submit" value="&lt;" onclick="spin(ClarionForm.NAME,-STEP,RANGEHIGH,RANGELOW);"></td>
+    <td><input type="submit" value="&gt;" onclick="spin(ClarionForm.NAME,+STEP,RANGEHIGH,RANGELOW);"></td>
+    </TSSCRIPT>
+    </TSSCRIPT>
+    </TSSCRIPT>
+    </TSSCRIPT>
+    </tr></table>
+  </TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT value="EmbedAfterControl" type=html></TSSCRIPT>
+<!-- Spin.htm -- End -->
+</form>
+</body>
+</html>

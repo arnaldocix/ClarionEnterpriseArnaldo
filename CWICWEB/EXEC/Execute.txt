@@ -1,0 +1,2 @@
+Executables and required DLLs should be deployed here, or in a subdirectory 
+under this directory.

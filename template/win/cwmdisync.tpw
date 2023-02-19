@@ -1,0 +1,12 @@
+#!
+#EXTENSION(MDISYNCGlobal, 'MDI Synchronization - Global'), APPLICATION(MDISYNCLocal(Clarion)),HLP('~TPLExtensionGlobalMDISYNC.htm')
+#PREPARE
+    #IF(NOT %GlobalUseABCClasess)
+        #SET(%GlobalDisableMDISynchronization,%True)
+    #ENDIF
+#ENDPREPARE
+#PROMPT('Disable MDI Synchronization',CHECK),%GlobalDisableMDISynchronization,DEFAULT(%False),AT(10)
+#AT(%AfterGlobalIncludes),WHERE(NOT %GlobalDisableMDISynchronization)
+   INCLUDE('MDISync.INC'),ONCE
+#ENDAT
+#!

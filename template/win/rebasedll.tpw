@@ -1,0 +1,67 @@
+#GROUP(%RebasePromps)
+#ENABLE(%Target32 AND %ProgramExtension='DLL'),CLEAR
+#PROMPT('Enable Rebase',CHECK),%GlobalEnableRebase,DEFAULT(0),AT(10)
+#ENDENABLE
+#ENABLE(%GlobalEnableRebase AND %Target32 AND %ProgramExtension='DLL')
+#BUTTON('Image Base Memory Address'),HLP('~TPLGlobalRebaseInstructions.htm'),AT(,,175)
+#SHEET
+  #TAB('Instructions'),HLP('~TPLGlobalRebaseInstructions.htm')
+    #DISPLAY('This option will permit you to specify the')
+    #DISPLAY('base memory address where this library will')
+    #DISPLAY('attempt to load at runtime.')
+    #DISPLAY('')
+    #DISPLAY('You may specify an address or choose from  a list ')
+    #DISPLAY('of defaults.')
+    #DISPLAY('')
+    #PROMPT('Select method',OPTION),%RBDMethod
+    #PROMPT('Specify manually',RADIO)
+    #PROMPT('Choose from list',RADIO)
+  #ENDTAB
+  #TAB('Manual address'), WHERE(%RBDMethod = 'Specify manually'),HLP('~TPLGlobalRebaseInstructions.htm')
+    #PROMPT('DLL Base Address in hex',@s8),%RBDImageBase,DEFAULT('10000000')
+    #VALIDATE((LEN(%RBDImageBase)=8),'Length must be 8 hexdigits')
+    #VALIDATE((MATCH(%RBDImageBase,'^[0-9A-F]+0000$', 12h )),'Address must contain only hex digits and end with 4 zeros')
+    #VALIDATE((SUB(%RBDImageBase,1,3)>='020'),'Address must be 01200000h or higher')
+    #VALIDATE((SUB(%RBDImageBase,1,3)<='6FF'),'Address must be less than 6FFF0000h')
+    #DISPLAY('')
+    #DISPLAY('The DLL Base Address must be between')
+    #DISPLAY('02000000 and 6FFF0000 and end with 0000.')
+    #DISPLAY('')
+    #DISPLAY('Your EXE and the Clarion libraries use')
+    #DISPLAY('addresses 00400000 to 02000000 so this')
+    #DISPLAY('template will prevent you from using')
+    #DISPLAY('any address below 02000000.')
+    #DISPLAY('')
+    #DISPLAY('An "IMAGE_BASE ########h" line will be added')
+    #DISPLAY('to the EXP file with the address specified')
+    #DISPLAY('if the target file is a DLL.')
+  #ENDTAB
+  #TAB('Choose address'), WHERE(%RBDMethod = 'Choose from list')
+    #PROMPT('DLL Base Address in hex',DROP('05000000|05100000|05200000|05300000|05400000|05500000|05600000|05700000|05800000|05900000|05A00000|05B00000|05C00000|05D00000|05E00000|05F00000|06000000|06100000|06200000|06300000|06400000|06500000|06600000|06700000|06800000|06900000|06A00000|06B00000|06C00000|06D00000|06E00000|06F00000')),%RBDImageBase,DEFAULT('05000000')
+    #DISPLAY('')
+    #DISPLAY('Select a different base address for each DLL.')
+    #DISPLAY('The listed addresses are on 1 MB boundaries')
+    #DISPLAY('and should allow room for large DLLs.')
+    #DISPLAY('If your DLLs are over 1 MB in size then skip')
+    #DISPLAY('an address to allow room.')
+    #DISPLAY('')
+    #DISPLAY('Use a Process viewer like Dependency Walker')
+    #DISPLAY('to verify your address space as no conflicts.')
+    #DISPLAY('')
+    #DISPLAY('If you do cause a conflict the Windows loader')
+    #DISPLAY('will resolve it for you automatically.')
+    #DISPLAY('')
+    #DISPLAY('An "IMAGE_BASE ########h" line will be added')
+    #DISPLAY('to the EXP file with the address specified')
+    #DISPLAY('if the target file is a DLL.')
+  #ENDTAB
+#ENDSHEET
+#ENDBUTTON
+#ENDENABLE
+#!
+#!
+#GROUP(%RebaseCode)
+#IF(%Target32 AND %ProgramExtension='DLL' AND %RBDImageBase>'' AND %GlobalEnableRebase)
+IMAGE_BASE %(%RBDImageBase & 'h') ; -- generated From RebaseDLLAddress Template --
+#ENDIF
+#!

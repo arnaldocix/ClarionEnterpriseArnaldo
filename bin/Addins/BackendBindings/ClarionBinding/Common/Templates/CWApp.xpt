@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<Template originator   = "SoftVelocity">
+
+	<!-- Template Header -->
+	<TemplateConfiguration>
+		<Name>Application</Name>
+		<Category>Clarion for Windows</Category>
+		<Icon>CW.Project.EmptyProject</Icon>
+		<Description>Appgen Application</Description>
+    <BinaryProjectGenerator>/SoftVelocity/BinaryProjectGenerator</BinaryProjectGenerator>    
+  </TemplateConfiguration>
+
+	<Project name = "${ProjectName}" directory = "." language = "Clarion">
+		<PropertyGroup>
+			<CWOutputType>Exe</CWOutputType>
+		</PropertyGroup>
+  </Project>
+</Template>
+

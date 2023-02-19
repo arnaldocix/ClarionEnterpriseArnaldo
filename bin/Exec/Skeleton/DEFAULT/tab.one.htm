@@ -1,0 +1,61 @@
+<HTML>
+<head>
+<meta name="ts-control" content="tab">
+<meta name="ts-expand" content="off">
+<meta name="ts-hide" content="(phase=='runtime') && !Visible">
+</head>
+<BODY>
+<FORM>
+<!-- Tab One.htm -->
+<TSSCRIPT local name=SelectedTab value="phase=='runtime' ? Container.Choice : ChildIndex">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <TSSCRIPT local name=ShownTabs value='0'>
+  <TSSCRIPT omit="Wizard">
+  <tr align="left"><td>
+    <table border="0" cellpadding="2" cellspacing="0" width="1%"><tr>
+      <TSSCRIPT repeat times="Container.NumTabs" name=curTab>
+        <TSSCRIPT local name=thisTab value="Container.Children[curTab-1]">
+          <TSSCRIPT omit="thisTab.Hidden">
+            <TSSCRIPT set name='ShownTabs' value='ShownTabs+1'></TSSCRIPT>
+            <TSSCRIPT include="SelectedTab==curTab">
+    <td FinalColor=Header nowrap>
+      &nbsp;&nbsp;&nbsp;
+      <b><TSSCRIPT value="thisTab.DisplayText">SELECTEDTAB</TSSCRIPT></b>
+      &nbsp;&nbsp;&nbsp;
+    </td>
+            </TSSCRIPT>
+            <TSSCRIPT include="SelectedTab!=curTab">
+    <td FinalColor=Border nowrap>
+              <TSSCRIPT tag=a attr=* replace="PROGRAM" value="ProgramReference">
+                <TSSCRIPT tag=a attr=* replace="NAME" value="Container.Name">
+                  <TSSCRIPT tag=a attr=* replace="CURTAB" value="curTab">
+      &nbsp;&nbsp;&nbsp;
+      <a href="javascript:icSubmit(&quot;NAME$Choice=CURTAB&quot;);">
+      <TSSCRIPT value="thisTab.DisplayText">UNSELECTEDTAB</TSSCRIPT>
+      </a>
+      &nbsp;&nbsp;&nbsp;
+                  </TSSCRIPT>
+                </TSSCRIPT>
+              </TSSCRIPT>
+    </td>
+            </TSSCRIPT>
+    <td>&nbsp;</td>
+          </TSSCRIPT>
+        </TSSCRIPT>
+      </TSSCRIPT>
+    <td>&nbsp;</td>
+  </tr>
+  </table></td></tr>
+  </TSSCRIPT>
+  <tr>
+    <td FinalColor=Header>
+      <IMG name="ZONE:Default:Contents[WIDTH='100%']" alt="Wizatrons will place controls in here">
+    </td>
+  </tr>
+  </TSSCRIPT>
+</table>
+</TSSCRIPT>
+<!-- /Tab One.htm -->
+</FORM>
+</BODY>
+</HTML>

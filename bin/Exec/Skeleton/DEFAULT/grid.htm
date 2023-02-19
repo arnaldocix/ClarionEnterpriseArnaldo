@@ -1,0 +1,79 @@
+<HTML>
+<head>
+<meta name="ts-control" content="grid">
+</head>
+<BODY>
+<FORM>
+<TSSCRIPT value="EmbedBeforeControl" type=html>
+</TSSCRIPT>
+<TSSCRIPT tag=input attr=name value="Name">
+  <input type=hidden value=''>
+</TSSCRIPT>
+<table border="0" width="100%" >
+  <TSSCRIPT property='Reset' value=1></TSSCRIPT>
+  <TSSCRIPT local name=GridName value="Name">
+    <TSSCRIPT repeat name=row times="Rows" comment='row loop'>
+      <tr>
+        <TSSCRIPT repeat name=column times="Columns" comment='column loop'>
+          <td>
+            <TSSCRIPT include="MoreRecords">
+              <TSSCRIPT tag=a attr=href value="'javascript:icSubmit(\'' + GridName+'$'+Record + '\')'" when="SubmitOnChange && !ViewOnly">
+              <TSSCRIPT tag=a attr=href value="'javascript:setValue('+quot+GridName+quot+','+Record + ')'" when="!SubmitOnChange && !ViewOnly">
+              <TSSCRIPT tag=img attr=border text="0">
+              <TSSCRIPT include=Boxed>
+                <TSSCRIPT tag=table attr=bgcolor value="BorderColor" first>
+                <table width="100%">
+                  <tr>
+                    <td>
+                      <table border="0" width="100%">
+                        <TSSCRIPT include="DisplayText!=''">
+                          <TSSCRIPT include="!(Selectable && Record!=0 && Record==Selected)">
+                          <tr finalcolor="Header">
+                            <td><b>
+                              <TSSCRIPT value=DisplayText>
+                              Header Text
+                              </TSSCRIPT>
+                            </b></td>
+                          </tr>
+                          </TSSCRIPT>
+                          <TSSCRIPT include="Selectable && Record!=0 && Record==Selected">
+                          <tr finalcolor="HilightCellColor">
+                            <td><b>
+                              <TSSCRIPT value=DisplayText>
+                              Header Text
+                              </TSSCRIPT>
+                            </b></td>
+                          </tr>
+                          </TSSCRIPT>
+                        </TSSCRIPT>
+                        <TSSCRIPT tag=tr attr=bgcolor value="CellColor" first>
+                          <tr>
+                            <td><img width="500" height="261" name="ZONE:Contents" alt="The groups controls will be placed here"></td>
+                          </tr>
+                        </TSSCRIPT>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+                </TSSCRIPT>
+              </TSSCRIPT>
+              <TSSCRIPT omit=Boxed>
+                <img width="500" height="261" name="ZONE:Contents" alt="The groups controls will be placed here">
+              </TSSCRIPT>
+              </TSSCRIPT>
+              </TSSCRIPT>
+              </TSSCRIPT>
+            </TSSCRIPT>
+          </td>
+          <TSSCRIPT property="NextRecord" value="1"></TSSCRIPT>
+        </TSSCRIPT>
+      </tr>
+    </TSSCRIPT><!-- row loop -->
+  </TSSCRIPT><!-- local GridName -->
+  <TSSCRIPT property='ResetSelected' value=1></TSSCRIPT>
+</table>
+<TSSCRIPT value="EmbedAfterControl" type=html>
+</TSSCRIPT>
+</FORM>
+</BODY>
+</HTML>

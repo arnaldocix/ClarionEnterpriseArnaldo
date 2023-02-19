@@ -1,0 +1,89 @@
+#EXTENSION(CleanCloseDownGlobal, 'CleanCloseDownGlobal'),APPLICATION(CleanCloseDownLocal(ABC)),HLP('~TPLExtensionCleanCloseDown.htm')
+#DISPLAY
+#DISPLAY(' Clean CloseDown'),AT(3,,187), PROP(PROP:FontColor, 0FFFFFFH), PROP(PROP:Color,0808080H)
+#DISPLAY
+#DISPLAY('This template has added an extension to each window.')
+#DISPLAY('also make available a procedure CleanCloseDown.')
+#DISPLAY('Calling this procedure will close down your app')
+#DISPLAY('from any place with out asking question in your')
+#DISPLAY('Forms procedure if they are open.')
+#PROMPT('Disable Clean Close Down',CHECK),%DisableCleanCloseDown,DEFAULT(%False),AT(10)
+#!
+#!
+#AT(%GlobalMap),PRIORITY(4000),WHERE(NOT %DisableCleanCloseDown)
+#IF (%DefaultExternal = 'None External')
+CleanCloseDown()
+#ELSE
+MODULE('')
+CleanCloseDown(),DLL
+END
+#ENDIF
+#ENDAT
+#!
+#!
+#AT(%DLLExportList),WHERE(NOT %DisableCleanCloseDown)
+#IF(%DefaultExternal = 'None External' AND %ProgramExtension='DLL' AND %DefaultExport)
+;Start of Exported Global Data
+CleanCloseDown@F                                                 @?
+$GLO:CleanCloseDown                                              @?
+$GLO:CleanCloseDownMainThread                                    @?
+#ENDIF
+#ENDAT
+#!
+#!
+#AT(%GlobalData),PRIORITY(5000),WHERE(NOT %DisableCleanCloseDown)
+#IF (%DefaultExternal = 'None External')
+GLO:CleanCloseDown           BYTE(0)
+GLO:CleanCloseDownMainThread LONG
+#ELSE
+GLO:CleanCloseDown           BYTE(0),EXTERNAL,DLL(dll_mode)
+GLO:CleanCloseDownMainThread LONG,EXTERNAL,DLL(dll_mode)
+#ENDIF
+NOTIFY:CloseDown             EQUATE(EVENT:CloseDown)
+#ENDAT
+#!
+#!
+#AT(%ProgramProcedures),PRIORITY(5000),WHERE(NOT %DisableCleanCloseDown AND %DefaultExternal = 'None External')
+CleanCloseDown  PROCEDURE()
+#EMBED(%CleanCloseDownData,'CleanCloseDown Before Notification'),TREE('CleanCloseDown|Data{{PRIORITY(500)}')
+ CODE
+ #EMBED(%CleanCloseDownCodeBefore,'CleanCloseDown Before Notification'),TREE('CleanCloseDown|Before Notification{{PRIORITY(4500)}')
+ GLO:CleanCloseDown = True
+ NOTIFY(NOTIFY:CloseDown,GLO:CleanCloseDownMainThread)
+ #EMBED(%CleanCloseDownCodeAfter,'CleanCloseDown After Notification'),TREE('CleanCloseDown|After Notification{{PRIORITY(5500)}')
+#ENDAT
+#!
+#!
+#EXTENSION(CleanCloseDownLocal,'CleanCloseDownLocal'),PROCEDURE,REQ(CleanCloseDownGlobal(ABC)),HLP('~TPLExtensionCleanCloseDown.htm')
+#RESTRICT
+  #IF(%Window)
+    #ACCEPT
+  #ELSE
+    #REJECT
+  #ENDIF
+#ENDRESTRICT
+#!
+#!
+#DISPLAY
+#DISPLAY(' Clean CloseDown'),AT(3,,187), PROP(PROP:FontColor, 0FFFFFFH), PROP(PROP:Color,0808080H)
+#DISPLAY
+#DISPLAY('This template allow the Form to respond')
+#DISPLAY('to the CleanCloseDown action.')
+#!
+#!
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(1000),WHERE(NOT %DisableCleanCloseDown AND EXTRACT(%WindowStatement,'APPLICATION')<>'')
+GLO:CleanCloseDownMainThread = THREAD()
+#ENDAT
+#!
+#AT(%WindowManagerMethodCodeSection,'TakeNotify','(UNSIGNED NotifyCode,SIGNED Thread,LONG Parameter),BYTE'),PRIORITY(4500),WHERE(NOT %DisableCleanCloseDown AND EXTRACT(%WindowStatement,'APPLICATION')<>'')
+IF NotifyCode = NOTIFY:CloseDown
+   POST(EVENT:CloseDown)
+END
+#ENDAT
+#!
+#AT(%WindowEventHandling,'CloseDown'),PRIORITY(4500),WHERE(NOT %DisableCleanCloseDown AND EXTRACT(%WindowStatement,'APPLICATION')='')
+IF GLO:CleanCloseDown
+   SELF.CancelAction = Cancel:Cancel
+END
+#ENDAT
+#!

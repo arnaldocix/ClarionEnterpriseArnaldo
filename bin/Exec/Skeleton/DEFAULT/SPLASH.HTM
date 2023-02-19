@@ -1,0 +1,63 @@
+<html>
+<head>
+<meta name="ts-control" content="window">
+<meta name="ts-capabilities" content="splash">
+<TSSCRIPT include="TimeOut != 0">
+  <TSSCRIPT tag=meta attr=content replace="DELAY" value="TimeOut">
+    <TSSCRIPT tag=meta attr=content replace="PROGRAM.TARGET" value="ProgramReference">
+<meta HTTP-EQUIV="REFRESH" CONTENT="DELAY;URL=PROGRAM.TARGET">
+    </TSSCRIPT>
+  </TSSCRIPT>
+</TSSCRIPT>
+</head>
+
+<TSSCRIPT comment="Change the colors in the following lines to change the colors of the generated application"></TSSCRIPT>
+<TSSCRIPT tag="<* FinalColor=Border>"       attr=bgcolor value="'#dcdcdc'" comment="Border Color" phase=*>
+<TSSCRIPT tag="<* FinalColor=Header>"       attr=bgcolor value="'#a0b8c8'" comment="Header Color" phase=*>
+<TSSCRIPT tag="<* FinalColor=HeaderB>"      attr=bgcolor value="'#ccccff'" comment="Header Background Color" phase=*>
+<TSSCRIPT tag="<* FinalColor=Cell>"         attr=bgcolor value="'#ffffcc'" comment="Cell Color" phase=*>
+<TSSCRIPT tag="<* FinalColor=CellB>"        attr=bgcolor value="'#ffffff'" comment="Cell background color" phase=*>
+<TSSCRIPT tag="<* FinalColor=DisabledText>" attr=color   value="'Gray'"    comment="Disabled text color" phase=*>
+
+<TSSCRIPT tag="<* FinalColor=*>" attr=FinalColor remove phase=Runtime comment="Remove pseudo tags from the table entries">
+<TSSCRIPT tag=img attr=src replace="IMAGES" value="Public" allowblank comment="Correct the path to images (the public directory)">
+<TSSCRIPT tag=img attr=src replace="PUBLIC" value="Public" allowblank comment="Correct the path to the public directory">
+
+<body bgcolor="white">
+<TSSCRIPT tag=form attr=action value="ProgramReference">
+  <form name="ClarionForm" method="GET" action="PROGRAM.TARGET">
+<TSSCRIPT value="EmbedBeforeWindow" type=html></TSSCRIPT>
+<CENTER>
+<table bgcolor="#ccccff" border="1" width=60%>
+  <tr>
+    <td valign="center" align="center">
+      <img name="ZONE:Contents" alt="Wizatrons will place controls in here">
+    </td>
+  </tr>
+  <tr>
+    <td valign="center" align="center">
+      <TSSCRIPT tag=a attr=href value="ProgramReference">
+        <A HREF="PROGRAM.TARGET">Continue</A>
+      </TSSCRIPT>
+    </td>
+  </tr>
+</table>
+</CENTER>
+<TSSCRIPT value="EmbedAfterWindow" type=html></TSSCRIPT>
+  </form>
+</TSSCRIPT>
+</body>
+
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+</TSSCRIPT>
+
+</html>
+

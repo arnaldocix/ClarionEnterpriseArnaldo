@@ -1,0 +1,349 @@
+#PROCEDURE(Frame,'Multiple Document Main Menu'),WINDOW,REPORT,HLP('~TPLProcFrame.htm')
+#LOCALDATA
+LocalRequest         LONG
+OriginalRequest      LONG
+LocalResponse        LONG
+FilesOpened          LONG
+WindowOpened         LONG
+WindowInitialized    LONG
+ForceRefresh         LONG
+CurrentTab           STRING(80)
+#ENDLOCALDATA
+#CLASS('Procedure Setup','Upon Entry into the Procedure')
+#CLASS('Before Lookups','Refresh Window ROUTINE, before lookups')
+#CLASS('After Lookups','Refresh Window ROUTINE, after lookups')
+#CLASS('Procedure Exit','Before Leaving the Procedure')
+#ENABLE(%ProcedureType='FUNCTION')
+  #PROMPT('&Return Value:',FIELD),%ReturnValue
+#ENDENABLE
+#INSERT(%StandardWindowPrompts)
+#PROMPT('&Splash Procedure:',PROCEDURE),%SplashProcedure
+#AT(%CustomModuleDeclarations)
+#IF(%ExtUIXPMenuEnableGlobal)
+#ADD(%ModuleIncludeList,'MENUStyle.INC')
+#!PROJECT('MENUStyle.CLW')
+#ENDIF
+#ENDAT
+#AT(%DataSectionBeforeWindow)
+  #IF(%SplashProcedure)
+SplashProcedureThread LONG
+  #ENDIF
+#IF(%ExtUIXPMenuEnableGlobal)
+    #FOR(%Control),WHERE(%ControlType='MENUBAR')
+MenuStyleMgr MenuStyleManager
+      #IF(NOT %Control)
+      #ERROR('Error: add USE(?MENUBAR) to the Frame''s menubar')
+Error: !The Themed menu is enable but the Frame's menubar does not have a USE
+!add USE(?MENUBAR) to the Frame's MENUBAR
+      #ENDIF
+      #BREAK
+    #ENDFOR
+#ENDIF
+#ENDAT
+#AT(%CustomGlobalDeclarations)
+  #INSERT(%StandardGlobalSetup)
+#ENDAT
+#AT(%WindowEventHandling,'OpenWindow')
+  #IF(%SplashProcedure)
+SplashProcedureThread = START(%SplashProcedure)
+  #ENDIF
+#ENDAT
+#AT(%WindowOtherEventHandling)
+  #IF(%SplashProcedure)
+IF SplashProcedureThread
+  IF EVENT() = Event:Accepted
+    POST(Event:CloseWindow,,SplashProcedureThread)
+    SplashPRocedureThread = 0
+  END
+END
+  #ENDIF
+#ENDAT
+#INSERT(%StandardWindowCode)
+#AT(%AfterWindowOpening),PRIORITY(7500)
+#INSERT(%ExtendedFrameUI)
+#ENDAT
+#!-----------------------------------------
+#DEFAULT
+NAME DefaultFrame
+[COMMON]
+DESCRIPTION 'Default MDI Frame'
+FROM Clarion Frame
+[PROMPTS]
+%INISaveWindow LONG  (1)
+%ButtonAction DEPEND %Control STRING TIMES 1
+WHEN  ('?Exit') ('No Special Action')
+
+%MenuAction DEPEND %Control STRING TIMES 1
+WHEN  ('?Exit') ('No Special Action')
+
+[ADDITION]
+NAME Clarion DateTimeDisplay
+[INSTANCE]
+INSTANCE 1
+PROCPROP
+[PROMPTS]
+%DisplayDate LONG  (0)
+%DatePicture STRING  ('October 31, 1959')
+%OtherDatePicture @S20  ('')
+%ShowDayOfWeek LONG  (1)
+%DateDisplayLocation STRING  ('Status Bar')
+%DateStatusSection @n1  (3)
+%DateControl STRING  ('')
+%DisplayTime LONG  (0)
+%TimePicture STRING  ('5:30PM')
+%OtherTimePicture @S20  ('')
+%TimeDisplayLocation STRING  ('Status Bar')
+%TimeStatusSection @n1  (4)
+%TimeControl STRING  ('')
+[WINDOW]
+AppFrame APPLICATION('Application'),AT(,,310,190),STATUS(-1,80,120,45),SYSTEM,MAXIMIZE,RESIZE
+       MENUBAR
+         MENU('&File'),USE(?FileMenu)
+           ITEM('P&rint Setup...'),USE(?PrintSetup),MSG('Setup Printer'),STD(STD:PrintSetup)
+           ITEM,SEPARATOR
+           ITEM('E&xit'),USE(?Exit),MSG('Exit this application'),STD(STD:Close)
+         END
+         MENU('&Edit'),USE(?EditMenu)
+           ITEM('Cu&t'),USE(?Cut),MSG('Cut Selection To Clipboard'),STD(STD:Cut)
+           ITEM('&Copy'),USE(?Copy),MSG('Copy Selection To Clipboard'),STD(STD:Copy)
+           ITEM('&Paste'),USE(?Paste),MSG('Paste From Clipboard'),STD(STD:Paste)
+         END
+         MENU('&Window'),MSG('Arrange multiple open windows'),STD(STD:WindowList)
+           ITEM('T&ile'),USE(?Tile),MSG('Arrange multiple opened windows'),STD(STD:TileWindow)
+           ITEM('&Cascade'),USE(?Cascade),MSG('Arrange multiple opened windows'),STD(STD:CascadeWindow)
+           ITEM('&Arrange Icons'),USE(?Arrange),MSG('Arrange the icons for minimized windows'),STD(STD:ArrangeIcons)
+         END
+         MENU('&Help'),MSG('Windows Help')
+           ITEM('&Contents'),USE(?Helpindex),MSG('View the contents of the help file'),STD(STD:HelpIndex)
+           ITEM('&Search for Help On...'),USE(?HelpSearch),MSG('Search for help on a subject'),STD(STD:HelpSearch)
+           ITEM('&How to Use Help'),USE(?HelpOnHelp),MSG('Provides general instructions on using help'),STD(STD:HelpOnHelp)
+         END
+       END
+     END
+
+#ENDDEFAULT
+#!
+#!
+#GROUP(%ExtendedUISetXPMenuColor)
+  #CASE(%ExtUIXPMenuColorTypeGlobal)
+  #OF('WindowsClassic')
+     #SET(%ExtUIXPMenuFlat,%False)
+     #SET(%ExtUIXPMenuColorLeftGlobal,'2147483652')
+     #SET(%ExtUIXPMenuColorRightGlobal,'2147483652')
+     #SET(%ExtUIXPMenuColorSelectionBarLeftGlobal,'8388608')
+     #SET(%ExtUIXPMenuColorSelectionBarRightGlobal,'8388608')
+     #SET(%ExtUIXPMenuColorHotLeftGlobal,'8388608')
+     #SET(%ExtUIXPMenuColorHotRightGlobal,'8388608')
+     #SET(%ExtUIXPMenuColorSelectedLeftGlobal,'8388608')
+     #SET(%ExtUIXPMenuColorSelectedRightGlobal,'8388608')
+     #SET(%ExtUIXPMenuColorSelectionBorderGlobal,'8388608')
+     #SET(%ExtUIXPMenuColorNormalBarLeftGlobal,'2147483652')
+     #SET(%ExtUIXPMenuColorNormalBarRightGlobal,'2147483652')
+     #SET(%ExtUIXPMenuColorNormalText,COLOR:Black)
+     #SET(%ExtUIXPMenuColorSelectedText,COLOR:Black)
+     #SET(%ExtUIXPMenuColorHotText,COLOR:Black)
+  #OF('VistaBlack')
+     #SET(%ExtUIXPMenuFlat,%True)
+     #SET(%ExtUIXPMenuColorLeftGlobal,'13684944')
+     #SET(%ExtUIXPMenuColorRightGlobal,'8421504')
+     #SET(%ExtUIXPMenuColorSelectionBarLeftGlobal,'13684944')
+     #SET(%ExtUIXPMenuColorSelectionBarRightGlobal,'13684944')
+     #SET(%ExtUIXPMenuColorHotLeftGlobal,'13684944')
+     #SET(%ExtUIXPMenuColorHotRightGlobal,'13684944')
+     #SET(%ExtUIXPMenuColorSelectedLeftGlobal,'13684944')
+     #SET(%ExtUIXPMenuColorSelectedRightGlobal,'8421504')
+     #SET(%ExtUIXPMenuColorSelectionBorderGlobal,'4227327')
+     #SET(%ExtUIXPMenuColorNormalBarLeftGlobal,'13684944')
+     #SET(%ExtUIXPMenuColorNormalBarRightGlobal,'8421504')
+     #SET(%ExtUIXPMenuColorNormalText,COLOR:Black)
+     #SET(%ExtUIXPMenuColorSelectedText,COLOR:Black)
+     #SET(%ExtUIXPMenuColorHotText,COLOR:Black)
+  #OF('VistaAero')
+     #SET(%ExtUIXPMenuFlat,%True)
+     #SET(%ExtUIXPMenuColorLeftGlobal,'-2147483644')
+     #SET(%ExtUIXPMenuColorRightGlobal,'-2147483644')
+     #SET(%ExtUIXPMenuColorSelectionBarLeftGlobal,'16772571')
+     #SET(%ExtUIXPMenuColorSelectionBarRightGlobal,'16768185')
+     #SET(%ExtUIXPMenuColorSelectedLeftGlobal,'16750899')
+     #SET(%ExtUIXPMenuColorSelectedRightGlobal,'16750899')
+     #SET(%ExtUIXPMenuColorHotLeftGlobal,'16750899')
+     #SET(%ExtUIXPMenuColorHotRightGlobal,'16750899')
+     #SET(%ExtUIXPMenuColorSelectionBorderGlobal,'16760187')
+     #SET(%ExtUIXPMenuColorNormalBarLeftGlobal,'16777215')
+     #SET(%ExtUIXPMenuColorNormalBarRightGlobal,'16115425')
+     #SET(%ExtUIXPMenuColorNormalText,COLOR:Black)
+     #SET(%ExtUIXPMenuColorSelectedText,COLOR:Black)
+     #SET(%ExtUIXPMenuColorHotText,COLOR:Black)
+  #OF('Windows2K')
+     #SET(%ExtUIXPMenuFlat,%False)
+     #SET(%ExtUIXPMenuColorLeftGlobal,'12632256')
+     #SET(%ExtUIXPMenuColorRightGlobal,'12632256')
+     #SET(%ExtUIXPMenuColorSelectionBarLeftGlobal,'12632256')
+     #SET(%ExtUIXPMenuColorSelectionBarRightGlobal,'12632256')
+     #SET(%ExtUIXPMenuColorHotLeftGlobal,'12632256')
+     #SET(%ExtUIXPMenuColorHotRightGlobal,'12632256')
+     #SET(%ExtUIXPMenuColorSelectedLeftGlobal,'12632256')
+     #SET(%ExtUIXPMenuColorSelectedRightGlobal,'12632256')
+     #SET(%ExtUIXPMenuColorSelectionBorderGlobal,'8421504')
+     #SET(%ExtUIXPMenuColorNormalBarLeftGlobal,'2147483652')
+     #SET(%ExtUIXPMenuColorNormalBarRightGlobal,'2147483652')
+     #SET(%ExtUIXPMenuColorNormalText,COLOR:Black)
+     #SET(%ExtUIXPMenuColorSelectedText,COLOR:Black)
+     #SET(%ExtUIXPMenuColorHotText,COLOR:Black)
+  #OF('XPLunaBlue')
+     #SET(%ExtUIXPMenuFlat,%True)
+     #SET(%ExtUIXPMenuColorLeftGlobal,'16706781')
+     #SET(%ExtUIXPMenuColorRightGlobal,'14854529')
+     #SET(%ExtUIXPMenuColorSelectionBarLeftGlobal,'16706781')
+     #SET(%ExtUIXPMenuColorSelectionBarRightGlobal,'14854529')
+     #SET(%ExtUIXPMenuColorHotLeftGlobal,'16706781')
+     #SET(%ExtUIXPMenuColorHotRightGlobal,'14854529')
+     #SET(%ExtUIXPMenuColorSelectedLeftGlobal,'16706781')
+     #SET(%ExtUIXPMenuColorSelectedRightGlobal,'14854529')
+     #SET(%ExtUIXPMenuColorSelectionBorderGlobal,'8388608')
+     #SET(%ExtUIXPMenuColorNormalBarLeftGlobal,'16777215')
+     #SET(%ExtUIXPMenuColorNormalBarRightGlobal,'16115425')
+     #SET(%ExtUIXPMenuColorNormalText,0)
+     #SET(%ExtUIXPMenuColorSelectedText,16777215)
+     #SET(%ExtUIXPMenuColorHotText,16777215)
+  #OF('XPLunaGreen')
+     #SET(%ExtUIXPMenuFlat,%True)
+     #SET(%ExtUIXPMenuColorLeftGlobal,'14612468')
+     #SET(%ExtUIXPMenuColorRightGlobal,'9553591')
+     #SET(%ExtUIXPMenuColorSelectionBarLeftGlobal,'14612468')
+     #SET(%ExtUIXPMenuColorSelectionBarRightGlobal,'9553591')
+     #SET(%ExtUIXPMenuColorHotLeftGlobal,'14612468')
+     #SET(%ExtUIXPMenuColorHotRightGlobal,'9553591')
+     #SET(%ExtUIXPMenuColorSelectedLeftGlobal,'14612468')
+     #SET(%ExtUIXPMenuColorSelectedRightGlobal,'9553591')
+     #SET(%ExtUIXPMenuColorSelectionBorderGlobal,'6073238')
+     #SET(%ExtUIXPMenuColorNormalBarLeftGlobal,'16777215')
+     #SET(%ExtUIXPMenuColorNormalBarRightGlobal,'16115425')
+     #SET(%ExtUIXPMenuColorNormalText,0)
+     #SET(%ExtUIXPMenuColorSelectedText,16777215)
+     #SET(%ExtUIXPMenuColorHotText,16777215)
+  #OF('XPLunaSilver')
+     #SET(%ExtUIXPMenuFlat,%True)
+     #SET(%ExtUIXPMenuColorLeftGlobal,'15129563')
+     #SET(%ExtUIXPMenuColorRightGlobal,'12560039')
+     #SET(%ExtUIXPMenuColorSelectionBarLeftGlobal,'15129563')
+     #SET(%ExtUIXPMenuColorSelectionBarRightGlobal,'12560039')
+     #SET(%ExtUIXPMenuColorHotLeftGlobal,'15129563')
+     #SET(%ExtUIXPMenuColorHotRightGlobal,'12560039')
+     #SET(%ExtUIXPMenuColorSelectedLeftGlobal,'15129563')
+     #SET(%ExtUIXPMenuColorSelectedRightGlobal,'12560039')
+     #SET(%ExtUIXPMenuColorSelectionBorderGlobal,'2147483665')
+     #SET(%ExtUIXPMenuColorNormalBarLeftGlobal,'16777215')
+     #SET(%ExtUIXPMenuColorNormalBarRightGlobal,'16115425')
+     #SET(%ExtUIXPMenuColorNormalText,0)
+     #SET(%ExtUIXPMenuColorSelectedText,16777215)
+     #SET(%ExtUIXPMenuColorHotText,16777215)
+  #OF('XPEnergyBlue')
+     #SET(%ExtUIXPMenuFlat,%True)
+     #SET(%ExtUIXPMenuColorLeftGlobal,'12615680')
+     #SET(%ExtUIXPMenuColorRightGlobal,'14854529')
+     #SET(%ExtUIXPMenuColorSelectionBarLeftGlobal,'16764861')
+     #SET(%ExtUIXPMenuColorSelectionBarRightGlobal,'16764861')
+     #SET(%ExtUIXPMenuColorSelectedLeftGlobal,'16760187')
+     #SET(%ExtUIXPMenuColorSelectedRightGlobal,'16760187')
+     #SET(%ExtUIXPMenuColorHotLeftGlobal,'16764861')
+     #SET(%ExtUIXPMenuColorHotRightGlobal,'16764861')
+     #SET(%ExtUIXPMenuColorSelectionBorderGlobal,'12615680')
+     #SET(%ExtUIXPMenuColorNormalBarLeftGlobal,'16777215')
+     #SET(%ExtUIXPMenuColorNormalBarRightGlobal,'16115425')
+     #SET(%ExtUIXPMenuColorNormalText,0)
+     #SET(%ExtUIXPMenuColorSelectedText,16777215)
+     #SET(%ExtUIXPMenuColorHotText,16777215)
+  #ENDCASE
+#!
+#GROUP(%ExtendedFrameUI)
+#SUSPEND
+#CASE(%ExtUIMDITabGlobal)
+#OF('DISABLE')
+    %Window{PROP:TabBarVisible}  = False
+#OF('TOP')
+    %Window{PROP:TabBarLocation} = MDITabLocation:Top
+#OF('BOTTOM')
+    %Window{PROP:TabBarLocation} = MDITabLocation:Bottom
+#ENDCASE
+#IF(%ExtUIMDITabGlobal<>'DISABLE')
+    %Window{PROP:TabBarStyle} = TabStyle:%ExtUIMDITabStyleGlobal
+    %Window{PROP:TabBarVisible}  = True
+#ENDIF
+#IF(%ExtUIXPMenuEnableGlobal)
+    #FOR(%Control),WHERE(%ControlType='MENUBAR' AND %Control)
+    MenuStyleMgr.Init(%Control)
+      #BREAK
+    #ENDFOR
+    MenuStyleMgr.SuspendRefresh()
+    #IF(%ExtUIXPMenuColorTypeGlobal<>'User Defined')
+        #IF(%ExtUIXPMenuEnableRuntime)
+    IF NOT %ExtUIXPMenuRuntimeVar
+       %ExtUIXPMenuRuntimeVar = '%'ExtUIXPMenuColorTypeGlobal' !Default Value
+    END
+    MenuStyleMgr.SetThemeColors(%ExtUIXPMenuRuntimeVar)
+        #ELSE
+    MenuStyleMgr.SetThemeColors('%'ExtUIXPMenuColorTypeGlobal')
+        #ENDIF
+    #IF(%ExtUIXPMenuDisableImageBar)
+    MenuStyleMgr.SetImageBar(False)
+    #ENDIF
+    MenuStyleMgr.ApplyTheme()
+    #ELSE    
+#!    #CALL(%ExtendedUISetXPMenuColor)
+    MenuStyleMgr.SetFlatMode(%(CHOOSE(%ExtUIXPMenuFlat,'True','False')))
+    #IF(%ExtUIXPMenuSeparator3D OR %ExtUIXPMenuSeparatorFull OR %ExtUIXPMenuVerticalLine)
+    MenuStyleMgr.SetLinesEmbossed(TRUE)
+    MenuStyleMgr.SetLineMode(MenuLine:Default%(CHOOSE(%ExtUIXPMenuSeparator3D,'+MenuLine:Embossed',''))%(CHOOSE(%ExtUIXPMenuSeparatorFull,'+MenuLine:FullSeparator',''))%(CHOOSE(%ExtUIXPMenuVerticalLine,'+MenuLine:ShowGutter','')))
+    #ELSE
+    MenuStyleMgr.SetLinesEmbossed(FALSE)
+    MenuStyleMgr.SetLineMode(MenuLine:Default)
+    #ENDIF
+    MenuStyleMgr.SetImageBar(%(CHOOSE(%ExtUIXPMenuShowImageBar,'True','False')))
+    IF MenuStyleMgr.GetImageBar()
+        MenuStyleMgr.SetColor(MenuBrushes:ImageBkgnd,%ExtUIXPMenuColorLeftGlobal,%ExtUIXPMenuColorRightGlobal)
+    ELSE
+        MenuStyleMgr.SetColor(MenuBrushes:ImageBkgnd,%ExtUIXPMenuColorItemBackgroundGlobal,%ExtUIXPMenuColorItemBackgroundGlobal)
+    END        
+    MenuStyleMgr.SetColor(MenuBrushes:SelectedBkgnd,%ExtUIXPMenuColorSelectionBarLeftGlobal,%ExtUIXPMenuColorSelectionBarRightGlobal,%(CHOOSE(%ExtUIXPMenuSelVertical,'True','False')))
+    MenuStyleMgr.SetColor(MenuBrushes:SelectedBarBkgnd,%ExtUIXPMenuColorSelectedLeftGlobal,%ExtUIXPMenuColorSelectedRightGlobal,True)
+    MenuStyleMgr.SetColor(MenuBrushes:HotBkgnd,%ExtUIXPMenuColorHotLeftGlobal,%ExtUIXPMenuColorHotRightGlobal,True)
+    MenuStyleMgr.SetColor(MenuBrushes:FrameBrush,%ExtUIXPMenuColorSelectionBorderGlobal, %ExtUIXPMenuColorSelectionBorderGlobal,True)
+    MenuStyleMgr.SetColor(MenuBrushes:NormalBarBkgnd,%ExtUIXPMenuColorNormalBarLeftGlobal,%ExtUIXPMenuColorNormalBarRightGlobal,True)
+    MenuStyleMgr.SetColor(MenuBrushes:NormalBkgnd,%ExtUIXPMenuColorItemBackgroundGlobal,%ExtUIXPMenuColorItemBackgroundGlobal,True)
+    MenuStyleMgr.SetTextColor(MenuColors:NormalText,%ExtUIXPMenuColorNormalText)
+    MenuStyleMgr.SetTextColor(MenuColors:SelectedText,%ExtUIXPMenuColorSelectedText)
+    MenuStyleMgr.SetTextColor(MenuColors:HotText,%ExtUIXPMenuColorHotText)
+!To use in the derived SetCustomThemeColors method    
+!SELF.Theme.MenuBarNormalColorLeft      = %ExtUIXPMenuColorItemBackgroundGlobal
+!SELF.Theme.MenuBarNormalColorRight     = %ExtUIXPMenuColorItemBackgroundGlobal
+!SELF.Theme.MenuBarOverColorLeft        = %ExtUIXPMenuColorHotLeftGlobal
+!SELF.Theme.MenuBarOverColorRight       = %ExtUIXPMenuColorHotRightGlobal
+!SELF.Theme.MenuBarSelectedColorLeft    = %ExtUIXPMenuColorSelectedLeftGlobal
+!SELF.Theme.MenuBarSelectedColorRight   = %ExtUIXPMenuColorSelectedRightGlobal
+!SELF.Theme.SelectionBarColorLeft       = %ExtUIXPMenuColorSelectionBarLeftGlobal
+!SELF.Theme.SelectionBarColorRight      = %ExtUIXPMenuColorSelectionBarRightGlobal
+!SELF.Theme.SelectionBarVerticalGradient= %(CHOOSE(%ExtUIXPMenuSelVertical,'True','False'))
+!SELF.Theme.SelectionBorderColor        = %ExtUIXPMenuColorSelectionBorderGlobal
+!SELF.Theme.ImageBkgndColorLeft         = %ExtUIXPMenuColorLeftGlobal
+!SELF.Theme.ImageBkgndColorRight        = %ExtUIXPMenuColorRightGlobal
+!SELF.Theme.ItemNormalBkgndColor        = %ExtUIXPMenuColorItemBackgroundGlobal
+!SELF.Theme.TextNormalColor             = %ExtUIXPMenuColorNormalText
+!SELF.Theme.TextSelectedColor           = %ExtUIXPMenuColorSelectedText
+!SELF.Theme.TextOverColor               = %ExtUIXPMenuColorHotText
+!SELF.Theme.Flat                        = %(CHOOSE(%ExtUIXPMenuFlat,'True','False'))
+!SELF.Theme.ShowImageBar                = %(CHOOSE(%ExtUIXPMenuShowImageBar,'True','False'))
+    #IF(%ExtUIXPMenuSeparator3D OR %ExtUIXPMenuSeparatorFull OR %ExtUIXPMenuVerticalLine)
+!SELF.Theme.Embossed                    = TRUE
+!SELF.Theme.LineMode                    = MenuLine:Default%(CHOOSE(%ExtUIXPMenuSeparator3D,'+MenuLine:Embossed',''))%(CHOOSE(%ExtUIXPMenuSeparatorFull,'+MenuLine:FullSeparator',''))%(CHOOSE(%ExtUIXPMenuVerticalLine,'+MenuLine:ShowGutter',''))
+    #ELSE
+!SELF.Theme.Embossed                    = FALSE
+!SELF.Theme.LineMode                    = MenuLine:Default
+    #ENDIF
+    #ENDIF
+    MenuStyleMgr.Refresh(TRUE)   
+#ENDIF
+#RESUME
+#!
+#!
+#!

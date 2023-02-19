@@ -1,0 +1,586 @@
+#CONTROL(RTFTextControl,'RTF Text Control'),MULTI,WINDOW,WRAP(TEXT),HLP('~TPLRTControl.htm')
+#PREPARE
+    #CALL(%ReadABCFiles)
+    #CALL(%SetClassDefaults, 'Default','RTFControl'&%ActiveTemplateInstance,'RTFControlClass')
+#ENDPREPARE
+  CONTROLS
+    TEXT,USE(?RTFTextBox),VSCROLL,BOXED,RTF(TEXT:FIELD)
+  END
+#BUTTON('RTF Properties'),AT(,,170)
+#SHEET
+  #TAB('Context &Menu'),HLP('~TPLControlRTF.htm')
+       #BUTTON('Menu Item'),MULTI(%ContextMenus,%ContextMenuDisplay()),INLINE,HLP('~TPLControlRTF.htm')
+           #PROMPT('Is a separator?',CHECK),%ContextMenuIsASeparator,DEFAULT(%False)
+           #BOXED,HIDE
+              #PROMPT('Level:',SPIN(@n3,1,20)),%ContextMenuLevel,REQ,DEFAULT(1)
+           #ENDBOXED
+           #BOXED,WHERE(NOT %ContextMenuIsASeparator)
+              #PROMPT('Menu Text:',@S255),%ContextMenuText,REQ
+              #PROMPT('When Pressed:',DROP('No Special Action|Execute Routine|Post Event to Control|Call a Procedure|Run a Program')),%ButtonAction,DEFAULT('No Special Action')
+              #DISPLAY('')
+              #BOXED,SECTION
+                 #BOXED('Post Event to Control'),WHERE(%ButtonAction = 'Post Event to Control'),CLEAR,AT(,0)
+                   #PROMPT('&Control:',FROM(%Control)),%ButtonControlName,REQ
+                   #PROMPT('Event:',DROP('Accepted|Selected')),%ButtonControlEvent,DEFAULT('Accepted')
+                 #ENDBOXED
+                 #BOXED('Execute Routine'),WHERE(%ButtonAction = 'Execute Routine'),CLEAR,AT(,0)
+                   #PROMPT('Routine Name:',@S200),%ButtonRoutineName,REQ
+                 #ENDBOXED
+                 #BOXED('Program Definition'),WHERE(%ButtonAction = 'Run a Program'),CLEAR,AT(,0)
+                   #PROMPT('Program Name:',@S40),%ButtonRunName,REQ
+                   #PROMPT('Parameters:',EXPR),%ButtonRunParameters
+                 #ENDBOXED
+                 #BOXED('Procedure Definition'),WHERE(%ButtonAction = 'Call a Procedure'),AT(,0)
+                   #ENABLE(%ButtonAction = 'Call a Procedure'),CLEAR
+                     #PROMPT('Procedure Name:',PROCEDURE),%ButtonProcedure,REQ,PROP(PROP:DropWidth,140)
+                     #PROMPT('Initiate Thread',CHECK),%ButtonThread
+                   #ENDENABLE
+                   #ENABLE(%ButtonThread)
+                     #PROMPT('Thread Stack:',SPIN(@n7,5000,64000,500)),%ButtonThreadStack,DEFAULT(25000)
+                   #ENDENABLE
+                   #BOXED,SECTION
+                     #BOXED('Non Threaded Procedure Call Definition'),WHERE(%ButtonAction = 'Call a Procedure' AND NOT %ButtonThread),AT(8,0),SECTION,CLEAR
+                       #PROMPT('Parameters:',EXPR),%ButtonParameters
+                       #PROMPT('&Return Value Variable:', FIELD),%ButtonReturnValueAssignment
+                       #ENABLE(%ButtonReturnValueAssignment <> ''),CLEAR
+                          #PROMPT('Re&ference Assign', CHECK),%ButtonReturnValueReferenceAssign
+                       #ENDENABLE
+                       #PROMPT('Requested File Action:',DROP('None|Insert|Change|Delete|Select')),%ButtonRequest,DEFAULT('None')
+                     #ENDBOXED
+                     #BOXED('Theaded Procedure Call Definition'),WHERE(%ButtonAction = 'Call a Procedure' AND %ButtonThread),AT(8,0),SECTION,CLEAR
+                       #PROMPT('&Parameters:', EXPR),%ButtonThreadParameters
+                       #PROMPT('&Return Thread Variable:', FIELD),%ButtonThreadReturnValueAssignment
+                     #ENDBOXED
+                   #ENDBOXED
+                 #ENDBOXED
+              #ENDBOXED
+           #ENDBOXED
+       #ENDBUTTON
+  #ENDTAB
+  #TAB('OOP'),WHERE(%False)
+    #BOXED('Default RTF prompts'),HIDE
+      #INSERT(%OOPHiddenPrompts)
+     #PROMPT('Hide RTF Control:',@S200), %RTFControl
+     #PROMPT('Hide RTF Control:',@S200), %RTFControlObjectName
+    #ENDBOXED
+  #ENDTAB
+  #TAB('&Classes'),HLP('~TPLControlRTF.htm')
+    #WITH(%ClassItem,'Default')
+      #INSERT(%ClassPrompts)
+    #ENDWITH
+  #ENDTAB
+#ENDSHEET
+#ENDBUTTON
+#ATSTART
+  #CALL(%ReadABCFiles)
+  #CALL(%SetClassDefaults, 'Default','RTFControl'&%ActiveTemplateInstance,'RTFControlClass')
+  #SET(%RTFControl,%GetControlName())
+  #SET(%RTFControlObjectName,%ThisObjectName)                                  #!Name of object
+#ENDAT
+#AT(%GatherObjects)
+#CALL(%AddObjectList, 'Default')
+#ENDAT
+#AT(%LocalDataClasses)
+#INSERT(%GenerateClass, 'Default')
+#ENDAT
+#!
+#!
+#AT(%BeforeControlsSetup),PRIORITY(4000),DESCRIPTION('RTF '&%RTFControl&' Initialize'),WHERE(%AppTemplateFamily='CLARION')
+%RTFControlObjectName.Init(%RTFControl)
+#ENDAT
+#AT(%WindowOtherEventHandling),PRIORITY(7500),DESCRIPTION('RTF '&%RTFControl&' TakeEvent'),WHERE(%AppTemplateFamily='CLARION')
+IF %RTFControlObjectName.TakeEvent()
+   CYCLE
+END
+#ENDAT
+#AT(%BeforeWindowClosing),PRIORITY(7000),DESCRIPTION('RTF '&%RTFControl&' Kill'),WHERE(%AppTemplateFamily='CLARION')
+%RTFControlObjectName.Kill()
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8440),DESCRIPTION('RTF '&%RTFControl&' Initialize'),WHERE(%AppTemplateFamily='ABC')
+%RTFControlObjectName.Init(%RTFControl)
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'TakeEvent','(),BYTE'),PRIORITY(2501),DESCRIPTION('RTF '&%RTFControl&' TakeEvent'),WHERE(%AppTemplateFamily='ABC')
+ReturnValue = %RTFControlObjectName.TakeEvent()
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'Kill','(),BYTE'),PRIORITY(7200),DESCRIPTION('RTF '&%RTFControl&' Kill'),WHERE(%AppTemplateFamily='ABC')
+%RTFControlObjectName.Kill()
+#ENDAT
+#AT(%RTFTextControlMethodCodeSection,%ActiveTemplateInstance,'ContextMenuChoice','(LONG pSelectedChoice)'),PRIORITY(5500)
+#INSERT(%InsertStandardContextMenuHandling,'pSelectedChoice')
+#ENDAT
+#AT(%RTFTextControlMethodCodeSection,%ActiveTemplateInstance,'ContextMenuText','(),STRING'),PRIORITY(5500)
+ReturnValue = '%(%InsertStandardContextMenuString())'
+#ENDAT
+#AT(%RTFTextControlMethodCodeSection,%ActiveTemplateInstance),PRIORITY(5000),DESCRIPTION('Parent Call'),WHERE(%ParentCallValid())
+  #CALL(%GenerateParentCall)
+#ENDAT
+#AT(%LocalProcedures)
+#CALL(%GenerateVirtuals, 'Default', 'Local Objects|Abc Objects|RTF Control (' & %RTFControl & ')', '%RTFTextControlVirtuals')
+#ENDAT
+#GROUP(%RTFTextControlVirtuals, %TreeText, %DataText, %CodeText)
+#EMBED(%RTFTextControlMethodDataSection,'RTFTextControl Method Data Section'),%ActiveTemplateInstance,%pClassMethod,%pClassMethodPrototype,LABEL,DATA,PREPARE(,%FixClassName(%FixBaseClassToUse('Default'))),TREE(%TreeText & %DataText)
+  #?CODE
+  #EMBED(%RTFTextControlMethodCodeSection,'RTFTextControl Method Code Section'),%ActiveTemplateInstance,%pClassMethod,%pClassMethodPrototype,PREPARE(,%FixClassName(%FixBaseClassToUse('Default'))),TREE(%TreeText & %CodeText)
+#!
+#GROUP(%ContextMenuDisplay)
+#IF(%ContextMenuIsASeparator)
+  #RETURN(ALL('_',%ContextMenuLevel-1)&'-------------')
+#ELSE
+  #RETURN(ALL('_',%ContextMenuLevel-1)&%ContextMenuText)
+#ENDIF
+#!
+#!
+#CODE(RTFAction,'RTFAction'),HLP('~TPLRTControl.htm'),REQ(RTFTextControl),PROCEDURE,DESCRIPTION('RTFAction: Control:'&%RTFControl&' - '&%RTFControlObjectName&'.'&%RTFAction)
+#DISPLAY('This code template will execute the')
+#DISPLAY('selected action using the object '&%RTFControlObjectName)
+#PROMPT('Action:',DROP('Save|SaveAs|Load|FindAndReplace|SelectedText|SetFocus|Print|Touch|Changed')),%RTFAction
+#BOXED,SECTION
+  #BOXED,WHERE(%RTFAction='Save'),AT(0,0)
+    #PROMPT('File Name:',FIELD),%RTFSaveFileName,REQ
+    #PROMPT('Mode:',DROP('Default|PlainText|RichText')),%RTFSaveMode,DEFAULT('Default')
+    #DISPLAY('The File Name must be a CSTRING')
+  #ENDBOXED
+  #BOXED,WHERE(%RTFAction='SaveAs'),AT(0,0)
+    #PROMPT('Mode:',DROP('Default|PlainText|RichText')),%RTFSaveMode,DEFAULT('Default')
+    #DISPLAY('The user will be prompted by a File Name')
+  #ENDBOXED
+  #BOXED,WHERE(%RTFAction='SelectedText'),AT(0,0)
+    #PROMPT('File Name:',FIELD),%RTFSelectedText,REQ
+    #DISPLAY('The File Name must be a CSTRING')
+  #ENDBOXED
+  #BOXED,WHERE(%RTFAction='Load'),AT(0,0)
+    #PROMPT('File Name:',FIELD),%RTFLoadFileName,REQ
+    #DISPLAY('The File Name must be a CSTRING')
+  #ENDBOXED
+  #BOXED,WHERE(%RTFAction='SetFocus'),AT(0,0)
+    #DISPLAY('The Text control need to be unhidden')
+  #ENDBOXED
+  #BOXED,WHERE(%RTFAction='Touch'),AT(0,0)
+    #PROMPT('Expresion:',EXPR),%RTFTouch,REQ,DEFAULT('True')
+    #DISPLAY('When the expresion must be true or false')
+    #DISPLAY('the resulting value will be used like the')
+    #DISPLAY('Touch parameter.')
+    #DISPLAY('Use ! for a variable')
+  #ENDBOXED
+  #BOXED,WHERE(%RTFAction='Changed'),AT(0,0)
+    #PROMPT('Variable:',FIELD),%RTFChanged,REQ
+  #ENDBOXED
+  #BOXED,WHERE(%RTFAction='Print'),AT(0,0)
+    #PROMPT('Job Name:',EXPR),%RTFJobName,REQ,DEFAULT('CW Report')
+    #DISPLAY('Use ! for a variable')
+  #ENDBOXED
+  #BOXED,WHERE(%RTFAction='FindAndReplace'),AT(0,0)
+    #PROMPT('Find:',EXPR),%RTFFindAndReplaceFind,REQ
+    #PROMPT('Replace by:',EXPR),%RTFFindAndReplaceReplace
+    #DISPLAY('Use ! for a variable')
+  #ENDBOXED
+#ENDBOXED
+#DISPLAY('Using RTF Control:'&%RTFControl)
+#DISPLAY(%RTFControlObjectName&'.'&%RTFAction)
+#CASE(%RTFAction)
+#OF('Save')
+%RTFControlObjectName.Save(%RTFSaveFileName,TEXT:%RTFSaveMode)
+#OF('SaveAs')
+%RTFControlObjectName.SaveAs(TEXT:%RTFSaveMode)
+#OF('Load')
+%RTFControlObjectName.Load(%RTFLoadFileName)
+#OF('Changed')
+%RTFChanged = %RTFControlObjectName.Changed()
+#OF('SetFocus')
+%RTFControlObjectName.SetFocus()
+#OF('FindAndReplace')
+%RTFControlObjectName.FindAndReplace(CLIP(%(%SVStripPling(%RTFFindAndReplaceFind))),CLIP(%(%SVStripPling(%RTFFindAndReplaceReplace))))
+#OF('Touch')
+%RTFControlObjectName.Touch(CHOOSE(%(%SVStripPling(%RTFTouch)),True,False))
+#OF('Print')
+%RTFControlObjectName.PrintRTF(%(%SVStripPling(%RTFJobName)))
+#OF('SelectedText')
+%RTFControlObjectName.SelectedText(%(%SVStripPling(%RTFSelectedText)))
+#ENDCASE
+#!
+#!
+#!
+#CONTROL(RTFStatusBar,'RTF StatusBar'),HLP('~TPLRTControl.htm'),REQ(RTFTextControl),PROCEDURE,WINDOW
+  CONTROLS
+       GROUP,AT(,,333,18),USE(?InfoGroup),BOXED,TRN,FULL,BEVEL(1,1)
+         PANEL,AT(2,2,150,14),USE(?Panel3),BEVEL(-1)
+         PANEL,AT(154,0,99,14),USE(?Panel4),BEVEL(-1)
+         PANEL,AT(104,0,54,14),USE(?Panel5),BEVEL(-1)
+         PANEL,AT(58,0,13,14),USE(?Panel6),BEVEL(-1)
+         STRING('FileName'),AT(-312,2,141,10),USE(?ShowFileName),FONT('Courier New',9,,FONT:bold)
+         STRING('LineNo'),AT(154,0,90,10),USE(?ShowLineNo),FONT('Courier New',9,,FONT:bold)
+         STRING('InLine'),AT(104,0,45,10),USE(?ShowPosInLine),FONT('Courier New',9,,FONT:bold)
+         STRING('*'),AT(57,0,6,10),USE(?ShowDirty),FONT('Times New Roman',16,COLOR:Red,FONT:bold)
+       END
+  END
+#ATSTART
+    #DECLARE(%CtlShowFileName)
+    #DECLARE(%CtlShowLineNo)
+    #DECLARE(%CtlShowPosInLine)
+    #DECLARE(%CtlShowDirty)
+    #SET(%CtlShowFileName,0)
+    #SET(%CtlShowLineNo,0)
+    #SET(%CtlShowPosInLine,0)
+    #SET(%CtlShowDirty,0)
+    #FOR(%Control),WHERE(%ControlInstance = %ActiveTemplateInstance)
+        #CASE(%ControlOriginal)
+        #OF('?ShowFileName')
+            #SET(%CtlShowFileName,%Control)
+        #OF('?ShowLineNo')
+            #SET(%CtlShowLineNo,%Control)
+        #OF('?ShowPosInLine')
+            #SET(%CtlShowPosInLine,%Control)
+        #OF('?ShowDirty')
+            #SET(%CtlShowDirty,%Control)
+        #ENDCASE
+    #ENDFOR
+#ENDAT
+#AT(%AfterWindowOpening),PRIORITY(7500),DESCRIPTION('RTF '&%RTFControl&' Initialize'),WHERE(%AppTemplateFamily='CLARION')
+#INSERT(%RTFControlAddItem,%CtlShowFileName,'RTFToolbar:CtlShowFileName')
+#INSERT(%RTFControlAddItem,%CtlShowLineNo,'RTFToolbar:CtlShowLineNo')
+#INSERT(%RTFControlAddItem,%CtlShowPosInLine,'RTFToolbar:CtlShowPosInLine')
+#INSERT(%RTFControlAddItem,%CtlShowDirty,'RTFToolbar:CtlShowDirty')
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8001),DESCRIPTION('RTF '&%RTFControl&' Initialize'),WHERE(%AppTemplateFamily='ABC')
+#INSERT(%RTFControlAddItem,%CtlShowFileName,'RTFToolbar:CtlShowFileName')
+#INSERT(%RTFControlAddItem,%CtlShowLineNo,'RTFToolbar:CtlShowLineNo')
+#INSERT(%RTFControlAddItem,%CtlShowPosInLine,'RTFToolbar:CtlShowPosInLine')
+#INSERT(%RTFControlAddItem,%CtlShowDirty,'RTFToolbar:CtlShowDirty')
+#ENDAT
+#CONTROL(RTFToolbar,'RTF Toolbar'),HLP('~TPLRTControl.htm'),REQ(RTFTextControl),PROCEDURE,WINDOW
+  CONTROLS
+         BUTTON,AT(,,16,14),USE(?RTFToolNew),SKIP,TRN,MSG('New'),TIP('New'),ICON('New.ico')
+         BUTTON,AT(16,0,16,14),USE(?RTFToolOpen),SKIP,TRN,MSG('Open'),TIP('Open'),ICON('Open.ico')
+         BUTTON,AT(16,0,16,14),USE(?RTFToolSave),SKIP,TRN,MSG('Save'),TIP('Save'),ICON('Save.ico')
+         BUTTON,AT(20,0,16,14),USE(?RTFToolPrint),SKIP,TRN,MSG('Print'),TIP('Print'),ICON('Print.ico')
+         BUTTON,AT(18,0,16,14),USE(?RTFToolFind),SKIP,TRN,MSG('Find'),TIP('Find'),ICON('RFind.ico')
+         BUTTON,AT(18,0,16,14),USE(?RTFToolFindAndReplace),SKIP,TRN,MSG('Find and Replace'),TIP('Find and Replace'),ICON('RReplace.ico')
+         BUTTON,AT(20,0,16,14),USE(?RTFToolCut),SKIP,DISABLE,TRN,MSG('Cut'),TIP('Cut'),ICON('cut.ico')
+         BUTTON,AT(16,0,16,14),USE(?RTFToolCopy),SKIP,DISABLE,TRN,MSG('Copy'),TIP('Copy'),ICON('Copy.ico')
+         BUTTON,AT(16,0,16,14),USE(?RTFToolPaste),SKIP,DISABLE,TRN,MSG('Paste'),TIP('Paste'),ICON('Paste.ico')
+         BUTTON,AT(20,0,16,14),USE(?RTFToolUndo),SKIP,DISABLE,TRN,MSG('Undo'),TIP('Undo'),ICON('undo.ico')
+         BUTTON,AT(16,0,16,14),USE(?RTFToolRedo),SKIP,DISABLE,TRN,MSG('Redo'),TIP('Redo'),ICON('redo.ico')
+         BUTTON,AT(20,0,16,14),USE(?RTFToolTabs),SKIP,TRN,MSG('Tab stops'),TIP('Tab stops'),ICON('tabstop.ico')
+         BUTTON,AT(18,0,16,14),USE(?RTFToolPara),SKIP,TRN,MSG('Paragraph indents'),TIP('Paragraph indents'),ICON('para.ico')
+         OPTION,AT(20,0,68,18),USE(?RTFToolAlignment),SKIP
+           RADIO,AT(2,0,16,14),USE(?RTFToolAlignmentLeft),SKIP,TRN,MSG('Left Alignment'),TIP('Left'),ICON('JUSTLFT.ICO'),VALUE('1')
+           RADIO,AT(16,0,16,14),USE(?RTFToolAlignmentCenter),SKIP,TRN,MSG('Center Alignment'),TIP('Center'),ICON('JUSTCTR.ICO'),VALUE('3')
+           RADIO,AT(16,0,16,14),USE(?RTFToolAlignmentRight),SKIP,TRN,MSG('Right Alignment'),TIP('Right'),ICON('JUSTRT.ICO'),VALUE('2')
+           RADIO,AT(16,0,16,14),USE(?RTFToolAlignmentJust),SKIP,TRN,MSG('Justify Alignment'),TIP('Justify'),ICON('JUSTJUST.ICO'),VALUE('4')
+         END
+         CHECK,AT(20,0,16,14),USE(?RTFToolBullets),SKIP,TRN,MSG('Bullets and numbering'),TIP('Bullets and numbering'),ICON('BULLETS.ICO')
+         LIST,AT(17,0,16,14),USE(?RTFToolBulletStyle),SKIP,LEFT(2),MSG('Bullets styles'),TIP('Bullets styles'),ALRT(EscKey),DROP(8,90),FROM('Bullets|#1|Arabic numbers|#2|Lower letters|#3|Upper letters|#4|Lower Roman numbers|#5|Upper Roman numbers|#6')
+         LIST,AT(-320,16,120,12),USE(?RTFToolFontName),SKIP,VSCROLL,LEFT(2),MSG('Font name'),TIP('Font'),ALRT(EscKey),ALRT(EscKey),FORMAT('20L(2)I@S32@'),DROP(10),FROM('1|2')
+         LIST,AT(125,0,30,12),USE(?RTFToolFontSize),SKIP,VSCROLL,LEFT(2),MSG('Font size'),TIP('Font size'),ALRT(EscKey),FORMAT('20R(2)@N2@'),DROP(10),FROM('8|9|10|11|12|14|16|18|20|22|24|26|28|36|48|72')
+         LIST,AT(34,0,87,12),USE(?RTFToolFontScript),SKIP,VSCROLL,LEFT(2),MSG('Font charset'),TIP('Charset'),ALRT(EscKey),FORMAT('20L(2)@S32@?'),DROP(10),FROM('1|2')
+         CHECK,AT(92,0,16,14),USE(?RTFToolBold),SKIP,TRN,MSG('Bold'),TIP('Bold'),ICON('bold.ico')
+         CHECK,AT(16,0,16,14),USE(?RTFToolItalic),SKIP,TRN,MSG('Italic'),TIP('Italic'),ICON('italic.ico')
+         CHECK,AT(16,0,16,14),USE(?RTFToolUnderline),SKIP,TRN,MSG('Underline'),TIP('Underline'),ICON('undrline.ico')
+         LIST,AT(20,0,16,14),USE(?RTFToolFontColor),SKIP,MSG('Font color'),TIP('Font color'),ALRT(EscKey),FORMAT('20L(2)J@S10@'),DROP(17,60),FROM('Black|1|Maroon|2|Green|3|Olive|4|Navy|5|Purple|6|Teal|7|Gray|8|Silver|9|Red|10|Lime|11|Yellow|12|Blue|13|Fuchsia|14|Aqua|15|White|16|Automatic|0')
+         LIST,AT(17,0,16,14),USE(?RTFToolFontBkColor),SKIP,MSG('Highlight'),TIP('Highlight'),ALRT(EscKey),FORMAT('20L(2)J@S10@'),DROP(17,60),FROM('Black|1|Maroon|2|Green|3|Olive|4|Navy|5|Purple|6|Teal|7|Gray|8|Silver|9|Red|10|Lime|11|Yellow|12|Blue|13|Fuchsia|14|Aqua|15|White|16|Automatic|0')
+  END
+#ATSTART
+    #DECLARE(%CtlButtonNew)
+    #DECLARE(%CtlButtonOpen)
+    #DECLARE(%CtlButtonSave)
+    #DECLARE(%CtlButtonPrint)
+    #DECLARE(%CtlButtonFind)
+    #DECLARE(%CtlButtonFindAndReplace)
+    #DECLARE(%CtlButtonCut)
+    #DECLARE(%CtlButtonCopy)
+    #DECLARE(%CtlButtonPaste)
+    #DECLARE(%CtlButtonUndo)
+    #DECLARE(%CtlButtonRedo)
+    #DECLARE(%CtlButtonTabs)
+    #DECLARE(%CtlButtonPara)
+    #!
+    #DECLARE(%CtlAlignment)
+    #DECLARE(%CtlAlignmentJust)
+    #DECLARE(%CtlBullets)
+    #DECLARE(%CtlBulletStyle)
+    #DECLARE(%CtlFontName)
+    #DECLARE(%CtlFontSize)
+    #DECLARE(%CtlFontScript)
+    #DECLARE(%CtlBold)
+    #DECLARE(%CtlItalic)
+    #DECLARE(%CtlUnderline)
+    #DECLARE(%CtlFontColor)
+    #DECLARE(%CtlFontBkColor)
+    #!
+    #SET(%CtlButtonNew,'0')
+    #SET(%CtlButtonOpen,'0')
+    #SET(%CtlButtonSave,'0')
+    #SET(%CtlButtonPrint,'0')
+    #SET(%CtlButtonFind,'0')
+    #SET(%CtlButtonFindAndReplace,'0')
+    #SET(%CtlButtonCut,'0')
+    #SET(%CtlButtonCopy,'0')
+    #SET(%CtlButtonPaste,'0')
+    #SET(%CtlButtonUndo,'0')
+    #SET(%CtlButtonRedo,'0')
+    #SET(%CtlButtonTabs,'0')
+    #SET(%CtlButtonPara,'0')
+    #!
+    #SET(%CtlAlignment,'0')
+    #SET(%CtlAlignmentJust,'0')
+    #SET(%CtlBullets,'0')
+    #SET(%CtlBulletStyle,'0')
+    #SET(%CtlFontName,'0')
+    #SET(%CtlFontSize,'0')
+    #SET(%CtlFontScript,'0')
+    #SET(%CtlBold,'0')
+    #SET(%CtlItalic,'0')
+    #SET(%CtlUnderline,'0')
+    #SET(%CtlFontColor,'0')
+    #SET(%CtlFontBkColor,'0')
+    #FOR(%Control),WHERE(%ControlInstance = %ActiveTemplateInstance)
+        #CASE(%ControlOriginal)
+        #OF('?RTFToolNew')
+           #SET(%CtlButtonNew,%Control)
+        #OF('?RTFToolOpen')
+           #SET(%CtlButtonOpen,%Control)
+        #OF('?RTFToolSave')
+           #SET(%CtlButtonSave,%Control)
+        #OF('?RTFToolPrint')
+           #SET(%CtlButtonPrint,%Control)
+        #OF('?RTFToolFind')
+           #SET(%CtlButtonFind,%Control)
+        #OF('?RTFToolFindAndReplace')
+           #SET(%CtlButtonFindAndReplace,%Control)
+        #OF('?RTFToolCut')
+           #SET(%CtlButtonCut,%Control)
+        #OF('?RTFToolCopy')
+           #SET(%CtlButtonCopy,%Control)
+        #OF('?RTFToolPaste')
+           #SET(%CtlButtonPaste,%Control)
+        #OF('?RTFToolUndo')
+           #SET(%CtlButtonUndo,%Control)
+        #OF('?RTFToolRedo')
+           #SET(%CtlButtonRedo,%Control)
+        #OF('?RTFToolTabs')
+           #SET(%CtlButtonTabs,%Control)
+        #OF('?RTFToolPara')
+           #SET(%CtlButtonPara,%Control)
+        #OF('?RTFToolAlignment')
+           #SET(%CtlAlignment,%Control)
+        #OF('?RTFToolAlignmentJust')
+           #SET(%CtlAlignmentJust,%Control)
+        #OF('?RTFToolBullets')
+           #SET(%CtlBullets,%Control)
+        #OF('?RTFToolBulletStyle')
+           #SET(%CtlBulletStyle,%Control)
+        #OF('?RTFToolFontName')
+           #SET(%CtlFontName,%Control)
+        #OF('?RTFToolFontSize')
+           #SET(%CtlFontSize,%Control)
+        #OF('?RTFToolFontScript')
+           #SET(%CtlFontScript,%Control)
+        #OF('?RTFToolBold')
+           #SET(%CtlBold,%Control)
+        #OF('?RTFToolItalic')
+           #SET(%CtlItalic,%Control)
+        #OF('?RTFToolUnderline')
+           #SET(%CtlUnderline,%Control)
+        #OF('?RTFToolFontColor')
+           #SET(%CtlFontColor,%Control)
+        #OF('?RTFToolFontBkColor')
+           #SET(%CtlFontBkColor,%Control)
+        #ENDCASE
+    #ENDFOR
+#ENDAT
+#AT(%AfterWindowOpening),PRIORITY(7500),DESCRIPTION('RTF '&%RTFControl&' Initialize'),WHERE(%AppTemplateFamily='CLARION')
+#INSERT(%RTFControlAddItem,%CtlButtonNew,'RTFToolbar:CtlButtonNew')
+#INSERT(%RTFControlAddItem,%CtlButtonOpen,'RTFToolbar:CtlButtonOpen')
+#INSERT(%RTFControlAddItem,%CtlButtonSave,'RTFToolbar:CtlButtonSave')
+#INSERT(%RTFControlAddItem,%CtlButtonPrint,'RTFToolbar:CtlButtonPrint')
+#INSERT(%RTFControlAddItem,%CtlButtonFind,'RTFToolbar:CtlButtonFind')
+#INSERT(%RTFControlAddItem,%CtlButtonFindAndReplace,'RTFToolbar:CtlButtonFindAndReplace')
+#INSERT(%RTFControlAddItem,%CtlButtonCut,'RTFToolbar:CtlButtonCut')
+#INSERT(%RTFControlAddItem,%CtlButtonCopy,'RTFToolbar:CtlButtonCopy')
+#INSERT(%RTFControlAddItem,%CtlButtonPaste,'RTFToolbar:CtlButtonPaste')
+#INSERT(%RTFControlAddItem,%CtlButtonUndo,'RTFToolbar:CtlButtonUndo')
+#INSERT(%RTFControlAddItem,%CtlButtonRedo,'RTFToolbar:CtlButtonRedo')
+#INSERT(%RTFControlAddItem,%CtlButtonTabs,'RTFToolbar:CtlButtonTabs')
+#INSERT(%RTFControlAddItem,%CtlButtonPara,'RTFToolbar:CtlButtonPara')
+#!
+#INSERT(%RTFControlAddItem,%CtlAlignment,'RTFToolbar:CtlAlignment')
+#INSERT(%RTFControlAddItem,%CtlAlignmentJust,'RTFToolbar:CtlAlignmentJust')
+#INSERT(%RTFControlAddItem,%CtlBullets,'RTFToolbar:CtlBullets')
+#INSERT(%RTFControlAddItem,%CtlBulletStyle,'RTFToolbar:CtlBulletStyle')
+#INSERT(%RTFControlAddItem,%CtlFontName,'RTFToolbar:CtlFontName')
+#INSERT(%RTFControlAddItem,%CtlFontSize,'RTFToolbar:CtlFontSize')
+#INSERT(%RTFControlAddItem,%CtlFontScript,'RTFToolbar:CtlFontScript')
+#INSERT(%RTFControlAddItem,%CtlBold,'RTFToolbar:CtlBold')
+#INSERT(%RTFControlAddItem,%CtlItalic,'RTFToolbar:CtlItalic')
+#INSERT(%RTFControlAddItem,%CtlUnderline,'RTFToolbar:CtlUnderline')
+#INSERT(%RTFControlAddItem,%CtlFontColor,'RTFToolbar:CtlFontColor')
+#INSERT(%RTFControlAddItem,%CtlFontBkColor,'RTFToolbar:CtlFontBkColor')
+#ENDAT
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8001),DESCRIPTION('RTF '&%RTFControl&' Initialize')
+#INSERT(%RTFControlAddItem,%CtlButtonNew,'RTFToolbar:CtlButtonNew')
+#INSERT(%RTFControlAddItem,%CtlButtonOpen,'RTFToolbar:CtlButtonOpen')
+#INSERT(%RTFControlAddItem,%CtlButtonSave,'RTFToolbar:CtlButtonSave')
+#INSERT(%RTFControlAddItem,%CtlButtonPrint,'RTFToolbar:CtlButtonPrint')
+#INSERT(%RTFControlAddItem,%CtlButtonFind,'RTFToolbar:CtlButtonFind')
+#INSERT(%RTFControlAddItem,%CtlButtonFindAndReplace,'RTFToolbar:CtlButtonFindAndReplace')
+#INSERT(%RTFControlAddItem,%CtlButtonCut,'RTFToolbar:CtlButtonCut')
+#INSERT(%RTFControlAddItem,%CtlButtonCopy,'RTFToolbar:CtlButtonCopy')
+#INSERT(%RTFControlAddItem,%CtlButtonPaste,'RTFToolbar:CtlButtonPaste')
+#INSERT(%RTFControlAddItem,%CtlButtonUndo,'RTFToolbar:CtlButtonUndo')
+#INSERT(%RTFControlAddItem,%CtlButtonRedo,'RTFToolbar:CtlButtonRedo')
+#INSERT(%RTFControlAddItem,%CtlButtonTabs,'RTFToolbar:CtlButtonTabs')
+#INSERT(%RTFControlAddItem,%CtlButtonPara,'RTFToolbar:CtlButtonPara')
+#!
+#INSERT(%RTFControlAddItem,%CtlAlignment,'RTFToolbar:CtlAlignment')
+#INSERT(%RTFControlAddItem,%CtlAlignmentJust,'RTFToolbar:CtlAlignmentJust')
+#INSERT(%RTFControlAddItem,%CtlBullets,'RTFToolbar:CtlBullets')
+#INSERT(%RTFControlAddItem,%CtlBulletStyle,'RTFToolbar:CtlBulletStyle')
+#INSERT(%RTFControlAddItem,%CtlFontName,'RTFToolbar:CtlFontName')
+#INSERT(%RTFControlAddItem,%CtlFontSize,'RTFToolbar:CtlFontSize')
+#INSERT(%RTFControlAddItem,%CtlFontScript,'RTFToolbar:CtlFontScript')
+#INSERT(%RTFControlAddItem,%CtlBold,'RTFToolbar:CtlBold')
+#INSERT(%RTFControlAddItem,%CtlItalic,'RTFToolbar:CtlItalic')
+#INSERT(%RTFControlAddItem,%CtlUnderline,'RTFToolbar:CtlUnderline')
+#INSERT(%RTFControlAddItem,%CtlFontColor,'RTFToolbar:CtlFontColor')
+#INSERT(%RTFControlAddItem,%CtlFontBkColor,'RTFToolbar:CtlFontBkColor')
+#ENDAT
+#!
+#!
+#!
+#!
+#GROUP(%RTFControlAddItem,%pCtlName,%pCtlEquate)
+#IF(%pCtlName<>'0')
+%RTFControlObjectName.AddItem(%pCtlEquate,%pCtlName)
+#ENDIF
+#!
+#!------------------------------------------------------------------------------
+#GROUP(%InsertStandardContextMenuString),AUTO
+#DECLARE(%MenuString)
+#SET(%MenuString,'')
+#FOR(%ContextMenus)
+    #IF(%ContextMenuIsASeparator)
+        #IF(%MenuString)
+           #SET(%MenuString,%MenuString&'|-')
+        #ELSE
+           #SET(%MenuString,'-')
+        #ENDIF
+    #ELSE
+        #IF(%MenuString)
+           #SET(%MenuString,%MenuString&'|'&%ContextMenuText)
+        #ELSE
+           #SET(%MenuString,%ContextMenuText)
+        #ENDIF
+    #ENDIF
+#ENDFOR
+#RETURN(%MenuString)
+#!------------------------------------------------------------------------------
+#GROUP(%InsertStandardContextMenuHandling,%pCaseVariableName),AUTO
+#DECLARE(%MenuCount)
+#?CASE %pCaseVariableName
+#SET(%MenuCount,-1)
+#FOR(%ContextMenus),WHERE(NOT %ContextMenuIsASeparator)
+#SET(%MenuCount,%MenuCount+1)
+OF %MenuCount ! Menu: %ContextMenuText
+   #INSERT(%StandardContextMenuHandling)
+#ENDFOR
+#?END
+#!------------------------------------------------------------------------------
+#GROUP(%StandardContextMenuHandling),AUTO
+#DECLARE(%Params)
+  #IF(%ButtonAction = 'Call a Procedure')
+    #IF(%ButtonProcedure)
+      #IF(%ButtonThread)
+        #SET(%ValueConstruct, CHOOSE(%ButtonThreadReturnValueAssignment = '', '', %ButtonThreadReturnValueAssignment & ' = ') & 'START(' & %ButtonProcedure & ', ' & %ButtonThreadStack)
+        #IF(%ButtonThreadParameters)
+          #SET(%ValueConstruct, %ValueConstruct & ', ' & %ButtonThreadParameters)
+        #ENDIF
+        #SET(%ValueConstruct, %ValueConstruct & ')')
+%ValueConstruct
+      #ELSE
+        #IF(%ButtonRequest AND UPPER(%ButtonRequest) <> 'NONE')
+GlobalRequest = %(%ButtonRequest)Record
+        #ENDIF
+        #SET(%Params, %SVGetWithParentesis(%ButtonParameters))
+        #IF(%ButtonReturnValueAssignment)
+%ButtonReturnValueAssignment %(CHOOSE(NOT %ButtonReturnValueReferenceAssign, '= ', '&= ') & %ButtonProcedure & %Params)
+        #ELSE
+%ButtonProcedure%Params
+        #ENDIF
+      #ENDIF
+    #ENDIF
+    #IF (UPPER(%ProcedureTemplate)<>'FRAME')
+       #IF(%AppTemplateFamily='CLARION')
+LocalRequest = OriginalRequest
+DO RefreshWindow
+       #ELSE
+%WindowManager.Reset
+       #ENDIF
+    #ENDIF
+  #ELSIF(%ButtonAction = 'Run a Program')
+    #IF(%AppTemplateFamily='CLARION')
+ForceRefresh = True
+LocalRequest = OriginalRequest
+DO RefreshWindow
+    #ELSE
+RUN('%ButtonRunName %ButtonRunParameters')
+%WindowManager.Reset(1)
+    #ENDIF
+  #ELSIF(%ButtonAction = 'Execute Routine')
+Do %ButtonRoutineName
+  #ELSIF(%ButtonAction = 'Post Event to Control')
+POST(Event:%ButtonControlEvent,%ButtonControlName)
+  #ELSIF(%ButtonAction = 'No Special Action')
+! No Special Action
+  #ENDIF
+#!
+#!-----------------------------------------------------------------
+#!
+#GROUP(%StandardContextMenuPrompts)
+       #BUTTON('Menu Item'),MULTI(%ContextMenus,%ContextMenuDisplay()),INLINE
+           #PROMPT('Insert a separator',CHECK),%ContextMenuIsASeparator,DEFAULT(%False)
+           #BOXED,HIDE
+              #PROMPT('Level:',SPIN(@n3,1,20)),%ContextMenuLevel,REQ,DEFAULT(1)
+           #ENDBOXED
+           #BOXED,WHERE(NOT %ContextMenuIsASeparator)
+              #PROMPT('Menu Text:',@S255),%ContextMenuText,REQ
+              #PROMPT('When Pressed:',DROP('No Special Action|Execute Routine|Post Event to Control|Call a Procedure|Run a Program')),%ButtonAction,DEFAULT('No Special Action')
+              #DISPLAY('')
+              #BOXED,SECTION
+                 #BOXED('Post Event to Control'),WHERE(%ButtonAction = 'Post Event to Control'),CLEAR,AT(,0)
+                   #PROMPT('&Control:',FROM(%Control)),%ButtonControlName,REQ
+                   #PROMPT('Event:',DROP('Accepted|Selected')),%ButtonControlEvent,DEFAULT('Accepted')
+                 #ENDBOXED
+                 #BOXED('Execute Routine'),WHERE(%ButtonAction = 'Execute Routine'),CLEAR,AT(,0)
+                   #PROMPT('Routine Name:',@S200),%ButtonRoutineName,REQ
+                 #ENDBOXED
+                 #BOXED('Program Definition'),WHERE(%ButtonAction = 'Run a Program'),CLEAR,AT(,0)
+                   #PROMPT('Program Name:',@S40),%ButtonRunName,REQ
+                   #PROMPT('Parameters:',EXPR),%ButtonRunParameters
+                 #ENDBOXED
+                 #BOXED('Procedure Definition'),WHERE(%ButtonAction = 'Call a Procedure'),AT(,0)
+                   #ENABLE(%ButtonAction = 'Call a Procedure'),CLEAR
+                     #PROMPT('Procedure Name:',PROCEDURE),%ButtonProcedure,REQ,PROP(PROP:DropWidth,140)
+                     #PROMPT('Initiate Thread',CHECK),%ButtonThread
+                   #ENDENABLE
+                   #ENABLE(%ButtonThread)
+                     #PROMPT('Thread Stack:',SPIN(@n7,5000,64000,500)),%ButtonThreadStack,DEFAULT(25000)
+                   #ENDENABLE
+                   #BOXED,SECTION
+                     #BOXED('Non Threaded Procedure Call Definition'),WHERE(%ButtonAction = 'Call a Procedure' AND NOT %ButtonThread),AT(8,0),SECTION,CLEAR
+                       #PROMPT('Parameters:',EXPR),%ButtonParameters
+                       #PROMPT('&Return Value Variable:', FIELD),%ButtonReturnValueAssignment
+                       #ENABLE(%ButtonReturnValueAssignment <> ''),CLEAR
+                          #PROMPT('Re&ference Assign', CHECK),%ButtonReturnValueReferenceAssign
+                       #ENDENABLE
+                       #PROMPT('Requested File Action:',DROP('None|Insert|Change|Delete|Select')),%ButtonRequest,DEFAULT('None')
+                     #ENDBOXED
+                     #BOXED('Theaded Procedure Call Definition'),WHERE(%ButtonAction = 'Call a Procedure' AND %ButtonThread),AT(8,0),SECTION,CLEAR
+                       #PROMPT('&Parameters:', EXPR),%ButtonThreadParameters
+                       #PROMPT('&Return Thread Variable:', FIELD),%ButtonThreadReturnValueAssignment
+                     #ENDBOXED
+                   #ENDBOXED
+                 #ENDBOXED
+              #ENDBOXED
+           #ENDBOXED
+       #ENDBUTTON
+#!

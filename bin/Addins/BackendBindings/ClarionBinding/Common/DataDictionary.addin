@@ -1,0 +1,211 @@
+<AddIn name        = "DataDictionary"
+       author      = "SoftVelocity"
+       copyright   = "Copyright SoftVelocity 1986-2006"
+       url         = "http://www.SoftVelocity.com"
+       description = "Data Dictionary Support">
+
+	<Manifest>
+		<Identity name = "SoftVelocity.DataDictionary"/>
+		<Dependency addin = "SoftVelocity.ClarionBinding"/>
+		<Dependency addin = "ICSharpCode.XmlEditor"/>
+	</Manifest>
+
+	<Runtime>
+		<Import assembly = ":ICSharpCode.SharpDevelop"/>
+		<Import assembly = "..\..\..\DisplayBindings\XmlEditor\XmlEditor.dll"/>
+		<Import assembly = "CommonSources.dll"/>
+		<Import assembly = "DataDictionary.dll"/>
+		<Import assembly = "DataDictionaryFile.dll"/>
+		<Import assembly = "DataDictionaryEditor.dll">
+			<ConditionEvaluator name="DictionaryActive" class="SoftVelocity.DataDictionary.Editor.DictionaryActiveConditionEvaluator"/>
+		</Import>
+	</Runtime>
+
+	<StringResources file="Resources\DataDictionary.StringResources.resources" />
+	<StringResources file="Resources\DataDictionaryFile.StringResources.resources" />
+
+	<Path name = "/Workspace/Autostart">
+		<Class id    = "InitializeDataDictionaryEditor"
+		       class = "SoftVelocity.DataDictionary.Editor.Startup"/>
+		<Class id    = "InitializeDataDictionaryService"
+		       class = "SoftVelocity.DataDictionary.StartupCode"/>
+	</Path> <!-- /Workspace/Autostart -->
+	<Path name = "/Workspace/Terminate">
+		<Class id    = "CleanupDataDictionaryService"
+		       class = "SoftVelocity.DataDictionary.CleanupCode"/>
+	</Path> <!-- /Workspace/Terminate -->
+
+	<Path name = "/AddIns/FileTypeRegisterer/FileTypes">
+		<FiletypeAssociation
+			id = "dct"
+			insertafter = "sln"
+			insertbefore = "sdaddin"
+			autoRegister = "True"
+			icon = "${AddInPath:SoftVelocity.DataDictionary}/Resources/dct.ico"
+			text = "${res:Clarion.DataDictionary.FiletypeRegisterer.Dictionary}"/>
+		<FiletypeAssociation
+			id = "dctopt"
+			insertafter = "dct"
+			insertbefore = "sdaddin"
+			autoRegister = "True"
+			icon = "${AddInPath:SoftVelocity.DataDictionary}/Resources/dctopt.ico"
+			text = "${res:Clarion.DataDictionary.FiletypeRegisterer.DictionaryOption}"/>
+	</Path>
+
+	<!-- File Schematic Editor -->
+	<Path name = "/SharpDevelop/Workbench/Pads">
+		<Pad id       = "FileSchematicPad"
+		     category = "Main"
+		     title    = "${res:SoftVelocity.DataDictionary.FileSchematicPad.Title}"
+		     icon     = "SoftVelocity.DataDictionary.Icons.Dict"
+		     shortcut = "F12"
+		     class    = "SoftVelocity.DataDictionary.FileSchemaEditor.FileSchemaPad"/>
+		<Pad id       = "SearchResultPad"
+		     category = "DataDictionary"
+		     icon     = "SoftVelocity.DataDictionary.Icons.Search"
+		     title    = "${res:SoftVelocity.DataDictionary.SearchResult.Title}"
+		     class    = "SoftVelocity.DataDictionary.Editor.SearchResultPad"/>  
+	</Path> <!-- File Schematic Editor -->
+
+	<!-- Data Dictionary Editor -->
+	<Path name = "/SharpDevelop/Workbench/FileFilter">
+		<FileFilter id = "DataDictionaries"
+		            insertbefore="AllFiles"
+		            name = "${res:Clarion.FileFilter.DataDictionary}"
+		            category = "Dictionary"
+		            extensions = "*.dct"/>
+	</Path>
+	<Path name = "/SharpDevelop/Workbench/QuickOpen/FileFilter">
+		<FileFilter id = "DataDictionaries"
+		            name = "${res:Clarion.FileFilter.DataDictionary}"
+		            extensions = "*.dct"/>
+	</Path>
+
+	<Path name = "/SharpDevelop/RecentOpenCategories">
+		<String id = "dictionary" insertafter = "project" insertbefore = "browser" text = "Dictionary"/>
+	</Path>
+
+	<Path name = "/SharpDevelop/StartPage/RecentOpenEvents">
+		<Class id = "OpenDictionary"
+				class = "SoftVelocity.DataDictionary.Editor.Commands.OpenDictionary"/>
+		<Class id = "NewDictionary"
+				class = "SoftVelocity.DataDictionary.Editor.Commands.CreateNewDictionary"/>
+		<Class id = "OpenRecentDictionary"
+				class = "ICSharpCode.SharpDevelop.Commands.OpenRecentFile"/>
+	</Path>
+
+	<Path name = "/SharpDevelop/Workbench/DisplayBindings">
+		<DisplayBinding id    = "DataDictionariesEditor"
+		                class = "SoftVelocity.DataDictionary.Editor.DataDictionaryDisplayBinding"
+		                insertbefore    = "Text"
+		                fileNamePattern = "\.dct$"
+		                languagePattern = "^DataDictionaryFiles$"/>
+	</Path>
+	<Path name = "/Clarion/DataDictionary/ToolBar/Standard">
+		<ToolbarItem id      = "Properties"
+		             icon    = "Icons.16x16.PropertiesIcon"
+		             tooltip = "${res:MainWindow.Windows.PropertiesScoutLabel}"
+		             class   = "SoftVelocity.DataDictionary.Pad.Commands.Properties"/>
+		<ToolbarItem id      = "Delete"
+		             icon    = "Icons.16x16.DeleteIcon"
+		             tooltip = "${res:Global.Delete}"
+		             class   = "SoftVelocity.DataDictionary.Pad.Commands.Delete"/>
+	</Path> <!-- /Clarion/Pads/DataDictionary/ToolBar/Standard -->
+
+	<Path name = "/SharpDevelop/Workbench/MainMenu/View">
+		<MenuItem id    = "DataDictionary"
+		          label = "${res:SoftVelocity.DataDictionary.Menu}"
+		          type  = "Menu"
+		          insertafter  = "Tools"
+		          insertbefore = "ViewItemsSeparator">
+			<MenuItem id    = "DataDictionaryViewMenuBuilder"
+			          type  = "Builder"
+			          class = "SoftVelocity.DataDictionary.Editor.ViewDataDictionaryMenuBuilder"/>
+		</MenuItem>
+	</Path>
+	<!-- Search DCT Menu Item-->
+	<Path name = "/SharpDevelop/Workbench/MainMenu/Search">
+		<MenuItem id = "DCTFindSeparator" type = "Separator" insertbefore = "Find"/>
+		<Condition name = "DictionaryActive" action="Disable">
+			<MenuItem id = "DCTFind"
+			          label = "Dictionary Search"
+			          icon = "Icons.16x16.FindIcon"
+			          shortcut = "Control|D"
+			          insertbefore = "DCTFindSeparator"
+			          class = "Clarion.DataDictionary.Editor.Commands.SearchCommand"/>
+		</Condition>
+	</Path>
+	<Path name = "/SharpDevelop/Workbench/MainMenu/Tools">
+		<Condition name = "DictionaryActive">
+			<MenuItem id      = "CheckStructure"
+			          label   = "${res:SoftVelocity.DataDictionary.Menu.CheckStructure}"
+			          tooltip = "${res:SoftVelocity.DataDictionary.Menu.CheckStructure.Tooltip}"
+			          insertbefore = "BrowseTable"
+			          insertafter = "BrowserSeparator"
+			          class   = "SoftVelocity.DataDictionary.Editor.CheckWindowAndReportStructures"/>
+		</Condition>
+	</Path>
+
+	<!-- Clarion Applications Options Dialog -->
+	<Path name = "/SharpDevelop/Dialogs/OptionsDialog/Clarion Options">
+		<DialogPanel id    = "DCTEditorOptions"
+		             insertbefore= "ClarionNetVersionsOptionsPanel"
+		             label = "${res:SoftVelocity.DataDictionary.EditorOptions}"
+		             class = "SoftVelocity.DataDictionary.Editor.DCTEditorOptionsPanel"/>
+	</Path>
+
+	<!-- Flag dctx files as xml files in the editor -->
+	<Path name = "/Workspace/Parser">
+		<Parser id = "XmlFoldingParser-dctx"
+		        supportedextensions  = ".dctx"
+		        class = "ICSharpCode.XmlEditor.Parser"/>
+	</Path>
+
+	<!-- Dictionary Warning Pad -->
+	<Path name = "/SharpDevelop/Workbench/Pads">
+		<Pad id       = "DictionaryWarning"
+		     category = "DataDictionary"
+		     icon     = "SoftVelocity.DataDictionary.Icons.Dict"
+		     title    = "${res:SoftVelocity.DataDictionary.ConversionWarnings.Title}"
+		     class    = "SoftVelocity.DataDictionary.Editor.ConversionWarningsPad"/>
+	</Path>
+
+	<Path name = "/SharpDevelop/Workbench/MainMenu/File">
+		<MenuItem id = "RecentDictionaries"
+		          insertafter = "RecentProjects"
+		          insertbefore = "ExitSC:eparator"
+		          label = "${res:SoftVelocity.DataDictionary.Menu.RecentDictionaries}"
+		          type="Menu">
+		<MenuItem id = "RecentDictionariesBuilder" type = "Builder" class = "SoftVelocity.DataDictionary.Commands.RecentDictionariesMenuBuilder" />
+		<MenuItem id = "RecentDictionariesSeparator" type = "Separator"  />
+		<MenuItem id = "ClearRecentDictionaries"
+		          label = "${res:SoftVelocity.DataDictionary.Menu.ClearRecentDictionaries}"
+		          class = "SoftVelocity.DataDictionary.Commands.ClearRecentDictionaries" />
+		</MenuItem>
+	</Path>
+	<Path name = "/SharpDevelop/Workbench/DisplayBindings">
+		<DisplayBinding id              = "DictionarySynchroniser"
+		                type            = "Secondary"
+		                fileNamePattern = "\.dct"
+		                class           = "SoftVelocity.DataDictionary.Editor.Synchroniser.SynchroniserDisplayBinding" />
+	</Path>
+	<!-- Xml parser for dctopt files -->
+	<Path name = "/Workspace/Parser">
+		<Parser id = "XmlFoldingParser"
+		        supportedextensions  = ".dctopt"
+		        class = "ICSharpCode.XmlEditor.Parser"/>
+	</Path>
+	<!-- Command Line Support -->
+	<Path name = "/SharpDevelop/Workbench/CommandLines">
+		<CommandLine id     = "ExportToDctx"
+		             class  = "SoftVelocity.DataDictionary.CommandLine.ExportToText"
+		             switch = "dx"
+		             parameters = "2" 
+		             description = "${res:Clarion.DataDictionary.CommandLine.ExportToText.Description}"/>
+		<CommandLine id     = "ImportFromDctx"
+		             class  = "SoftVelocity.DataDictionary.CommandLine.ImportFromText"
+		             switch = "di"
+		             parameters = "2" 
+		             description = "${res:Clarion.DataDictionary.CommandLine.ImportFromText.Description}"/>
+	</Path>
+</AddIn>

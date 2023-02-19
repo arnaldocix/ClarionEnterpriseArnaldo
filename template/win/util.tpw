@@ -1,0 +1,90 @@
+#CODE(CallProcedureExtended,'Call a Procedure (Extended)'),HLP('~TPLCodeCallProcedureExtended.htm'),DESCRIPTION(%CallProcedureExtendedDescription())
+    #PROMPT('Action:',DROP('Call a Procedure|Run a Program')),%ExtendedActionAction,DEFAULT('Call a Procedure')
+    #DISPLAY('')
+    #BOXED('Program Definition'),WHERE(%ExtendedActionAction = 'Run a Program'),AT(,20),CLEAR
+      #PROMPT('Program Name:',@S40),%ExtendedActionRunName,REQ
+      #PROMPT('Parameters:',EDIT(1024)),%ExtendedActionRunParameters,WHENACCEPTED(%SVExpresionEditor(%ExtendedActionRunParameters))
+    #ENDBOXED
+    #BOXED('Procedure Definition'),WHERE(%ExtendedActionAction = 'Call a Procedure'),AT(,20)
+      #ENABLE(%ExtendedActionAction = 'Call a Procedure'),CLEAR
+        #PROMPT('Procedure Name:',PROCEDURE),%ExtendedActionProcedure,REQ,PROP(PROP:DropWidth,140)
+        #PROMPT('Initiate Thread',CHECK),%ExtendedActionThread
+      #ENDENABLE
+      #ENABLE(%ExtendedActionThread)
+        #PROMPT('Thread Stack:',SPIN(@n7,5000,64000,500)),%ExtendedActionThreadStack,DEFAULT(25000)
+      #ENDENABLE
+      #BOXED,SECTION
+        #BOXED('Non Threaded Procedure Call Definition'),WHERE(%ExtendedActionAction = 'Call a Procedure' AND NOT %ExtendedActionThread),AT(8,0),SECTION,CLEAR
+          #PROMPT('Parameters:',EDIT(1024)),%ExtendedActionParameters,WHENACCEPTED(%SVExpresionEditor(%ExtendedActionParameters))
+          #PROMPT('&Return Value Variable:', FIELD),%ExtendedActionReturnValueAssignment
+          #ENABLE(%ExtendedActionReturnValueAssignment <> ''),CLEAR
+             #PROMPT('Re&ference Assign', CHECK),%ExtendedActionReturnValueReferenceAssign
+          #ENDENABLE
+          #PROMPT('Requested File Action:',DROP('None|Insert|Change|Delete|Select')),%ExtendedActionRequest,DEFAULT('None')
+        #ENDBOXED
+        #BOXED('Theaded Procedure Call Definition'),WHERE(%ExtendedActionAction = 'Call a Procedure' AND %ExtendedActionThread),AT(8,0),SECTION,CLEAR
+          #PROMPT('&Parameters:',EDIT(1024)),%ExtendedActionThreadParameters,WHENACCEPTED(%SVExpresionEditor(%ExtendedActionThreadParameters))
+          #PROMPT('&Return Thread Variable:', FIELD),%ExtendedActionThreadReturnValueAssignment
+        #ENDBOXED
+      #ENDBOXED
+    #ENDBOXED
+#!#!------------------------------------------------------------------------------
+#DECLARE(%Params)
+  #IF(%ExtendedActionAction = 'Call a Procedure')
+    #IF(%ExtendedActionProcedure)
+      #IF(%ExtendedActionThread)
+        #SET(%ValueConstruct, CHOOSE(%ExtendedActionThreadReturnValueAssignment = '', '', %ExtendedActionThreadReturnValueAssignment & ' = ') & 'START(' & %ExtendedActionProcedure & ', ' & %ExtendedActionThreadStack)
+        #IF(%ExtendedActionThreadParameters)
+          #SET(%ValueConstruct, %ValueConstruct & ', ' & %ExtendedActionThreadParameters)
+        #ENDIF
+        #SET(%ValueConstruct, %ValueConstruct & ')')
+%ValueConstruct
+      #ELSE
+        #IF(%ExtendedActionRequest AND UPPER(%ExtendedActionRequest) <> 'NONE')
+GlobalRequest = %(%ExtendedActionRequest)Record
+        #ENDIF
+        #SET(%Params, %SVGetWithParentesis(%ExtendedActionParameters))
+        #IF(%ExtendedActionReturnValueAssignment)
+%ExtendedActionReturnValueAssignment %(CHOOSE(NOT %ExtendedActionReturnValueReferenceAssign, '= ', '&= ') & %ExtendedActionProcedure & %Params)
+        #ELSE
+%ExtendedActionProcedure%Params
+        #ENDIF
+      #ENDIF
+    #ENDIF
+  #ELSIF(%ExtendedActionAction = 'Run a Program')
+RUN('%ExtendedActionRunName %ExtendedActionRunParameters')
+  #ENDIF
+#GROUP(%CallProcedureExtendedDescription),AUTO
+#DECLARE(%lDes)
+#DECLARE(%Params)
+#IF(%ExtendedActionAction = 'Call a Procedure')
+    #SET(%lDes,'Call a Procedure (Extended): Call ')
+    #IF(%ExtendedActionThread)
+        #SET(%lDes, %lDes & CHOOSE(%ExtendedActionThreadReturnValueAssignment = '', '', %ExtendedActionThreadReturnValueAssignment & ' = ') & 'START(' & %ExtendedActionProcedure & ', ' & %ExtendedActionThreadStack)
+        #IF(%ExtendedActionThreadParameters)
+          #SET(%lDes, %lDes & ', ' & %ExtendedActionThreadParameters)
+        #ENDIF
+        #SET(%lDes, %lDes & ')')
+    #ELSE
+        #IF(%ExtendedActionRequest AND UPPER(%ExtendedActionRequest) <> 'NONE')
+            #SET(%lDes,%lDes & ' [for ' & %ExtendedActionRequest & '] ')
+        #ENDIF
+        #SET(%Params, %ExtendedActionParameters)
+        #IF(%Params)
+          #IF(SUB(%Params, 1, 1) <> '(')
+            #SET(%Params, '(' & %Params)
+          #ENDIF
+          #IF(SUB(%Params, LEN(%Params), 1) <> ')')
+            #SET(%Params, %Params & ')')
+          #ENDIF
+        #ENDIF
+        #IF(%ExtendedActionReturnValueAssignment)
+            #SET(%lDes,%lDes & %ExtendedActionReturnValueAssignment & CHOOSE(NOT %ExtendedActionReturnValueReferenceAssign, '= ', '&= ') & %ExtendedActionProcedure & CHOOSE(%Params = '', '()', %Params))
+        #ELSE
+            #SET(%lDes,%lDes & %ExtendedActionProcedure & CHOOSE(%Params = '', '()', %Params))
+        #ENDIF
+    #ENDIF
+#ELSE
+    #SET(%lDes,'Call a Procedure (Extended): RUN(''' & %ExtendedActionRunName & ' ' & %ExtendedActionRunParameters & ''')')
+#ENDIF
+#RETURN(%lDes)

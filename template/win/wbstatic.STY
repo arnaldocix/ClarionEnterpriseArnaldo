@@ -1,0 +1,52 @@
+[PROPERTYCLASS]
+  NAME: TOPSPEED:Frame
+  DESCRIPTOR: 1
+  PROPERTY: NAME(StaticSitePageGeneration),ACORN(1),ACORN.NAME(StaticSiteContentGeneration),ACORN.WIZARD(*TOPSPEED:Process#StaticSiteGenerator),DESCRIPTION(),DEVIMP(USEFUL),DTYPE(CHECK),TYPE(BOOLEAN)
+  [DEFINITION]
+    STATICSITEPAGEGENERATION()
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:MenuItem#GenerateStaticSitePage
+  DESCRIPTOR: 1
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:MenuItem)
+    MENU(Utility)
+    NAME(TOPSPEED:MenuItem#GenerateStaticSitePage)
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:Process#StaticSiteGenerator
+  DESCRIPTOR: 1
+  PROPERTY: NAME(MenuItem),ACORN(1),ACORN.NAME(ITEM: GenerateStaticSitePage),ACORN.CONTEXT('Text(Generate Static Site Page),Item.Procedure(%OUTPUT.ProcName%)'),ACORN.WIZARD('^(Scope.MenuManager)MenuItem#GenerateStaticSitePage'),DTYPE(CHECK),TYPE(BOOLEAN)
+  PROPERTY: NAME(StaticSiteGenerator),ACORN(1),ACORN.NAME(StaticSiteGenerater),ACORN.WIZARD(TOPSPEED:ControlTemplate#StaticSiteGenerator),DTYPE(CHECK),TYPE(BOOLEAN),HIDDEN(1),LOCKED(1)
+  PROPERTY: NAME(StaticSkeleton),DEVIMP(5),DTYPE(5),TYPE(3)
+  PROPERTY: NAME(StaticHtmlFilename),DESCRIPTION(),DEVIMP(ASK),DTYPE(ENTRY),TYPE(STRING)
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:Process)
+    MENUITEM(1)
+    NAME(TOPSPEED:Process#StaticSiteGenerator)
+    OUTPUT.DESCRIPTION(Generate static site page for submission to Search Engines)
+    OUTPUT.PROCNAME(GenerateStaticSitePage)
+    PROCEDUREHITCOUNTENABLED(0)
+    PRIMARYFILE('@FIND(''@FILES()'',`@USER(%_Value_%,PRODUCT)`)')
+    STATICSITEGENERATOR(1)
+    STATICSKELETON(static.htm)
+    STATICHTMLFILENAME(default.htm)
+  [END]
+[END]
+[PROPERTYCLASS]
+  NAME: TOPSPEED:ControlTemplate#StaticSiteGenerator
+  DESCRIPTOR: 1
+  PROPERTY: NAME(StaticSkeletonName),DEVIMP(5),DTYPE(5),OUTPUT.NAME(HtmlSkeletonName)
+  PROPERTY: NAME(StaticFileName),DEVIMP(5),DTYPE(5),OUTPUT.NAME(HtmlFilename)
+  [DEFINITION]
+    PARENTWIZARD(TOPSPEED:ControlTemplate)
+    CONTROLTEMPLATE(WebProcessStaticHtmlGenerator)
+    GENERATEPRIORITY(200)
+    NAME(TOPSPEED:ControlTemplate#StaticSiteGenerator)
+    STATICSKELETONNAME(%Scope.StaticSkeleton%)
+    STATICFILENAME(%Scope.StaticHtmlFilename%)
+    TEMPLATECHAIN(Web)
+  [END]
+[END]

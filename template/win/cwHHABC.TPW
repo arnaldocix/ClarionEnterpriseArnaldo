@@ -1,0 +1,219 @@
+#!TEMPLATE (cwHHABC, 'HTML Help for Clarion'), FAMILY('ABC')
+#!HELP('ClarionHelp.chm')
+#! -------------------------------------------------------------------------
+#! (cwHH.TPL)
+#! -------------------------------------------------------------------------
+#!  VERSION 1.1
+#! -------------------------------------------------------------------------
+#! -------------------------------------------------------------------------
+#EXTENSION (cwHHGlobal, 'Include HTML Help for Clarion Global Definitions'), DESCRIPTION('HTML Help Global Definitions'),APPLICATION(cwHHProc(ABC)),HLP('~TPLHHGlobal.htm')
+#! -------------------------------------------------------------------------
+#DISPLAY
+#DISPLAY
+#PROMPT( 'Default Help File Name: ',@s250),%cwHHgFileName
+#DISPLAY( '(or variable prefixed with !)' )
+#DISPLAY
+#PROMPT( 'Append .HTM to Help IDs', CHECK ), %cwHHappendHTM, AT(10)
+#DISPLAY
+#PROMPT( 'Allow STD:HELP on buttons to call HTML Help', CHECK ), %cwHHUseHelpButton, AT(10)
+#PROMPT( 'Allow STD:HelpIndex to call HTML Help Index', CHECK ), %cwHHUseHelpIndex, AT(10)
+#PROMPT( 'Allow STD:HelpSearch to call HTML Help Search', CHECK ), %cwHHUseHelpSearch, AT(10)
+#PROMPT( 'Allow STD:HelpOnHelp to call HTML Help How To...', CHECK ), %cwHHUseHelpHowTo, AT(10)
+#DISPLAY
+#BOXED('Trap key')
+  #DISPLAY( 'You may override the Trap key (F12Key)' )
+  #DISPLAY( 'NOTE: The "TRAP" key is NOT the Help key (F1Key)' )
+  #DISPLAY( 'It is used as an ALIAS for the F1Key' )
+  #DISPLAY( 'You can override this value in each procedure.' )
+  #PROMPT ( 'Alternate "TRAP" Key', KEYCODE), %cwHHGlobalAltTrapKey
+#ENDBOXED
+#! --------------------------------------------------------------------------
+#ATSTART
+#! --------------------------------------------------------------------------
+#IF(~%Target32)
+  #ERROR('HTML Help may only be used with 32 bit programs.')
+#ELSE
+  #IF( %CWVersion < 5002 )
+    #ERROR( 'HTML Help has been Compile for Clarion version 5b' )
+  #ELSIF( %CWVersion = 5002 )
+    #PROJECT ('cwHH.LIB')
+  #ELSE
+    #IF( %ApplicationLocalLibrary )
+      #PROJECT( 'cwHH%V%L.LIB' )
+    #ELSE
+      #PROJECT( 'cwHH%V%.LIB' )
+    #ENDIF
+  #END
+#ENDIF
+#ENDAT
+#! --------------------------------------------------------------------------
+#AT(%ShipList)
+#! --------------------------------------------------------------------------
+  #IF( NOT %ApplicationLocalLibrary )
+
+
+    #IF( %CWVersion = 5002 )
+___    cwHH.DLL - HTML Support DLL for Clarion 5.x
+    #ELSIF(%CWVersion >= 6000 AND %CWVersion < 6999)
+___    cwHH60.DLL - HTML Support DLL for Clarion 6.3
+    #ELSIF(%CWVersion >= 7000 AND %CWVersion < 7299)
+___    cwHH70.DLL - HTML Support DLL for Clarion 7 - 7.2
+    #ELSE
+___    cwHHLA.DLL - HTML Support DLL for Clarion 7.3 - 8.0
+    #END
+  #ENDIF
+#ENDAT
+#! --------------------------------------------------------------------------
+#AT(%BeforeGlobalIncludes)
+#! --------------------------------------------------------------------------
+  INCLUDE('cwHH.INC'),ONCE
+#ENDAT
+#! -------------------------------------------------------------------------
+#! -------------------------------------------------------------------------
+#!  VERSION 1.1
+#! -------------------------------------------------------------------------
+#! -------------------------------------------------------------------------
+#EXTENSION (cwHHProc, 'Use HTML Help on a Procedure'), DESCRIPTION('Enable HTML Help on Procedure'), PROCEDURE, FIRST, REQ( cwHHGlobal ),HLP('~TPLHHPROC.htm')
+#! -------------------------------------------------------------------------
+#BOXED('Help file')
+  #DISPLAY( 'You may override the Global setting here.' )
+  #PROMPT ( 'File Name: ',@s40), %cwHHFileName
+#ENDBOXED
+#BOXED('Context URL')
+  #DISPLAY( 'The procedure HELP ID is used if it exists' )
+  #DISPLAY( 'unless you override it here' )
+  #PROMPT ( 'Context URL: ', @s40 ), %cwHHContextURL
+#ENDBOXED
+#BOXED('Trap key')
+  #DISPLAY( 'You may override the global Trap key' )
+  #DISPLAY( 'NOTE: The "TRAP" key is NOT the Help key (F1Key)' )
+  #DISPLAY( 'It is used as an ALIAS for the F1Key' )
+  #DISPLAY( 'Global Value:'&%cwHHGlobalAltTrapKey)
+  #PROMPT ( 'Alternate "TRAP" Key', KEYCODE), %cwHHAltTrapKey
+#ENDBOXED
+#! --------------------------------------------------------------------------
+#AT(%DataSection)
+#! --------------------------------------------------------------------------
+oHH           &tagHTMLHelp
+#ENDAT
+#! --------------------------------------------------------------------------
+#AT(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(9550)
+#! --------------------------------------------------------------------------
+#DECLARE( %hhInitString )
+#DECLARE( %hhHelpTopic )
+#DECLARE( %hhErrorKey )
+#IF( UPPER( CLIP( %cwHHGlobalAltTrapKey ) ) = 'F1KEY' )
+  #ERROR( 'You cannot use F1 as the ALTERNATE trap key for HTML Help' )
+  #SET(%hhErrorKey,'Please choose a different key in global')
+  #ERROR( %hhErrorKey )
+#ENDIF
+#IF( UPPER( CLIP( %cwHHAltTrapKey ) ) = 'F1KEY' )
+  #ERROR( 'You cannot use F1 as the ALTERNATE trap key for HTML Help' )
+  #SET(%hhErrorKey,'Please choose a different key for ' & %Procedure)
+  #ERROR( %hhErrorKey )
+#ENDIF
+#SET( %hhInitString, '' )
+#IF( CLIP(%cwHHFileName) = '' )
+  #IF( SUB( %cwHHgFileName, 1, 1 ) = '!' )
+    #SET( %hhInitString, SUB( %cwHHgFileName, 2, LEN( %cwHHgFileName ) ) )
+  #ELSE
+    #SET( %hhInitString, '''' & CLIP( %cwHHgFileName ) & '''' )
+  #END
+#ELSE
+  #IF( SUB( %cwHHFileName, 1, 1 ) = '!' )
+    #SET( %hhInitString, SUB( %cwHHFileName, 2, LEN( %cwHHFileName ) ) )
+  #ELSE
+    #SET( %hhInitString, '''' & CLIP( %cwHHFileName ) & '''' )
+  #END
+#ENDIF
+#IF( CLIP( %cwHHAltTrapKey ) <> '' )
+  #SET( %hhInitString, CLIP( %hhInitString ) & ',' & CLIP( %cwHHAltTrapKey ) )
+#ELSE
+  #IF( CLIP( %cwHHGlobalAltTrapKey ) <> '' )
+     #SET( %hhInitString, CLIP( %hhInitString ) & ',' & CLIP( %cwHHGlobalAltTrapKey ) )
+  #ENDIF
+#ENDIF
+oHH &= NEW tagHTMLHelp
+oHH.Init( %hhInitString )
+#IF(%cwHHContextURL)
+    #SET( %hhHelpTopic, ''''&CLIP(%cwHHContextURL)&'''')
+#ELSE
+    #SET( %hhHelpTopic, EXTRACT(%WindowStatement,'HLP',1) )
+#ENDIF
+#IF( CLIP( %hhHelpTopic ) <> '' )
+    #SET( %hhHelpTopic, CALL( %hhFixTopic, %hhHelpTopic ) )
+oHH.SetTopic(%hhHelpTopic)
+#ENDIF
+#FOR(%Control)
+  #SET( %hhHelpTopic, EXTRACT(%ControlStatement,'HLP',1) )
+  #IF( CLIP( %hhHelpTopic ) <> '' )
+    #SET( %hhHelpTopic, CALL( %hhFixTopic, %hhHelpTopic ) )
+oHH.SetTopic( %Control, %hhHelpTopic )
+  #ENDIF
+#ENDFOR
+#IF(%cwHHUseHelpButton)
+  #FOR(%Control),WHERE(UPPER(%ControlType) = 'BUTTON' AND INSTRING('STD(STD:HELP)',UPPER(%ControlStatement),1,1))
+%Control{PROP:STD} = ''   #<! Disable the STD:HELP to allow the button to call the HTML Help
+  #ENDFOR
+#ENDIF
+#IF(%cwHHUseHelpIndex)
+  #FOR(%Control),WHERE((UPPER(%ControlType) = 'BUTTON' OR UPPER(%ControlType) = 'ITEM') AND INSTRING('STD(STD:HELPINDEX)',UPPER(%ControlStatement),1,1))
+%Control{PROP:STD} = ''   #<! Disable the STD:HelpIndex to allow the button to call the HTML Help
+  #ENDFOR
+#ENDIF
+#IF(%cwHHUseHelpSearch)
+  #FOR(%Control),WHERE((UPPER(%ControlType) = 'BUTTON' OR UPPER(%ControlType) = 'ITEM') AND INSTRING('STD(STD:HELPSEARCH)',UPPER(%ControlStatement),1,1))
+%Control{PROP:STD} = ''   #<! Disable the STD:HelpSearch to allow the button to call the HTML Help
+  #ENDFOR
+#ENDIF
+#IF(%cwHHUseHelpHowTo)
+  #FOR(%Control),WHERE((UPPER(%ControlType) = 'BUTTON' OR UPPER(%ControlType) = 'ITEM') AND INSTRING('STD(STD:HELPONHELP)',UPPER(%ControlStatement),1,1))
+%Control{PROP:STD} = ''   #<! Disable the STD:HelpOnHelp to allow the button to call the HTML Help
+  #ENDFOR
+#ENDIF
+#ENDAT
+#! --------------------------------------------------------------------------
+#! --------------------------------------------------------------------------
+#AT(%ControlEventHandling,%Control,'Accepted'),WHERE(UPPER(%ControlType) = 'BUTTON' AND INSTRING('STD(STD:HELP)',UPPER(%ControlStatement),1,1) AND %cwHHUseHelpButton),PRIORITY(5000),DESCRIPTION('Call the HTML Help Show Topic')
+oHH.ShowTopic()   #<! Call the HTML Help to show the actual Topic
+#ENDAT
+#!
+#AT(%ControlEventHandling,%Control,'Accepted'),WHERE((UPPER(%ControlType) = 'BUTTON' OR UPPER(%ControlType) = 'ITEM') AND INSTRING('STD(STD:HELPINDEX)',UPPER(%ControlStatement),1,1) AND %cwHHUseHelpIndex),PRIORITY(5000),DESCRIPTION('Call the HTML Help Show Index')
+oHH.ShowIndex()   #<! Call the HTML Help to show the Index
+#ENDAT
+#!
+#AT(%ControlEventHandling,%Control,'Accepted'),WHERE((UPPER(%ControlType) = 'BUTTON' OR UPPER(%ControlType) = 'ITEM') AND INSTRING('STD(STD:HELPSEARCH)',UPPER(%ControlStatement),1,1) AND %cwHHUseHelpSearch),PRIORITY(5000),DESCRIPTION('Call the HTML Help Show Search')
+oHH.ShowSearch()   #<! Call the HTML Help to Search
+#ENDAT
+#!
+#AT(%ControlEventHandling,%Control,'Accepted'),WHERE((UPPER(%ControlType) = 'BUTTON' OR UPPER(%ControlType) = 'ITEM') AND INSTRING('STD(STD:HELPONHELP)',UPPER(%ControlStatement),1,1) AND %cwHHUseHelpHowTo),PRIORITY(5000),DESCRIPTION('Call the HTML Help Show Table of Content')
+oHH.ShowTOC()   #<! Call the HTML Help to show the Table of Content
+#ENDAT
+#! --------------------------------------------------------------------------
+#! --------------------------------------------------------------------------
+#AT(%WindowManagerMethodCodeSection,'Kill','(),BYTE'),PRIORITY(9550)
+#! --------------------------------------------------------------------------
+IF ~oHH &= NULL
+  oHH.Kill()
+  DISPOSE( oHH )
+END
+#ENDAT
+#! --------------------------------------------------------------------------
+#! --------------------------------------------------------------------------
+#GROUP( %hhFixTopic, %hhWorkString )
+#! --------------------------------------------------------------------------
+#! --------------------------------------------------------------------------
+  #IF( SUB( %hhWorkString, 2, 1 ) = '!' )
+       #SET( %hhWorkString, SLICE( %hhWorkString, 3, LEN( CLIP( %hhWorkString )-1 ) ) )
+  #ELSE
+     #IF( SUB( %hhWorkString, 2, 1 ) = '~' )
+       #SET( %hhWorkString, '''' & SLICE( %hhWorkString, 3, LEN( CLIP( %hhWorkString ) ) ) )
+     #ENDIF
+     #IF( %cwHHappendHTM )
+       #SET( %hhWorkString, SLICE( %hhWorkString, 1, LEN( CLIP( %hhWorkString ) ) - 1 ) & '.htm''' )
+     #ENDIF
+  #ENDIF
+  #RETURN( %hhWorkString )
+#! --------------------------------------------------------------------------
+#! --------------------------------------------------------------------------
+#INCLUDE('cwHHCode.tpw')

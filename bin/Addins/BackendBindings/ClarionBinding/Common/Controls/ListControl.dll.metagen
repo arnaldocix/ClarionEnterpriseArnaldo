@@ -1,0 +1,745 @@
+  SoftVelocity.ClarionNet.Reports.LIST.ico - Embedded, ContainedInManifestFile, 
+  SoftVelocity.ClarionNet.Windows.LIST.ico - Embedded, ContainedInManifestFile, 
+  SoftVelocity.ClarionNet.Windows.COMBO.ico - Embedded, ContainedInManifestFile, 
+  vcrback.ico - Embedded, ContainedInManifestFile, 
+  vcrbottom.ico - Embedded, ContainedInManifestFile, 
+  vcrfastforward.ico - Embedded, ContainedInManifestFile, 
+  vcrhelp.ico - Embedded, ContainedInManifestFile, 
+  vcrrewind.ico - Embedded, ContainedInManifestFile, 
+  vcrtop.ico - Embedded, ContainedInManifestFile, 
+  vcrup.ico - Embedded, ContainedInManifestFile, 
+  ListControl.ListControl.resources - Embedded, ContainedInManifestFile, 
+  Softvelocity.ClarionNet.ClaFormatParser.ListFmtDlg.resources - Embedded, ContainedInManifestFile, 
+ImageRuntimeVersion: v4.0.30319
+Assembly ListControl, Version=4.0.0.11834, Culture=neutral, PublicKeyToken=c1f7e0138d9add58: 
+	hash=SHA1, flags=PublicKey
+Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly CommonControl, Version=4.0.0.11834, Culture=neutral, PublicKeyToken=c1f7e0138d9add58: 
+	hash=None, flags=None
+Assembly CommonProperties, Version=4.0.0.11834, Culture=neutral, PublicKeyToken=c1f7e0138d9add58: 
+	hash=None, flags=None
+Assembly ICSharpCode.Core, Version=2.1.0.2447, Culture=neutral, PublicKeyToken=f829da5c02be14ee: 
+	hash=None, flags=None
+Assembly ICSharpCode.SharpDevelop, Version=2.1.0.2447, Culture=neutral, PublicKeyToken=f829da5c02be14ee: 
+	hash=None, flags=None
+Assembly SmartPropertyGrid, Version=3.2.0.28, Culture=neutral, PublicKeyToken=1f2d07026c68c2e7: 
+	hash=None, flags=None
+Assembly System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Design, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a: 
+	hash=None, flags=None
+Assembly System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Drawing.Design, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a: 
+	hash=None, flags=None
+Assembly System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a: 
+	hash=None, flags=None
+Assembly System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Class SoftVelocity.ClarionNet.ClaFormatParser.FormatParser: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Fields:
+    Int32 EndOfLine IsConst : Public, Static, HasDefault
+  Methods:
+    ParseLines(String, List`1): PrivateScope, Public, Static, HideBySig
+    ParseLine(String, ColumnDescription, Int32, Int32&): PrivateScope, Public, Static, HideBySig
+    MakeLine(ColumnDescription, String&): PrivateScope, Public, Static, HideBySig
+    MakeLines(List`1, String&): PrivateScope, Public, Static, HideBySig
+    AddFieldNames(List`1, String[]): PrivateScope, Public, Static, HideBySig
+    GetFieldNames(List`1): PrivateScope, Public, Static, HideBySig
+    CloneColumnDescription(ColumnDescription, ColumnDescription): PrivateScope, Public, Static, HideBySig
+Class SoftVelocity.ClarionNet.ClaFormatParser.FormatParser+ColumnDescription: AutoLayout, AnsiClass, Class, NestedPublic, Serializable, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Fields:
+    Int32 Width : Public
+    JustificationEnum DataJustification : Public
+    Int32 DataIndent : Public
+    Boolean IsRightBorder : Public
+    Boolean IsResizable : Public
+    Boolean IsUnderLine : Public
+    Boolean IsFixed : Public
+    Boolean IsLastLine : Public
+    Boolean IsLocator : Public
+    Boolean IsColor : Public
+    Boolean IsStyle : Public
+    Boolean IsTooltip : Public
+    System.String HeaderText : Public
+    System.String Picture : Public
+    Int32 Scrollbar : Public
+    Boolean IsAuto : Public
+    Int32 FieldNum : Public
+    JustificationEnum HeaderJustification : Public
+    Int32 HeaderIndent : Public
+    System.String DefaultTip : Public
+    IconEnum Icon : Public
+    System.String Colors : Public
+    Int32 DefStyle : Public
+    Boolean IsTree : Public
+    Boolean IsOneBasedTree : Public
+    Boolean IsTreeLevel : Public
+    Boolean IsTreeLines : Public
+    Boolean IsTreeBoxes : Public
+    Boolean IsTreeRoot : Public
+    System.Collections.Generic.List`1[SoftVelocity.ClarionNet.ClaFormatParser.FormatParser+ColumnDescription] Group : Public
+    Boolean IsGroup : Public
+    Boolean IsWidthNone : Public
+    System.Drawing.Color BarFrameColor : Public
+    System.Drawing.Color HdrTextColor : Public
+    System.Drawing.Color HdrBackColor : Public
+    System.String AppGenFieldName : Public
+    Int32 RightBorderOnList : Public
+    System.ValueType HotArea Rectangle IsBoxed : Public
+    System.ValueType DataHotArea Rectangle IsBoxed : Public
+    ColumnDescription ParentGroup : Public
+  Methods:
+    FromDCTDesignerField(DCTDesignerField): PrivateScope, Public, HideBySig
+Struct SoftVelocity.ClarionNet.ClaFormatParser.FormatParser+ColumnDescription+JustificationEnum: AutoLayout, AnsiClass, Class, NestedPublic, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    JustificationEnum Left = 0 : Public, Static, Literal, HasDefault
+    JustificationEnum Right = 1 : Public, Static, Literal, HasDefault
+    JustificationEnum Center = 2 : Public, Static, Literal, HasDefault
+    JustificationEnum Decimal = 3 : Public, Static, Literal, HasDefault
+Struct SoftVelocity.ClarionNet.ClaFormatParser.FormatParser+ColumnDescription+IconEnum: AutoLayout, AnsiClass, Class, NestedPublic, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    IconEnum None = 0 : Public, Static, Literal, HasDefault
+    IconEnum Normal = 1 : Public, Static, Literal, HasDefault
+    IconEnum Transparent = 2 : Public, Static, Literal, HasDefault
+Class SoftVelocity.ClarionNet.ClaFormatParser.GroupFmtWrap: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(ColumnDescription): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Properties:
+    Boolean Fixed 'get set' : 
+    Boolean Underline 'get set' : 
+    Boolean Resizeable 'get set' : 
+    Boolean RightBorder 'get set' : 
+    System.Drawing.Color HeaderBackColor 'get set' : 
+    System.Drawing.Color HeaderTextColor 'get set' : 
+    Int32 Indent 'get set' : 
+    Int32 Scrollbar 'get set' : 
+    JustificationEnum Justification 'get set' : 
+    SoftVelocity.ClarionNet.Reports.Utilities.NoneableIntProp Width 'get set' : 
+    System.String Text 'get set' : 
+  Methods:
+    set_Text(String): PrivateScope, Public, HideBySig, SpecialName
+    get_Text(): PrivateScope, Public, HideBySig, SpecialName
+    set_Width(NoneableIntProp): PrivateScope, Public, HideBySig, SpecialName
+    get_Width(): PrivateScope, Public, HideBySig, SpecialName
+    set_Justification(JustificationEnum): PrivateScope, Public, HideBySig, SpecialName
+    get_Justification(): PrivateScope, Public, HideBySig, SpecialName
+    set_Scrollbar(Int32): PrivateScope, Public, HideBySig, SpecialName
+    get_Scrollbar(): PrivateScope, Public, HideBySig, SpecialName
+    set_Indent(Int32): PrivateScope, Public, HideBySig, SpecialName
+    get_Indent(): PrivateScope, Public, HideBySig, SpecialName
+    set_HeaderTextColor(Color): PrivateScope, Public, HideBySig, SpecialName
+    get_HeaderTextColor(): PrivateScope, Public, HideBySig, SpecialName
+    set_HeaderBackColor(Color): PrivateScope, Public, HideBySig, SpecialName
+    get_HeaderBackColor(): PrivateScope, Public, HideBySig, SpecialName
+    set_RightBorder(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_RightBorder(): PrivateScope, Public, HideBySig, SpecialName
+    set_Resizeable(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Resizeable(): PrivateScope, Public, HideBySig, SpecialName
+    set_Underline(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Underline(): PrivateScope, Public, HideBySig, SpecialName
+    set_Fixed(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Fixed(): PrivateScope, Public, HideBySig, SpecialName
+Class SoftVelocity.ClarionNet.ClaFormatParser.FieldFmtWrap: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :SoftVelocity.ClarionNet.ClaFormatParser.GroupFmtWrap
+    Void .ctor(ColumnDescription): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.ComponentModel.ICustomTypeDescriptor
+  Properties:
+    System.String DefaultColumnTip 'get set' : 
+    Boolean ShowRoot 'get set' : 
+    Boolean ShowBoxes 'get set' : 
+    Boolean ShowLines 'get set' : 
+    Boolean ShowLevel 'get set' : 
+    Boolean OneBasedTree 'get set' : 
+    Boolean Tree 'get set' : 
+    IconEnum Icon 'get set' : 
+    Int32 DefaultStyle 'get set' : 
+    System.Drawing.Color BarFrameColor 'get set' : 
+    System.Drawing.Color SelectedBackground 'get set' : 
+    System.Drawing.Color SelectedText 'get set' : 
+    System.Drawing.Color Background 'get set' : 
+    System.Drawing.Color TextColor 'get set' : 
+    System.String Colors 'get set' : 
+    Boolean AutoFieldNumber 'get set' : 
+    Int32 FieldNumber 'get set' : 
+    Int32 DataIndent 'get set' : 
+    JustificationEnum DataJustification 'get set' : 
+    System.String Picture 'get set' : 
+    Boolean Tooltip 'get set' : 
+    Boolean Style 'get set' : 
+    Boolean HasColor 'get set' : 
+    Boolean Locator 'get set' : 
+    Boolean LastOnLine 'get set' : 
+    Int32 Width 'get set' : 
+  Methods:
+    GetAttributes(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetClassName(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetComponentName(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetConverter(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetDefaultEvent(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetDefaultProperty(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetEditor(Type): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetEvents(Attribute[]): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetEvents(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetProperties(Attribute[]): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetProperties(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    GetPropertyOwner(PropertyDescriptor): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    set_Width(Int32): PrivateScope, Public, HideBySig, SpecialName
+    get_Width(): PrivateScope, Public, HideBySig, SpecialName
+    set_LastOnLine(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_LastOnLine(): PrivateScope, Public, HideBySig, SpecialName
+    set_Locator(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Locator(): PrivateScope, Public, HideBySig, SpecialName
+    set_HasColor(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_HasColor(): PrivateScope, Public, HideBySig, SpecialName
+    set_Style(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Style(): PrivateScope, Public, HideBySig, SpecialName
+    set_Tooltip(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Tooltip(): PrivateScope, Public, HideBySig, SpecialName
+    set_Picture(String): PrivateScope, Public, HideBySig, SpecialName
+    get_Picture(): PrivateScope, Public, HideBySig, SpecialName
+    set_DataJustification(JustificationEnum): PrivateScope, Public, HideBySig, SpecialName
+    get_DataJustification(): PrivateScope, Public, HideBySig, SpecialName
+    set_DataIndent(Int32): PrivateScope, Public, HideBySig, SpecialName
+    get_DataIndent(): PrivateScope, Public, HideBySig, SpecialName
+    set_FieldNumber(Int32): PrivateScope, Public, HideBySig, SpecialName
+    get_FieldNumber(): PrivateScope, Public, HideBySig, SpecialName
+    set_AutoFieldNumber(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_AutoFieldNumber(): PrivateScope, Public, HideBySig, SpecialName
+    set_Colors(String): PrivateScope, Public, HideBySig, SpecialName
+    get_Colors(): PrivateScope, Public, HideBySig, SpecialName
+    set_TextColor(Color): PrivateScope, Public, HideBySig, SpecialName
+    get_TextColor(): PrivateScope, Public, HideBySig, SpecialName
+    set_Background(Color): PrivateScope, Public, HideBySig, SpecialName
+    get_Background(): PrivateScope, Public, HideBySig, SpecialName
+    set_SelectedText(Color): PrivateScope, Public, HideBySig, SpecialName
+    get_SelectedText(): PrivateScope, Public, HideBySig, SpecialName
+    set_SelectedBackground(Color): PrivateScope, Public, HideBySig, SpecialName
+    get_SelectedBackground(): PrivateScope, Public, HideBySig, SpecialName
+    SplitColors(String): PrivateScope, Public, Static, HideBySig
+    SplitColors(): PrivateScope, Public, HideBySig
+    UIntToCla(UInt32): PrivateScope, Public, Static, HideBySig
+    ParseCla(String): PrivateScope, Public, Static, HideBySig
+    StrToColor(String): PrivateScope, Public, Static, HideBySig
+    ColorToStr(Color): PrivateScope, Public, Static, HideBySig
+    MergeColors(String[]): PrivateScope, Public, HideBySig
+    SetColor(Int32, Color): PrivateScope, Public, HideBySig
+    GetColor(Int32): PrivateScope, Public, HideBySig
+    set_BarFrameColor(Color): PrivateScope, Public, HideBySig, SpecialName
+    get_BarFrameColor(): PrivateScope, Public, HideBySig, SpecialName
+    set_DefaultStyle(Int32): PrivateScope, Public, HideBySig, SpecialName
+    get_DefaultStyle(): PrivateScope, Public, HideBySig, SpecialName
+    set_Icon(IconEnum): PrivateScope, Public, HideBySig, SpecialName
+    get_Icon(): PrivateScope, Public, HideBySig, SpecialName
+    set_Tree(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Tree(): PrivateScope, Public, HideBySig, SpecialName
+    set_OneBasedTree(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_OneBasedTree(): PrivateScope, Public, HideBySig, SpecialName
+    set_ShowLevel(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_ShowLevel(): PrivateScope, Public, HideBySig, SpecialName
+    set_ShowLines(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_ShowLines(): PrivateScope, Public, HideBySig, SpecialName
+    set_ShowBoxes(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_ShowBoxes(): PrivateScope, Public, HideBySig, SpecialName
+    set_ShowRoot(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_ShowRoot(): PrivateScope, Public, HideBySig, SpecialName
+    set_DefaultColumnTip(String): PrivateScope, Public, HideBySig, SpecialName
+    get_DefaultColumnTip(): PrivateScope, Public, HideBySig, SpecialName
+Class SoftVelocity.ClarionNet.ClaFormatParser.ListFormatterDlg: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :System.Windows.Forms.Form
+    Void .ctor(System.String): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Properties:
+    System.String ResultLine 'get ' : 
+  Methods:
+    get_ResultLine(): PrivateScope, Public, HideBySig, SpecialName
+Class SoftVelocity.ClarionNet.Windows.ListViewRenderer: AutoLayout, AnsiClass, Class, Public
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    DrawListView(Graphics, Rectangle, VisualStyleElement): PrivateScope, Public, Static, HideBySig
+Struct SoftVelocity.ClarionNet.Windows.ListViewRenderer+LISTVIEWPARTS: AutoLayout, AnsiClass, Class, NestedPublic, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    LISTVIEWPARTS LVP_LISTITEM = 1 : Public, Static, Literal, HasDefault
+    LISTVIEWPARTS LVP_LISTGROUP = 2 : Public, Static, Literal, HasDefault
+    LISTVIEWPARTS LVP_LISTDETAIL = 3 : Public, Static, Literal, HasDefault
+    LISTVIEWPARTS LVP_LISTSORTEDDETAIL = 4 : Public, Static, Literal, HasDefault
+    LISTVIEWPARTS LVP_EMPTYTEXT = 5 : Public, Static, Literal, HasDefault
+Struct SoftVelocity.ClarionNet.Windows.ListViewRenderer+LISTITEMSTATES: AutoLayout, AnsiClass, Class, NestedPublic, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    LISTITEMSTATES LIS_NORMAL = 1 : Public, Static, Literal, HasDefault
+    LISTITEMSTATES LIS_HOT = 2 : Public, Static, Literal, HasDefault
+    LISTITEMSTATES LIS_SELECTED = 3 : Public, Static, Literal, HasDefault
+    LISTITEMSTATES LIS_DISABLED = 4 : Public, Static, Literal, HasDefault
+    LISTITEMSTATES LIS_SELECTEDNOTFOCUS = 5 : Public, Static, Literal, HasDefault
+Class SoftVelocity.ClarionNet.Windows.HeaderRenderer: AutoLayout, AnsiClass, Class, Public
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    GetHorzLineColor(): PrivateScope, Public, Static, HideBySig
+    DrawHeader(Graphics, Rectangle, VisualStyleElement, Boolean(HasFieldMarshal)): PrivateScope, Public, Static, HideBySig
+Struct SoftVelocity.ClarionNet.Windows.HeaderRenderer+HEADERPARTS: AutoLayout, AnsiClass, Class, NestedPublic, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    HEADERPARTS HP_HEADERITEM = 1 : Public, Static, Literal, HasDefault
+    HEADERPARTS HP_HEADERITEMLEFT = 2 : Public, Static, Literal, HasDefault
+    HEADERPARTS HP_HEADERITEMRIGHT = 3 : Public, Static, Literal, HasDefault
+    HEADERPARTS HP_HEADERSORTARROW = 4 : Public, Static, Literal, HasDefault
+Struct SoftVelocity.ClarionNet.Windows.HeaderRenderer+HEADERITEMSTATES: AutoLayout, AnsiClass, Class, NestedPublic, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    HEADERITEMSTATES HIS_NORMAL = 1 : Public, Static, Literal, HasDefault
+    HEADERITEMSTATES HIS_HOT = 2 : Public, Static, Literal, HasDefault
+    HEADERITEMSTATES HIS_PRESSED = 3 : Public, Static, Literal, HasDefault
+Struct SoftVelocity.ClarionNet.Windows.HeaderRenderer+HEADERITEMLEFTSTATES: AutoLayout, AnsiClass, Class, NestedPublic, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    HEADERITEMLEFTSTATES HILS_NORMAL = 1 : Public, Static, Literal, HasDefault
+    HEADERITEMLEFTSTATES HILS_HOT = 2 : Public, Static, Literal, HasDefault
+    HEADERITEMLEFTSTATES HILS_PRESSED = 3 : Public, Static, Literal, HasDefault
+Struct SoftVelocity.ClarionNet.Windows.HeaderRenderer+HEADERITEMRIGHTSTATES: AutoLayout, AnsiClass, Class, NestedPublic, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    HEADERITEMRIGHTSTATES HIRS_NORMAL = 1 : Public, Static, Literal, HasDefault
+    HEADERITEMRIGHTSTATES HIRS_HOT = 2 : Public, Static, Literal, HasDefault
+    HEADERITEMRIGHTSTATES HIRS_PRESSED = 3 : Public, Static, Literal, HasDefault
+Struct SoftVelocity.ClarionNet.Windows.HeaderRenderer+HEADERSORTARROWSTATES: AutoLayout, AnsiClass, Class, NestedPublic, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    HEADERSORTARROWSTATES HSAS_SORTEDUP = 1 : Public, Static, Literal, HasDefault
+    HEADERSORTARROWSTATES HSAS_SORTEDDOWN = 2 : Public, Static, Literal, HasDefault
+Class SoftVelocity.ClarionNet.Reports.ListControlDesigner: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :SoftVelocity.ClarionNet.CommonReportControlDesigner
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Properties:
+    System.ComponentModel.Design.DesignerVerbCollection Verbs 'get ' : 
+    System.ComponentModel.Design.DesignerActionListCollection ActionLists 'get ' : 
+  Methods:
+    SetArrays(): PrivateScope, Public, Virtual, HideBySig
+    get_ActionLists(): PrivateScope, Public, Virtual, HideBySig, SpecialName
+    ListBoxFormatVerb(Object, EventArgs): PrivateScope, Public, HideBySig
+    ListBoxFormatVerb(): PrivateScope, Public, HideBySig
+    get_Verbs(): PrivateScope, Public, Virtual, HideBySig, SpecialName
+Class SoftVelocity.ClarionNet.Reports.FormatEditor: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :System.Drawing.Design.UITypeEditor
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    GetEditStyle(ITypeDescriptorContext): PrivateScope, Public, Virtual, HideBySig
+    EditValue(ITypeDescriptorContext, IServiceProvider, Object): PrivateScope, Public, Virtual, HideBySig
+Class SoftVelocity.ClarionNet.Reports.FmtEditor: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :System.Drawing.Design.UITypeEditor
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Methods:
+    GetEditStyle(ITypeDescriptorContext): PrivateScope, Public, Virtual, HideBySig
+    EditValue(ITypeDescriptorContext, IServiceProvider, Object): PrivateScope, Public, Virtual, HideBySig
+Class SoftVelocity.ClarionNet.Reports.LIST: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :SoftVelocity.ClarionNet.Reports.SimpleControl
+    Void .ctor(Boolean): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    System.ICloneable
+    SoftVelocity.ClarionNet.IPreview
+    SoftVelocity.ClarionNet.ISupportsDCTFieldUpdate
+    SoftVelocity.ClarionNet.IFrom
+  Fields:
+    Int32 m_currHeaderHeight : Public
+    CurrentDrawStateEnum m_CurrentDrawState : Public
+    SoftVelocity.ClarionNet.IContainerFrom m_IContainerFrom : Public
+    Single m_DPIX : Public
+    Single m_DPIY : Public
+  Properties:
+    ColumnDescription CurrChangingColumnDescription 'get ' : 
+    SoftVelocity.ClarionNet.IContainerFrom ContainerFrom 'get ' : 
+    SoftVelocity.ClarionNet.Reports.FieldsAppGenProp Fields 'get set' : 
+    SoftVelocity.ClarionNet.CommonProperties.QuotedStringProp Format 'get set' : 
+    System.Collections.Generic.List`1[SoftVelocity.ClarionNet.ClaFormatParser.FormatParser+ColumnDescription] SelectedFieldsList 'get ' : 
+    ColumnDescription SelectedField 'get set' : 
+    System.Collections.Generic.List`1[SoftVelocity.ClarionNet.ClaFormatParser.FormatParser+ColumnDescription] ColumnDescriptionList 'get set' : 
+    SoftVelocity.ClarionNet.CommonProperties.FromLikeProp From 'get set' : 
+    SoftVelocity.ClarionNet.Reports.LeftRightProp Decimal 'get set' : 
+    SoftVelocity.ClarionNet.Reports.LeftRightProp Center 'get set' : 
+    SoftVelocity.ClarionNet.Reports.LeftRightProp Right 'get set' : 
+    SoftVelocity.ClarionNet.Reports.LeftRightProp LEFT 'get set' : 
+    SoftVelocity.ClarionNet.Reports.DecimalJustificationProp Justification 'get set' : 
+    System.Object GRID 'set' : 
+    System.Drawing.Color GridColor 'get set' : 
+    SoftVelocity.ClarionNet.ClaColor COLOR 'get set' : 
+    System.Drawing.Color BackGround 'get set' : 
+    Boolean[] ZTextFontFlags 'get set' : 
+    System.Drawing.Font TextFont 'get set' : 
+    System.Drawing.Color TextColor 'get set' : 
+    SoftVelocity.ClarionNet.CommonProperties.QuotedStringProp Extend 'get set' : 
+    Boolean TRN 'get set' : 
+    Boolean Transparent 'get set' : 
+    Boolean Flat 'get set' : 
+    System.Drawing.Font FontValue 'get set' : 
+  Events:
+    SelectNode OnSelectNode: SpecialName
+    RefreshTree OnRefreshTree: SpecialName
+  Methods:
+    LastDetail(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    get_ContainerFrom(): PrivateScope, Public, HideBySig, SpecialName
+    Advise(IContainerFrom): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    SetControlFromDCTField(DCTDesignerField, Boolean(HasFieldMarshal)): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    ResetDefaults(): PrivateScope, Public, HideBySig
+    IsFSSelectDialogForUse(): PrivateScope, Public, Virtual, HideBySig
+    IsSelectColumnRequiredIfEmpty(): PrivateScope, Public, Virtual, HideBySig
+    get_CurrChangingColumnDescription(): PrivateScope, Public, HideBySig, SpecialName
+    GetTotalWidth(): PrivateScope, Public, HideBySig
+    add_OnRefreshTree(RefreshTree): PrivateScope, Public, HideBySig, SpecialName
+    remove_OnRefreshTree(RefreshTree): PrivateScope, Public, HideBySig, SpecialName
+    add_OnSelectNode(SelectNode): PrivateScope, Public, HideBySig, SpecialName
+    remove_OnSelectNode(SelectNode): PrivateScope, Public, HideBySig, SpecialName
+    GetDefaultWidth(): PrivateScope, Public, Virtual, HideBySig
+    GetDefaultHeight(): PrivateScope, Public, Virtual, HideBySig
+    GetPropertiesOrderSupported(): PrivateScope, Public, Virtual, HideBySig
+    GetPropertiesOrder(): PrivateScope, Public, Virtual, HideBySig
+    IsFontPresent(): PrivateScope, Public, Virtual, HideBySig
+    get_FontValue(): PrivateScope, Public, Virtual, HideBySig, SpecialName
+    set_FontValue(Font): PrivateScope, Public, Virtual, HideBySig, SpecialName
+    get_Flat(): PrivateScope, Public, HideBySig, SpecialName
+    set_Flat(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Transparent(): PrivateScope, Public, HideBySig, SpecialName
+    set_Transparent(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_TRN(): PrivateScope, Public, HideBySig, SpecialName
+    set_TRN(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Extend(): PrivateScope, Public, HideBySig, SpecialName
+    set_Extend(QuotedStringProp): PrivateScope, Public, HideBySig, SpecialName
+    get_TextColor(): PrivateScope, Public, HideBySig, SpecialName
+    set_TextColor(Color): PrivateScope, Public, HideBySig, SpecialName
+    get_TextFont(): PrivateScope, Public, HideBySig, SpecialName
+    set_TextFont(Font): PrivateScope, Public, HideBySig, SpecialName
+    get_ZTextFontFlags(): PrivateScope, Public, HideBySig, SpecialName
+    set_ZTextFontFlags(Boolean[]): PrivateScope, Public, HideBySig, SpecialName
+    get_BackGround(): PrivateScope, Public, HideBySig, SpecialName
+    set_BackGround(Color): PrivateScope, Public, HideBySig, SpecialName
+    get_COLOR(): PrivateScope, Public, HideBySig, SpecialName
+    set_COLOR(ClaColor): PrivateScope, Public, HideBySig, SpecialName
+    get_GridColor(): PrivateScope, Public, HideBySig, SpecialName
+    set_GridColor(Color): PrivateScope, Public, HideBySig, SpecialName
+    set_GRID(Object): PrivateScope, Public, HideBySig, SpecialName
+    get_Justification(): PrivateScope, Public, HideBySig, SpecialName
+    set_Justification(DecimalJustificationProp): PrivateScope, Public, HideBySig, SpecialName
+    get_LEFT(): PrivateScope, Public, HideBySig, SpecialName
+    set_LEFT(LeftRightProp): PrivateScope, Public, HideBySig, SpecialName
+    get_Right(): PrivateScope, Public, HideBySig, SpecialName
+    set_Right(LeftRightProp): PrivateScope, Public, HideBySig, SpecialName
+    get_Center(): PrivateScope, Public, HideBySig, SpecialName
+    set_Center(LeftRightProp): PrivateScope, Public, HideBySig, SpecialName
+    get_Decimal(): PrivateScope, Public, HideBySig, SpecialName
+    set_Decimal(LeftRightProp): PrivateScope, Public, HideBySig, SpecialName
+    get_From(): PrivateScope, Public, HideBySig, SpecialName
+    set_From(FromLikeProp): PrivateScope, Public, HideBySig, SpecialName
+    get_ColumnDescriptionList(): PrivateScope, Public, HideBySig, SpecialName
+    set_ColumnDescriptionList(List`1): PrivateScope, Public, HideBySig, SpecialName
+    get_SelectedField(): PrivateScope, Public, HideBySig, SpecialName
+    set_SelectedField(ColumnDescription): PrivateScope, Public, HideBySig, SpecialName
+    get_SelectedFieldsList(): PrivateScope, Public, HideBySig, SpecialName
+    get_Format(): PrivateScope, Public, HideBySig, SpecialName
+    set_Format(QuotedStringProp): PrivateScope, Public, HideBySig, SpecialName
+    SetFormat(List`1): PrivateScope, Public, HideBySig
+    ControlBox_Paint(Object, PaintEventArgs): PrivateScope, Public, Virtual, HideBySig
+    DrawLIST(PaintEventArgs): PrivateScope, Public, HideBySig
+    HasGroup(): PrivateScope, Public, HideBySig
+    IsDoubleHeader(ColumnDescription): PrivateScope, Public, HideBySig
+    IsTextInSubitems(ColumnDescription): PrivateScope, Public, HideBySig
+    HasDoubleHeader(): PrivateScope, Public, HideBySig
+    GetHeaderNumber(): PrivateScope, Public, HideBySig
+    OutString(Graphics, ColumnDescription, Rectangle, Boolean(HasFieldMarshal), Boolean(HasFieldMarshal), ValueType Point IsBoxed): PrivateScope, Public, HideBySig
+    CalcElemWidth(ColumnDescription, Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig
+    DrawPicture(Graphics, Int32, Int32, String, Font, ColumnDescription, Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig
+    DrawGrid(Graphics, Int32, Int32, Int32, Pen): PrivateScope, Public, HideBySig
+    DrawGrid(Graphics, Int32, Int32, Int32): PrivateScope, Public, HideBySig
+    ToPixel(Int32): PrivateScope, Public, HideBySig
+    FromPixel(Int32): PrivateScope, Public, HideBySig
+    DrawGroup(Graphics, ColumnDescription, Rectangle, Rectangle, Boolean(HasFieldMarshal), Boolean(HasFieldMarshal), Int32, ValueType Point IsBoxed): PrivateScope, Public, HideBySig
+    DrawGroupElem(Graphics, ColumnDescription, Rectangle, Rectangle, Boolean(HasFieldMarshal), Boolean(HasFieldMarshal), Rectangle, Boolean(HasFieldMarshal), Int32, ValueType Point IsBoxed): PrivateScope, Public, HideBySig
+    DrawElem(Graphics, ColumnDescription, Rectangle, Rectangle, Boolean(HasFieldMarshal), Int32, Boolean(HasFieldMarshal), ValueType Point IsBoxed): PrivateScope, Public, HideBySig
+    DrawGroupList(Graphics, Rectangle, Boolean(HasFieldMarshal), ValueType Point IsBoxed): PrivateScope, Public, HideBySig
+    DrawReportControl(Graphics, Point, Boolean(HasFieldMarshal)): PrivateScope, Public, Virtual, HideBySig
+    Clone(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    get_Fields(): PrivateScope, Public, HideBySig, SpecialName
+    set_Fields(FieldsAppGenProp): PrivateScope, Public, HideBySig, SpecialName
+    FirstDetail(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+    IntermediateDetail(): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+Struct SoftVelocity.ClarionNet.Reports.LIST+CurrentDrawStateEnum: AutoLayout, AnsiClass, Class, NestedPublic, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    CurrentDrawStateEnum Simple = 0 : Public, Static, Literal, HasDefault
+    CurrentDrawStateEnum First = 1 : Public, Static, Literal, HasDefault
+    CurrentDrawStateEnum Intermediate = 2 : Public, Static, Literal, HasDefault
+    CurrentDrawStateEnum Last = 3 : Public, Static, Literal, HasDefault
+Class SoftVelocity.ClarionNet.Reports.LIST+RefreshTree: AutoLayout, AnsiClass, Class, NestedPublic, Sealed, BeforeFieldInit
+  :System.MulticastDelegate
+    Void .ctor(System.Object, IntPtr): PrivateScope, Public, SpecialName, RTSpecialName
+  Methods:
+    Invoke(ColumnDescription): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+    BeginInvoke(ColumnDescription, AsyncCallback, Object): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+    EndInvoke(IAsyncResult): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+Class SoftVelocity.ClarionNet.Reports.LIST+SelectNode: AutoLayout, AnsiClass, Class, NestedPublic, Sealed, BeforeFieldInit
+  :System.MulticastDelegate
+    Void .ctor(System.Object, IntPtr): PrivateScope, Public, SpecialName, RTSpecialName
+  Methods:
+    Invoke(ColumnDescription): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+    BeginInvoke(ColumnDescription, AsyncCallback, Object): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+    EndInvoke(IAsyncResult): PrivateScope, Public, Final, Virtual, VtableLayoutMask
+Class SoftVelocity.ClarionNet.Windows.WinListControlDesigner: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :SoftVelocity.ClarionNet.ClaControlDesigner
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Properties:
+    System.ComponentModel.Design.DesignerVerbCollection Verbs 'get ' : 
+    System.ComponentModel.Design.DesignerActionListCollection ActionLists 'get ' : 
+  Methods:
+    SetArrays(): PrivateScope, Public, Virtual, HideBySig
+    get_ActionLists(): PrivateScope, Public, Virtual, HideBySig, SpecialName
+    ListBoxFormatVerb(Object, EventArgs): PrivateScope, Public, HideBySig
+    ListBoxFormatVerb(): PrivateScope, Public, HideBySig
+    get_Verbs(): PrivateScope, Public, Virtual, HideBySig, SpecialName
+Class SoftVelocity.ClarionNet.Windows.LIST: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :SoftVelocity.ClarionNet.Reports.LIST
+    Void .ctor(SoftVelocity.ClarionNet.DCTDesignerField): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    SoftVelocity.ClarionNet.IHasGray
+  Fields:
+    Boolean m_scroll : Public
+  Properties:
+    SoftVelocity.ClarionNet.ClaFont Font 'get set' : 
+    Boolean UseVisualStyles 'get set' : 
+    System.Drawing.Color SelBackGround 'get set' : 
+    System.Drawing.Color SelForeGround 'get set' : 
+    Boolean HVSCROLL 'get set' : 
+    Boolean VSCROLL 'get set' : 
+    Boolean Vertical 'get set' : 
+    Boolean HSCROLL 'get set' : 
+    Boolean Horizontal 'get set' : 
+    SoftVelocity.ClarionNet.Windows.HVScroll _HVScroll 'get set' : 
+    System.String Mark 'get set' : 
+    Boolean IMM 'get set' : 
+    Boolean Immediate 'get set' : 
+    SoftVelocity.ClarionNet.Reports.DragIDProp DragID 'get set' : 
+    System.Object Alrt 'get set' : 
+    Boolean NOBAR 'get set' : 
+    Boolean HideSelection 'get set' : 
+    SoftVelocity.ClarionNet.Reports.VcrProp Vcr 'get set' : 
+    Boolean COLUMN 'get set' : 
+    Boolean SelectColumns 'get set' : 
+    SoftVelocity.ClarionNet.Reports.DropListProp Drop 'get set' : 
+    SoftVelocity.ClarionNet.Reports.DropIDProp DropID 'get set' : 
+    SoftVelocity.ClarionNet.CommonProperties.QuotedStringProp Tip 'get set' : 
+    SoftVelocity.ClarionNet.Reports.CursorProp Cursor 'get set' : 
+    Boolean Flat 'get set' : 
+    SoftVelocity.ClarionNet.CommonProperties.QuotedStringProp HLP 'get set' : 
+    System.String HelpID 'get set' : 
+    System.Windows.Forms.Keys Key 'get set' : 
+    SoftVelocity.ClarionNet.CommonProperties.QuotedStringProp MSG 'get set' : 
+    System.String Message 'get set' : 
+    Boolean Skip 'get set' : 
+    SoftVelocity.ClarionNet.Reports.LeftRightProp Right 'get set' : 
+    SoftVelocity.ClarionNet.Reports.LeftRightProp LEFT 'get set' : 
+    SoftVelocity.ClarionNet.CtrlATProp AT 'get set' : 
+    Boolean Scroll 'get set' : 
+    System.String Text 'get set' : 
+    SoftVelocity.ClarionNet.CommonProperties.QuotedStringProp Extend 'get set' : 
+  Methods:
+    DrawReportControl(Graphics, Point, Boolean(HasFieldMarshal)): PrivateScope, Public, Virtual, HideBySig
+    get_Font(): PrivateScope, Public, HideBySig, SpecialName
+    set_Font(ClaFont): PrivateScope, Public, HideBySig, SpecialName
+    BeginInit(): PrivateScope, Public, Virtual, HideBySig
+    AddDropChanged(): PrivateScope, Public, HideBySig
+    DropChangedHandler(Object, EventArgs): PrivateScope, Public, HideBySig
+    get_Extend(): PrivateScope, Public, HideBySig, SpecialName
+    set_Extend(QuotedStringProp): PrivateScope, Public, HideBySig, SpecialName
+    GetPropertiesOrder(): PrivateScope, Public, Virtual, HideBySig
+    get_Text(): PrivateScope, Public, Virtual, HideBySig, SpecialName
+    set_Text(String): PrivateScope, Public, Virtual, HideBySig, SpecialName
+    get_Scroll(): PrivateScope, Public, HideBySig, SpecialName
+    set_Scroll(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_AT(): PrivateScope, Public, HideBySig, SpecialName
+    set_AT(CtrlATProp): PrivateScope, Public, HideBySig, SpecialName
+    get_LEFT(): PrivateScope, Public, HideBySig, SpecialName
+    set_LEFT(LeftRightProp): PrivateScope, Public, HideBySig, SpecialName
+    get_Right(): PrivateScope, Public, HideBySig, SpecialName
+    set_Right(LeftRightProp): PrivateScope, Public, HideBySig, SpecialName
+    get_Skip(): PrivateScope, Public, HideBySig, SpecialName
+    set_Skip(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Message(): PrivateScope, Public, HideBySig, SpecialName
+    set_Message(String): PrivateScope, Public, HideBySig, SpecialName
+    get_MSG(): PrivateScope, Public, HideBySig, SpecialName
+    set_MSG(QuotedStringProp): PrivateScope, Public, HideBySig, SpecialName
+    get_Key(): PrivateScope, Public, HideBySig, SpecialName
+    set_Key(Keys): PrivateScope, Public, HideBySig, SpecialName
+    get_HelpID(): PrivateScope, Public, HideBySig, SpecialName
+    set_HelpID(String): PrivateScope, Public, HideBySig, SpecialName
+    get_HLP(): PrivateScope, Public, HideBySig, SpecialName
+    set_HLP(QuotedStringProp): PrivateScope, Public, HideBySig, SpecialName
+    get_Flat(): PrivateScope, Public, HideBySig, SpecialName
+    set_Flat(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Cursor(): PrivateScope, Public, HideBySig, SpecialName
+    set_Cursor(CursorProp): PrivateScope, Public, HideBySig, SpecialName
+    get_Tip(): PrivateScope, Public, HideBySig, SpecialName
+    set_Tip(QuotedStringProp): PrivateScope, Public, HideBySig, SpecialName
+    get_DropID(): PrivateScope, Public, HideBySig, SpecialName
+    set_DropID(DropIDProp): PrivateScope, Public, HideBySig, SpecialName
+    get_Drop(): PrivateScope, Public, HideBySig, SpecialName
+    set_Drop(DropListProp): PrivateScope, Public, HideBySig, SpecialName
+    get_SelectColumns(): PrivateScope, Public, HideBySig, SpecialName
+    set_SelectColumns(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_COLUMN(): PrivateScope, Public, HideBySig, SpecialName
+    set_COLUMN(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Vcr(): PrivateScope, Public, HideBySig, SpecialName
+    set_Vcr(VcrProp): PrivateScope, Public, HideBySig, SpecialName
+    get_HideSelection(): PrivateScope, Public, HideBySig, SpecialName
+    set_HideSelection(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_NOBAR(): PrivateScope, Public, HideBySig, SpecialName
+    set_NOBAR(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Alrt(): PrivateScope, Public, HideBySig, SpecialName
+    set_Alrt(Object): PrivateScope, Public, HideBySig, SpecialName
+    get_DragID(): PrivateScope, Public, HideBySig, SpecialName
+    set_DragID(DragIDProp): PrivateScope, Public, HideBySig, SpecialName
+    get_Immediate(): PrivateScope, Public, HideBySig, SpecialName
+    set_Immediate(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_IMM(): PrivateScope, Public, HideBySig, SpecialName
+    set_IMM(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Mark(): PrivateScope, Public, HideBySig, SpecialName
+    set_Mark(String): PrivateScope, Public, HideBySig, SpecialName
+    get__HVScroll(): PrivateScope, Public, HideBySig, SpecialName
+    set__HVScroll(HVScroll): PrivateScope, Public, HideBySig, SpecialName
+    get_Horizontal(): PrivateScope, Public, HideBySig, SpecialName
+    set_Horizontal(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_HSCROLL(): PrivateScope, Public, HideBySig, SpecialName
+    set_HSCROLL(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Vertical(): PrivateScope, Public, HideBySig, SpecialName
+    set_Vertical(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_VSCROLL(): PrivateScope, Public, HideBySig, SpecialName
+    set_VSCROLL(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_HVSCROLL(): PrivateScope, Public, HideBySig, SpecialName
+    set_HVSCROLL(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_SelForeGround(): PrivateScope, Public, HideBySig, SpecialName
+    set_SelForeGround(Color): PrivateScope, Public, HideBySig, SpecialName
+    get_SelBackGround(): PrivateScope, Public, HideBySig, SpecialName
+    set_SelBackGround(Color): PrivateScope, Public, HideBySig, SpecialName
+    DrawList(Graphics, Rectangle, ValueType Point IsBoxed): PrivateScope, Public, HideBySig
+    DrawVCRButton(Graphics, Int32, Int32, Int32, Int32, Int32, Int32, Assembly, String): PrivateScope, Public, HideBySig
+    GetDefaultWidth(): PrivateScope, Public, Virtual, HideBySig
+    GetDefaultHeight(): PrivateScope, Public, Virtual, HideBySig
+    get_UseVisualStyles(): PrivateScope, Public, HideBySig, SpecialName
+    set_UseVisualStyles(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    SetGray(Boolean(HasFieldMarshal)): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+Class SoftVelocity.ClarionNet.Windows.WinComboControlDesigner: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :SoftVelocity.ClarionNet.Windows.WinListControlDesigner
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Properties:
+    System.ComponentModel.Design.DesignerActionListCollection ActionLists 'get ' : 
+    System.ComponentModel.Design.DesignerVerbCollection Verbs 'get ' : 
+  Methods:
+    get_Verbs(): PrivateScope, Public, Virtual, HideBySig, SpecialName
+    get_ActionLists(): PrivateScope, Public, Virtual, HideBySig, SpecialName
+    OnEditPicture(Object, EventArgs): PrivateScope, Public, HideBySig
+    OnEditPicture(): PrivateScope, Public, HideBySig
+Class SoftVelocity.ClarionNet.Windows.COMBO: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :SoftVelocity.ClarionNet.Windows.LIST
+    Void .ctor(SoftVelocity.ClarionNet.DCTDesignerField): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(System.Object): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(System.String): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Interfaces:
+    SoftVelocity.ClarionNet.ISupportsDCTScreenPictureUpdate
+  Fields:
+    Int32 ComboEditIndent IsConst : Public, Static, HasDefault
+    Int32 ComboListIndent IsConst : Public, Static, HasDefault
+  Properties:
+    System.String TextValue 'get set' : 
+    SoftVelocity.ClarionNet.ClaFont Font 'get set' : 
+    SoftVelocity.ClarionNet.CtrlATProp AT 'get set' : 
+    SoftVelocity.ClarionNet.Windows.ClaObjPicture Picture 'get set' : 
+    Boolean CAP 'get set' : 
+    Boolean UPR 'get set' : 
+    SoftVelocity.ClarionNet.Windows.CaseEnum Case 'get set' : 
+    Boolean OVR 'get set' : 
+    Boolean INS 'get set' : 
+    SoftVelocity.ClarionNet.Windows.EntryModeEnum EntryMode 'get set' : 
+    SoftVelocity.ClarionNet.Reports.ReqProp ControlREQ 'get set' : 
+    Boolean Required 'get set' : 
+    Boolean ReadOnly 'get set' : 
+    SoftVelocity.ClarionNet.Reports.LeftRightProp Right 'get set' : 
+    SoftVelocity.ClarionNet.Reports.LeftRightProp LEFT 'get set' : 
+    SoftVelocity.ClarionNet.Reports.CursorProp Cursor 'get set' : 
+    Boolean MASK 'get set' : 
+  Methods:
+    Init(): PrivateScope, Public, HideBySig
+    get_MASK(): PrivateScope, Public, HideBySig, SpecialName
+    set_MASK(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    GetPropertiesOrder(): PrivateScope, Public, Virtual, HideBySig
+    get_Cursor(): PrivateScope, Public, HideBySig, SpecialName
+    set_Cursor(CursorProp): PrivateScope, Public, HideBySig, SpecialName
+    get_LEFT(): PrivateScope, Public, HideBySig, SpecialName
+    set_LEFT(LeftRightProp): PrivateScope, Public, HideBySig, SpecialName
+    get_Right(): PrivateScope, Public, HideBySig, SpecialName
+    set_Right(LeftRightProp): PrivateScope, Public, HideBySig, SpecialName
+    get_ReadOnly(): PrivateScope, Public, HideBySig, SpecialName
+    set_ReadOnly(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Required(): PrivateScope, Public, HideBySig, SpecialName
+    set_Required(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_ControlREQ(): PrivateScope, Public, HideBySig, SpecialName
+    set_ControlREQ(ReqProp): PrivateScope, Public, HideBySig, SpecialName
+    get_EntryMode(): PrivateScope, Public, HideBySig, SpecialName
+    set_EntryMode(EntryModeEnum): PrivateScope, Public, HideBySig, SpecialName
+    get_INS(): PrivateScope, Public, HideBySig, SpecialName
+    set_INS(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_OVR(): PrivateScope, Public, HideBySig, SpecialName
+    set_OVR(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Case(): PrivateScope, Public, HideBySig, SpecialName
+    set_Case(CaseEnum): PrivateScope, Public, HideBySig, SpecialName
+    get_UPR(): PrivateScope, Public, HideBySig, SpecialName
+    set_UPR(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_CAP(): PrivateScope, Public, HideBySig, SpecialName
+    set_CAP(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig, SpecialName
+    get_Picture(): PrivateScope, Public, HideBySig, SpecialName
+    set_Picture(ClaObjPicture): PrivateScope, Public, HideBySig, SpecialName
+    get_AT(): PrivateScope, Public, HideBySig, SpecialName
+    set_AT(CtrlATProp): PrivateScope, Public, HideBySig, SpecialName
+    GetEntryHeight(): PrivateScope, Public, HideBySig
+    GetDefaultWidth(): PrivateScope, Public, Virtual, HideBySig
+    GetDefaultHeight(): PrivateScope, Public, Virtual, HideBySig
+    RecalcDefaultSize(Boolean(HasFieldMarshal)): PrivateScope, Public, HideBySig
+    DrawEntry(Graphics, Rectangle, Int32): PrivateScope, Public, HideBySig
+    DrawReportControl(Graphics, Point, Boolean(HasFieldMarshal)): PrivateScope, Public, Virtual, HideBySig
+    GetDualProps(Hashtable&): PrivateScope, Public, Virtual, HideBySig
+    GetCtrlName(): PrivateScope, Public, Virtual, HideBySig
+    get_Font(): PrivateScope, Public, HideBySig, SpecialName
+    set_Font(ClaFont): PrivateScope, Public, HideBySig, SpecialName
+    IsTextPresent(): PrivateScope, Public, Virtual, HideBySig
+    get_TextValue(): PrivateScope, Public, Virtual, HideBySig, SpecialName
+    set_TextValue(String): PrivateScope, Public, Virtual, HideBySig, SpecialName
+    SetScreenPictureText(String): PrivateScope, Public, Virtual, HideBySig, VtableLayoutMask
+Class SoftVelocity.ClarionNet.ClaFormatParser.ListFmtDlg: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :System.Windows.Forms.Form
+    Void .ctor(System.String, System.Drawing.Font, System.Drawing.Font, Unitenum, SoftVelocity.ClarionNet.IContainerTemplateSupport, System.String[], System.Drawing.Color, System.Drawing.Color, System.Drawing.Color): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(System.String, System.Drawing.Font, System.Drawing.Font, SoftVelocity.ClarionNet.IContainerTemplateSupport, System.String[]): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(System.String, System.Drawing.Font, System.Drawing.Font, Unitenum): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(System.String, System.Drawing.Font, System.Drawing.Font): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Fields:
+    System.String ResultLine : Public
+    System.String FormatLine : Public
+  Methods:
+    GetSystemMetrics(Int32): PrivateScope, Public, Static, HideBySig, PinvokeImpl
+    InitListFmtDlg(String, Font, Font, Unitenum, IContainerTemplateSupport, String[], Color, Color, Color): PrivateScope, Public, HideBySig
+    GetFieldNames(): PrivateScope, Public, HideBySig
+    DisableToolStrip(): PrivateScope, Public, HideBySig

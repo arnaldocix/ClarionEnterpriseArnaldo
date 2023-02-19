@@ -1,0 +1,826 @@
+#!-----------------------------------------------------------------------
+#CODE(ExportToXML,'Export to XML'),HLP('~TPLCodeExportToXML.htm'),DESCRIPTION('Export to XML:  '&%Variable&' -> XML')
+#DISPLAY('This Code Template will export the Data Origin to the XML file')
+#DISPLAY
+#PROMPT('Data Origin:',EDIT(256)),%Variable,REQ,WHENACCEPTED(%SVExpresionEditor(%Variable))
+#ENABLE(NOT %RuntimeMapFile)
+  #PROMPT('Mapping file (optional):',OPENDIALOG('Select mapping file','XML|*.XML')),%MappingFile
+#ENDENABLE
+#PROMPT('Select mapping file at runtime',CHECK),%RuntimeMapFile
+#ENABLE(NOT %RuntimeExportFile)
+  #PROMPT('Export file:',OPENDIALOG('Select file to export','XML|*.XML')),%ExportFile,REQ
+#ENDENABLE
+#PROMPT('Select export file at runtime',CHECK),%RuntimeExportFile
+#BOXED,SECTION
+  #PROMPT('Root Tag:', @s255 ),%xmlRootTag,AT(,,78)
+  #PROMPT('Row Tag:', @s255 ),%xmlRowTag,AT(,,78)
+#ENDBOXED
+#BOXED,SECTION
+  #PROMPT('XML Style',OPTION),%XMLGeneratedStyle,DEFAULT('ADO_Net')
+  #PROMPT('Tag-based',RADIO),VALUE('ADO_Net'),AT(20,15)
+  #PROMPT('Attribute-based',RADIO),VALUE('ADO_26'),AT(100,15)
+#ENDBOXED
+#DISPLAY
+#DISPLAY('The Data Origin must be a GROUP, VIEW, FILE or QUEUE.')
+#!
+#AT (%BeforeGenerateApplication)
+  #CALL(%AddCategory, 'XmlLib')
+  #CALL(%SetCategoryLocation, 'XmlLib', 'XmlLib', %True, %False)
+#ENDAT
+#AT(%CustomGlobalDeclarations)
+  #PROJECT('Clacpxml.LIB')
+  #PROJECT('Claxmlty.LIB')
+#ENDAT
+#AT(%BeforeGlobalIncludes)
+#ADD(%GlobalIncludeList,'cpXml.inc')
+#ENDAT
+#AT(%DataSection)
+  #IF(INSTANCE(%ActiveTemplateInstance)=1)
+LOC:XML_ExportMapFile           CSTRING(255)
+LOC:XML_ExportFile              CSTRING(255)
+LOC:XML_ExportRes               BYTE
+LOC:XML_ExportMapQueue          MapQueue
+  #ENDIF
+#ENDAT
+#IF (%RuntimeMapFile)
+FILEDIALOG('Select mapping file',LOC:XML_ExportMapFile,'XML|*.XML',FILE:LongName)
+#ELSE
+LOC:XML_ExportMapFile = %(%StripPling(%MappingFile))
+#ENDIF
+#IF (%RuntimeExportFile)
+FILEDIALOG('Select export file',LOC:XML_ExportFile,'XML|*.XML',FILE:Save+FILE:LongName)
+#ELSE
+LOC:XML_ExportFile = %(%StripPling(%ExportFile))
+#ENDIF
+IF LEN(LOC:XML_ExportMapFile) > 0 THEN
+   LOC:XML_ExportRes = FromXMLFile(LOC:XML_ExportMapQueue, LOC:XML_ExportMapFile)
+   IF NOT LOC:XML_ExportRes THEN
+      MESSAGE('Can''t load mapping file', 'Error', ICON:Hand, BUTTON:OK)
+      LOC:XML_ExportMapFile = ''
+   ELSE
+      LOC:XML_ExportRes = ToXMLFile(%Variable, LOC:XML_ExportFile, %(%StripPling(%xmlRootTag)), %(%StripPling(%xmlRowTag)), LOC:XML_ExportMapQueue %(',DOMStyle:'&%XMLGeneratedStyle))
+      IF NOT LOC:XML_ExportRes THEN
+         MESSAGE('Can''t export to XML file', 'Error', ICON:Hand, BUTTON:OK)
+      END
+   END
+   FREE( LOC:XML_ExportMapQueue )
+   CLEAR( LOC:XML_ExportMapQueue )
+ELSE
+   LOC:XML_ExportRes = ToXMLFile(%Variable, LOC:XML_ExportFile, %(%StripPling(%xmlRootTag)), %(%StripPling(%xmlRowTag)), %(',DOMStyle:'&%XMLGeneratedStyle))
+   IF NOT LOC:XML_ExportRes THEN
+      MESSAGE('Can''t export to XML file', 'Error', ICON:Hand, BUTTON:OK)
+   END
+END
+#!-----------------------------------------------------------------------
+#CODE(ImportFromXML,'Import from XML'),HLP('~TPLCodeFromXML.htm'),DESCRIPTION('Import from XML:  '&%Variable&' <- XML')
+#DISPLAY('This Code Template will import the XML file into the Destination.')
+#DISPLAY
+#ENABLE(NOT %RuntimeImportFile)
+  #PROMPT('Import file (required)',OPENDIALOG('Select import file','XML|*.XML')),%ImportFile,REQ
+#ENDENABLE
+#PROMPT('Select import file at runtime',CHECK),%RuntimeImportFile
+#ENABLE(NOT %RuntimeMapFile)
+  #PROMPT('Mapping file (optional)',OPENDIALOG('Select mapping file','XML|*.XML')),%MappingFile
+#ENDENABLE
+#PROMPT('Select mapping file at runtime',CHECK),%RuntimeMapFile
+#PROMPT('Destination:',OPTFIELD),%Variable,REQ
+#DISPLAY
+#DISPLAY('The Destination must be a GROUP, VIEW, FILE or QUEUE.')
+#DISPLAY
+#BOXED,SECTION
+  #PROMPT('XML Style',OPTION),%XMLGeneratedStyle,DEFAULT('ADO_Net')
+  #PROMPT('Tag-based',RADIO),VALUE('ADO_Net'),AT(20,15)
+  #PROMPT('Attribute-based',RADIO),VALUE('ADO_26'),AT(70,15)
+  #PROMPT('Runtime',RADIO),VALUE('RUNTIME'),AT(145,15)
+#ENDBOXED
+#ENABLE(%XMLGeneratedStyle='RUNTIME')
+  #PROMPT('Runtime Value:',EXPR),%XMLRuntimeGeneratedStyle,REQ,DEFAULT('DOMStyle:ADO_NET')
+  #DISPLAY('Use the ! for a variable')
+  #DISPLAY('valid values are:DOMStyle:ADO_NET or DOMStyle:ADO_26')
+#ENDENABLE
+#!
+#AT (%BeforeGenerateApplication)
+  #CALL(%AddCategory, 'XmlLib')
+  #CALL(%SetCategoryLocation, 'XmlLib', 'XmlLib',%True,%False)
+#ENDAT
+#AT(%CustomGlobalDeclarations)
+#PROJECT('Clacpxml.LIB')
+#PROJECT('Claxmlty.LIB')
+#ENDAT
+#AT(%BeforeGlobalIncludes)
+#ADD(%GlobalIncludeList,'cpXml.inc')
+#ENDAT
+#AT(%DataSection)
+#IF(INSTANCE(%ActiveTemplateInstance)=1)
+LOC:XML_ImportMapFile           CSTRING(255)
+LOC:XML_ImportFile              CSTRING(255)
+LOC:XML_ImportRes               BYTE
+LOC:XML_ImportMapQueue          MapQueue
+#ENDIF
+#ENDAT
+#DECLARE(%lVariable)
+#DECLARE(%lGeneratedStyle)
+#IF (%RuntimeImportFile)
+FILEDIALOG('Select import file',LOC:XML_ImportFile,'XML|*.XML',FILE:LongName)
+#ELSE
+LOC:XML_ImportFile = %(%StripPling(%ImportFile))
+#ENDIF
+#IF (%RuntimeMapFile)
+FILEDIALOG('Select mapping file',LOC:XML_ImportMapFile,'XML|*.XML',FILE:LongName)
+#ELSE
+LOC:XML_ImportMapFile = %(%StripPling(%MappingFile))
+#ENDIF
+#IF(SUB(%Variable,1,1)='!')
+  #SET(%lVariable,SUB(%Variable,2,LEN(%Variable)-1))
+#ELSE
+  #SET(%lVariable,%Variable)
+#ENDIF
+#CASE(%XMLGeneratedStyle)
+#OF('ADO_Net')
+#OROF('ADO_26')
+  #SET(%lGeneratedStyle,'DOMStyle:'&%XMLGeneratedStyle)
+#OF('RUNTIME')
+  #SET(%lGeneratedStyle,%XMLRuntimeGeneratedStyle)
+#ENDCASE
+#!
+IF LEN(LOC:XML_ImportMapFile) > 0 THEN
+   LOC:XML_ImportRes = FromXMLFile(LOC:XML_ImportMapQueue, LOC:XML_ImportMapFile,,,,%lGeneratedStyle)
+   IF NOT LOC:XML_ImportRes THEN
+      MESSAGE('Can''t load mapping file', 'Error', ICON:Hand, BUTTON:OK)
+      LOC:XML_ImportMapFile = ''
+   ELSE
+      LOC:XML_ImportRes = FromXMLFile(%lVariable, LOC:XML_ImportFile,,, LOC:XML_ImportMapQueue,%lGeneratedStyle)
+      IF NOT LOC:XML_ImportRes THEN
+         MESSAGE('Can''t import XML file', 'Error', ICON:Hand, BUTTON:OK)
+      END
+   END
+   FREE( LOC:XML_ImportMapQueue )
+   CLEAR( LOC:XML_ImportMapQueue )
+ELSE
+   LOC:XML_ImportRes = FromXMLFile(%lVariable, LOC:XML_ImportFile,,,,%lGeneratedStyle)
+   IF NOT LOC:XML_ImportRes THEN
+      MESSAGE('Can''t import XML file', 'Error', ICON:Hand, BUTTON:OK)
+   END
+END
+#!-------------------------------------------------------------------------
+#! Export Data to XML
+#!-------------------------------------------------------------------------
+#CODE(ToXML,'Export a structure to XML'),HLP('~TPLCodeExportToXML.htm'),DESCRIPTION('Export '& %expStruct &' to XML')
+#PROMPT('Data Origin:',EDIT(256)),%expStruct,REQ,WHENACCEPTED(%SVExpresionEditor(%expStruct))
+#PROMPT('Data Origin Type:', DROP('Determine automatically[AUTO]|GROUP structure[GROUP]|QUEUE structure[QUEUE]|FILE structure[FILE]|VIEW structure[VIEW]') ),%expStructType,AT(,,90),REQ,DEFAULT('AUTO')
+#ENABLE(NOT %RuntimeExportFile)
+  #PROMPT('Export file:',OPENDIALOG('Select file to export','XML|*.XML')),%ExportFile,REQ
+#ENDENABLE
+#PROMPT('Select export file at runtime',CHECK),%RuntimeExportFile
+#ENABLE(NOT %RuntimeMapFile)
+  #PROMPT('Mapping file (optional):',OPENDIALOG('Select mapping file','XML|*.XML')),%MappingFile
+#ENDENABLE
+#PROMPT('Select mapping file at runtime',CHECK),%RuntimeMapFile
+#BOXED,SECTION
+  #PROMPT('Root Tag:', @s255 ),%xmlRootTag,AT(,,78)
+  #PROMPT('Row Tag:', @s255 ),%xmlRowTag,AT(,,78)
+  #PROMPT('Save Schema with output', CHECK), %xmlWithSchema
+  #PROMPT('Perform a silent export',CHECK),%expSilent,DEFAULT(0)
+#ENDBOXED
+#ENABLE(%MappingFile='' AND NOT %RunTimeMapFile)
+  #BUTTON('Customize Columns'),MULTI( %expCustomColumns, %expCustomColumn & ' - ' & %expColTagName  )
+    #PREPARE
+      #IF(~VAREXISTS( %expColList ) )
+        #DECLARE(%expColList),MULTI
+      #ENDIF
+      #IF( ~VAREXISTS( %expListBuilt ) )
+        #DECLARE( %expListBuilt )
+      #ENDIF
+      #IF( ~VAREXISTS( %expNotFound ) )
+        #DECLARE( %expNotFound )
+      #ENDIF
+      #IF( ~VAREXISTS( %expDataSource ) )
+        #DECLARE( %expDataSource )
+      #ENDIF
+      #FREE( %expColList )
+      #SET( %expListBuilt, %FALSE )
+      #FIX( %GlobalData, %expStruct )
+      #IF( %GlobalData <> '' )
+        #SET(%expNotFound, %True)
+        #FOR( %GlobalData )
+          #IF( UPPER( %GlobalData ) = UPPER( %expStruct ) )
+            #SET(%expNotFound, %False)
+            #CYCLE
+          #ENDIF
+          #IF(%expNotFound)
+            #CYCLE
+          #ENDIF
+          #IF(%GlobalDataStatement = 'END')
+            #BREAK
+          #ENDIF
+          #ADD( %expColList, %GlobalData )
+        #ENDFOR
+        #SET( %expDataSource, 1 )
+        #SET( %expListBuilt, %True )
+      #ENDIF
+      #IF(NOT %expListBuilt)
+        #FIX( %File, %expStruct )
+        #IF( %File <> '' )
+          #FOR( %Field )
+            #ADD( %expColList, %FieldID )
+          #ENDFOR
+          #SET( %expDataSource, 2 )
+          #SET( %expListBuilt, %True )
+        #ENDIF
+      #ENDIF
+      #IF(NOT %expListBuilt)
+        #FIX(%LocalData, %expStruct)
+        #IF(%LocalData <> '')
+          #SET(%expNotFound, %True)
+          #FOR(%LocalData)
+            #IF( UPPER( %LocalData ) = UPPER( %expStruct ) )
+              #SET(%expNotFound, %False)
+              #CYCLE
+            #ENDIF
+            #IF(%expNotFound)
+              #CYCLE
+            #ENDIF
+            #IF(%LocalDataStatement = 'END')
+              #BREAK
+            #ENDIF
+            #ADD( %expColList, %LocalData )
+          #ENDFOR
+          #SET( %expDataSource, 3 )
+          #SET( %expListBuilt, %True )
+        #ENDIF
+      #ENDIF
+    #ENDPREPARE
+    #PROMPT( 'Column: ',FROM(%expColList)),%expCustomColumn,REQ,WHENACCEPTED(%expFillColTag())
+    #PROMPT('XML Tag Name: ',@s64), %expColTagname,REQ
+    #PROMPT('Picture: ',PICTURE),%expColPicture
+    #PROMPT('XML Data Format: ',DROP('Text|CData|Base64')),%expColFormat
+  #ENDBUTTON
+#ENDENABLE
+#BOXED,SECTION
+  #PROMPT('XML Style',OPTION),%XMLGeneratedStyle,DEFAULT('ADO_Net')
+  #PROMPT('Tag-based',RADIO),VALUE('ADO_Net'),AT(20,15)
+  #PROMPT('Attribute-based',RADIO),VALUE('ADO_26'),AT(100,15)
+#ENDBOXED
+#!
+#AT (%BeforeGenerateApplication)
+  #CALL(%AddCategory, 'XmlLib')
+  #CALL(%SetCategoryLocation, 'XmlLib', 'XmlLib',%True,%False)
+#ENDAT
+#AT(%CustomGlobalDeclarations)
+#PROJECT('Clacpxml.LIB')
+#PROJECT('Claxmlty.LIB')
+#ENDAT
+#AT(%BeforeGlobalIncludes)
+#ADD(%GlobalIncludeList,'cpXml.inc')
+#ADD(%GlobalIncludeList,'xmlClass.inc')
+#ENDAT
+#AT(%DataSection)
+  #IF(~VAREXISTS( %mapFlag ) )
+    #DECLARE(%mapFlag,LONG)
+  #ENDIF
+  #SET(%mapFlag,0)
+  #IF(%RunTimeMapFile OR CLIP(%MappingFile)<>'' OR ITEMS(%expCustomColumns)<>0)
+    #SET(%mapFlag,1)
+  #ENDIF
+  #IF(INSTANCE(%ActiveTemplateInstance)=1)
+cExpExch            XMLExchange
+cExpMapper          &XMLNameMap
+bXMLExpRet             BYTE
+szXMLExportMap      CSTRING(FILE:MaxFilePath+FILE:MaxFileName)
+szXMLExportFile     CSTRING(FILE:MaxFilePath+FILE:MaxFileName)
+  #ENDIF
+  #SET(%ValueConstruct,'')
+  #CASE( %expStructType )
+  #OF('GROUP')
+      #SET(%ValueConstruct,'GroupWrapper')
+  #OF('QUEUE')
+      #SET(%ValueConstruct,'QueueWrapper')
+  #OF('FILE')
+      #SET(%ValueConstruct,'FileWrapper')
+  #OF('VIEW')
+      #SET(%ValueConstruct,'ViewWrapper')
+  #ELSE
+     #FIX( %GlobalData, %expStruct )
+     #IF( %GlobalData <> '' )
+        #IF( INSTRING('QUEUE', UPPER(%GlobalDataStatement), 1, 1 ) )
+            #SET(%ValueConstruct,'QueueWrapper')
+        #ELSIF( INSTRING('GROUP', UPPER(%GlobalDataStatement), 1, 1 ) )
+            #SET(%ValueConstruct,'GroupWrapper')
+        #ENDIF
+     #ELSE
+        #FIX( %LocalData, %expStruct )
+        #IF( %LocalData <> '' )
+           #IF( INSTRING('QUEUE', UPPER(%LocalDataStatement), 1, 1 ) )
+               #SET(%ValueConstruct,'QueueWrapper')
+           #ELSIF( INSTRING('GROUP', UPPER(%LocalDataStatement), 1, 1 ) )
+               #SET(%ValueConstruct,'GroupWrapper')
+           #ENDIF
+        #ELSE
+           #FIX( %File, %expStruct )
+           #IF( %File <> '' )
+              #IF( %FileType = 'FILE' )
+                  #SET(%ValueConstruct,'FileWrapper')
+              #ELSE
+                  #SET(%ValueConstruct,'ViewWrapper')
+              #ENDIF
+           #ELSE
+              #SET(%ValueConstruct,'')
+              #ERROR( 'ToXML: Unable to determin Data Origin Type, Data Origin:'&%expStruct )
+           #ENDIF
+        #ENDIF
+     #ENDIF
+  #ENDCASE
+  #IF(%ValueConstruct)
+cWrapper%ActiveTemplateInstance            CLASS(%ValueConstruct) !Source : %expStruct
+#EMBED(%cWrapperInside,'cWrapper(ToXML) Inside Class Definition'),%ActiveTemplateInstance,LABEL,DATA,TREE('Local Objects','XMLWrapper Objects','cWrapper Object (ToXML from '& %expStruct&')(' & %ActiveTemplateInstance & ')','Other Methods and Properties')
+                      END
+  #ENDIF
+#ENDAT
+#IF (%RuntimeMapFile OR %RuntimeExportFile)
+LOOP
+#ENDIF
+#IF (%RuntimeMapFile)
+  IF ~FILEDIALOGA('Select mapping file',szXMLExportMap,'XML|*.XML',FILE:LongName)
+  #IF( NOT %expSilent )
+    MESSAGE('An XML Mapping file is required', 'XML Map', ICON:Hand, BUTTON:OK )
+  #ENDIF
+    BREAK
+  END
+#ENDIF
+#IF (%RuntimeExportFile)
+  IF ~FILEDIALOGA('Select export file',szXMLExportFile,'XML|*.XML',FILE:Save+FILE:LongName)
+  #IF( NOT %expSilent )
+    MESSAGE('An output file is required', 'XML Output', ICON:Hand, BUTTON:OK )
+  #ENDIF
+    BREAK
+  END
+#ENDIF
+  cExpExch.SetStyle( XMLStyle:%XMLGeneratedStyle )
+#IF(%mapFlag=1)
+  cExpMapper &= NEW XMLNameMap
+#ENDIF
+  bXMLExpRet = cWrapper%ActiveTemplateInstance.Init( %expStruct )
+  IF bXMLExpRet = CPXMLErr:NoError
+#IF( %RunTimeMapFile )
+    bXMLExpRet = cExpMapper.Open( szXMLExportMap )
+  #IF(NOT %expSilent)
+    IF bXMLExpRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while opening the XML Map file: ' & szXMLExportMap & '.  The error returned was: ' & bXMLExpRet, 'Error Adding Column', ICON:Hand, BUTTON:OK )
+    END
+  #ENDIF
+#ELSIF(CLIP( %MappingFile ) <> '')
+    bXMLExpRet = cExpMapper.Open( %(%StripPling(%MappingFile)) )
+  #IF(NOT %expSilent)
+    IF bXMLExpRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while opening the XML Map file: %MappingFile.  The error returned was: ' & bXMLExpRet, 'Error Adding Column', ICON:Hand, BUTTON:OK )
+    END
+  #ENDIF
+#ELSE
+  #FOR( %expCustomColumns )
+    bXMLExpRet = cExpMapper.AddRecord( '%expCustomColumn', '%expColTagName', '%expColPicture', XMLFieldFormat:%expColFormat )
+    #IF(NOT %expSilent)
+    IF bXMLExpRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while adding %expCustomColumn (%expColTagName) to the output map.  The error returned was: ' & bXMLExpRet, 'Error Adding Column', ICON:Hand, BUTTON:OK )
+    END
+    #ENDIF
+  #ENDFOR
+#ENDIF
+#IF(CLIP(%xmlRootTag) <> '')
+    bXMLExpRet = cExpExch.SetRootTagName( %(%StripPling(%xmlRootTag)) )
+  #IF(NOT %expSilent)
+    IF bXMLExpRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while setting the root tag.  The error returned was: ' & bXMLExpRet, 'Error Setting Root Tag', ICON:Hand, BUTTON:OK )
+    END
+  #ENDIF
+#ENDIF
+#IF(CLIP(%xmlRowTag) <> '')
+    bXMLExpRet = cExpExch.SetRowTagName( %(%StripPling(%xmlRowTag)) )
+  #IF(NOT %expSilent)
+    IF bXMLExpRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while setting the row tag.  The error returned was: ' & bXMLExpRet, 'Error Setting Row Tag', ICON:Hand, BUTTON:OK )
+    END
+  #ENDIF
+#ENDIF
+#IF(%mapFlag=1)
+    bXMLExpRet = cWrapper%ActiveTemplateInstance.SetNameMap( cExpMapper )
+  #IF(NOT %expSilent)
+    IF bXMLExpRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while setting the Name Map.  The error returned was: ' & bXMLExpRet, 'Error Setting Name Map', ICON:Hand, BUTTON:OK )
+    END
+  #ENDIF
+#ENDIF
+    bXMLExpRet = cExpExch.CreateXML()
+#IF(NOT %expSilent)
+    IF bXMLExpRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while Creating the XML Output.  The error returned was: ' & bXMLExpRet, 'Error Creating XML Output', ICON:Hand, BUTTON:OK )
+    END
+#ENDIF
+    bXMLExpRet = cExpExch.ToXML( cWrapper%ActiveTemplateInstance )
+#IF(NOT %expSilent)
+    IF bXMLExpRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while Converting the XML Output.  The error returned was: ' & bXMLExpRet, 'Error Converting XML Output', ICON:Hand, BUTTON:OK )
+    END
+#ENDIF
+#IF( %RunTimeExportFile )
+  #IF( %xmlWithSchema )
+    bXMLExpRet = cExpExch.SaveAs(szXMLExportFile,SVMode:WithSchema)
+  #ELSE
+    bXMLExpRet = cExpExch.SaveAs(szXMLExportFile)
+  #ENDIF
+#ELSIF( CLIP( %ExportFile ) <> '' )
+  #IF( %xmlWithSchema )
+    bXMLExpRet = cExpExch.SaveAs(%(%StripPling(%ExportFile)),SVMode:WithSchema)
+  #ELSE
+    bXMLExpRet = cExpExch.SaveAs(%(%StripPling(%ExportFile)))
+  #ENDIF
+#ENDIF
+#IF( NOT %expSilent )
+    IF bXMLExpRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while Converting the XML Output.  The error returned was: ' & bXMLExpRet, 'Error Converting XML Output', ICON:Hand, BUTTON:OK )
+    END
+#ENDIF
+    cExpExch.Close()
+  ELSE
+#IF( NOT %expSilent )
+    MESSAGE('Initializing the XML Wrapper returned error # ' & bXMLExpRet, 'XML File Wrapper', ICON:Hand, BUTTON:OK )
+#ENDIF
+  END
+#IF(%mapFlag=1)
+  DISPOSE( cExpMapper )
+#ENDIF
+#IF (%RuntimeMapFile OR %RuntimeExportFile)
+  BREAK
+END
+#ENDIF
+#!-------------------------------------------------------------------------
+#!
+#!-------------------------------------------------------------------------
+#GROUP(%expFillColTag)
+  #IF( CLIP( %expColPicture ) = '' )
+    #SET( %expColTagName, %expCustomColumn )
+    #CASE( %expDataSource )
+    #OF( 1 )
+      #FIX(%GlobalData, %expCustomColumn )
+    #OF( 2 )
+      #FIX(%File, %expStruct )
+      #FOR(%Field)
+        #IF( %FieldID = %expCustomColumn )
+          #SET( %expColPicture, %FieldPicture )
+          #BREAK
+        #ENDIF
+      #ENDFOR
+    #OF( 3 )
+      #FIX(%LocalData, %expCustomColumn )
+      #SET(%expColPicture, %LocalDataPicture )
+    #ENDCASE
+  #ENDIF
+#!-------------------------------------------------------------------------
+#!
+#!
+#!
+#!-------------------------------------------------------------------------
+#CODE(FromXML,'Import a structure from XML'),HLP('~TPLCodeFromXML.htm'),DESCRIPTION('Import '& %impStruct &' from XML')
+#PROMPT('Destination:',EDIT(256)),%impStruct,REQ,WHENACCEPTED(%SVExpresionEditor(%impStruct))
+#PROMPT('Destination Type:', DROP('Determine automatically[AUTO]|GROUP structure[GROUP]|QUEUE structure[QUEUE]|FILE structure[FILE]|VIEW structure[VIEW]') ),%expStructType,AT(,,90),REQ,DEFAULT('AUTO')
+#ENABLE(NOT %RuntimeImportFile)
+  #PROMPT('Import file:',OPENDIALOG('Select file to import','XML|*.XML')),%ImportFile,REQ
+#ENDENABLE
+#PROMPT('Select import file at runtime',CHECK),%RuntimeImportFile
+#ENABLE(NOT %RuntimeMapFile)
+  #PROMPT('Mapping file (optional):',OPENDIALOG('Select mapping file','XML|*.XML')),%MappingFile
+#ENDENABLE
+#PROMPT('Select mapping file at runtime',CHECK),%RuntimeMapFile
+#BOXED,SECTION
+  #PROMPT('Root Tag:', @s255 ),%xmlRootTag,AT(,,78)
+  #PROMPT('Row Tag:', @s255 ),%xmlRowTag,AT(,,78)
+  #PROMPT('Use Schema on import', CHECK), %xmlUseSchema
+  #PROMPT('Perform a silent import',CHECK),%impSilent,DEFAULT(0)
+#ENDBOXED
+#ENABLE(%MappingFile='' AND NOT %RunTimeMapFile)
+  #BUTTON('Customize Columns'),MULTI( %impCustomColumns, %impCustomColumn & ' - ' & %impColTagName  )
+    #PREPARE
+      #IF(~VAREXISTS( %impColList ) )
+        #DECLARE(%impColList),MULTI
+      #ENDIF
+      #IF( ~VAREXISTS( %impListBuilt ) )
+        #DECLARE( %impListBuilt )
+      #ENDIF
+      #IF( ~VAREXISTS( %impNotFound ) )
+        #DECLARE( %impNotFound )
+      #ENDIF
+      #IF( ~VAREXISTS( %impDataSource ) )
+        #DECLARE( %impDataSource )
+      #ENDIF
+      #FREE( %impColList )
+      #SET( %impListBuilt, %FALSE )
+      #FIX( %GlobalData, %impStruct )
+      #IF( %GlobalData <> '' )
+        #SET(%impNotFound, %True)
+        #FOR( %GlobalData )
+          #IF( UPPER( %GlobalData ) = UPPER( %impStruct ) )
+            #SET(%impNotFound, %False)
+            #CYCLE
+          #ENDIF
+          #IF(%impNotFound)
+            #CYCLE
+          #ENDIF
+          #IF(%GlobalDataStatement = 'END')
+            #BREAK
+          #ENDIF
+          #ADD( %impColList, %GlobalData )
+        #ENDFOR
+        #SET( %impDataSource, 1 )
+        #SET( %impListBuilt, %True )
+      #ENDIF
+      #IF(NOT %impListBuilt)
+        #FIX( %File, %impStruct )
+        #IF( %File <> '' )
+          #FOR( %Field )
+            #ADD( %impColList, %FieldID )
+          #ENDFOR
+          #SET( %impDataSource, 2 )
+          #SET( %impListBuilt, %True )
+        #ENDIF
+      #ENDIF
+      #IF(NOT %impListBuilt)
+        #FIX( %LocalData, %impStruct )
+        #IF( %LocalData <> '' )
+          #SET(%impNotFound, %True)
+          #FOR( %LocalData )
+            #IF( UPPER( %LocalData ) = UPPER( %impStruct ) )
+              #SET(%impNotFound, %False)
+              #CYCLE
+            #ENDIF
+            #IF(%impNotFound)
+              #CYCLE
+            #ENDIF
+            #IF(%LocalDataStatement = 'END')
+              #BREAK
+            #ENDIF
+            #ADD( %impColList, %LocalData )
+          #ENDFOR
+          #SET( %impDataSource, 3 )
+          #SET( %impListBuilt, %True )
+        #ENDIF
+      #ENDIF
+    #ENDPREPARE
+    #PROMPT( 'Column: ',FROM( %impColList)),%impCustomColumn,REQ,WHENACCEPTED(%impFillColTag())
+    #PROMPT('XML Tag Name: ',@s64), %impColTagname,REQ
+    #PROMPT('Picture: ',PICTURE),%impColPicture
+    #PROMPT('XML Data Format: ',DROP('Text|CData|Base64')),%impColFormat
+  #ENDBUTTON
+#ENDENABLE
+#BOXED,SECTION
+  #PROMPT('XML Style',OPTION),%XMLGeneratedStyle,DEFAULT('ADO_Net')
+  #PROMPT('Tag-based',RADIO),VALUE('ADO_Net'),AT(20,15)
+  #PROMPT('Attribute-based',RADIO),VALUE('ADO_26'),AT(100,15)
+#ENDBOXED
+#!
+#AT (%BeforeGenerateApplication)
+  #CALL(%AddCategory, 'XmlLib')
+  #CALL(%SetCategoryLocation, 'XmlLib', 'XmlLib',%True,%False)
+#ENDAT
+#AT(%CustomGlobalDeclarations)
+#PROJECT('Clacpxml.LIB')
+#PROJECT('Claxmlty.LIB')
+#ENDAT
+#AT(%BeforeGlobalIncludes)
+#ADD(%GlobalIncludeList,'cpXml.inc')
+#ADD(%GlobalIncludeList,'xmlClass.inc')
+#ENDAT
+#AT(%DataSection)
+  #IF(~VAREXISTS(%mapFlag))
+    #DECLARE(%mapFlag,LONG)
+  #ENDIF
+  #SET(%mapFlag,0)
+  #IF(%RunTimeMapFile OR CLIP(%MappingFile)<>'' OR ITEMS(%impCustomColumns)<>0)
+    #SET(%mapFlag,1)
+  #ENDIF
+  #IF(INSTANCE(%ActiveTemplateInstance)=1)
+cImpExch               XMLExchange
+cImpMapper             &XMLNameMap
+bImpXmlRet             BYTE
+szXMLImportMap         CSTRING(FILE:MaxFilePath+FILE:MaxFileName)
+szXMLImportFile        CSTRING(FILE:MaxFilePath+FILE:MaxFileName)
+  #ENDIF
+  #SET(%ValueConstruct,'')
+  #CASE( %expStructType )
+  #OF('GROUP')
+      #SET(%ValueConstruct,'GroupWrapper')
+  #OF('QUEUE')
+      #SET(%ValueConstruct,'QueueWrapper')
+  #OF('FILE')
+      #SET(%ValueConstruct,'FileWrapper')
+  #OF('VIEW')
+      #SET(%ValueConstruct,'ViewWrapper')
+  #ELSE
+     #FIX( %GlobalData, %impStruct )
+     #IF( %GlobalData <> '' )
+        #IF( INSTRING('QUEUE', UPPER(%GlobalDataStatement), 1, 1 ) )
+            #SET(%ValueConstruct,'QueueWrapper')
+        #ELSIF( INSTRING('GROUP', UPPER(%GlobalDataStatement), 1, 1 ) )
+            #SET(%ValueConstruct,'GroupWrapper')
+        #ENDIF
+     #ELSE
+        #FIX( %LocalData, %impStruct )
+        #IF( %LocalData <> '' )
+           #IF( INSTRING('QUEUE', UPPER(%LocalDataStatement), 1, 1 ) )
+               #SET(%ValueConstruct,'QueueWrapper')
+           #ELSIF( INSTRING('GROUP', UPPER(%LocalDataStatement), 1, 1 ) )
+               #SET(%ValueConstruct,'GroupWrapper')
+           #ENDIF
+        #ELSE
+           #FIX( %File, %impStruct )
+           #IF( %File <> '' )
+              #IF( %FileType = 'FILE' )
+                 #SET(%ValueConstruct,'FileWrapper')
+              #ELSE
+                 #SET(%ValueConstruct,'ViewWrapper')
+              #ENDIF
+           #ELSE
+              #SET(%ValueConstruct,'')
+              #ERROR( 'FromXML:Unable to determine Destination Type, Destination:'&%impStruct )
+           #ENDIF
+        #ENDIF
+     #ENDIF
+  #ENDCASE
+  #IF(%ValueConstruct)
+cImpWrapper%ActiveTemplateInstance            CLASS(%ValueConstruct) !Target : %impStruct
+#EMBED(%cImpWrapperInside,'cImpWrapper (FromXML) Inside Class Definition'),%ActiveTemplateInstance,LABEL,DATA,TREE('Local Objects','XMLWrapper Objects','ImpWrapper Object (FromXML to '& %impStruct &')(' & %ActiveTemplateInstance & ')','Other Methods and Properties')
+                         END
+  #ENDIF
+#ENDAT
+#IF(%RuntimeMapFile OR %RunTimeImportFile)
+LOOP
+#ENDIF
+#IF (%RuntimeMapFile)
+  IF ~FILEDIALOGA('Select mapping file',szXMLImportMap,'XML|*.XML',FILE:LongName)
+  #IF(NOT %impSilent)
+    MESSAGE('An XML Mapping file is required', 'XML Map', ICON:Hand, BUTTON:OK )
+  #ENDIF
+    BREAK
+  END
+#ENDIF
+#IF (%RuntimeImportFile)
+  IF ~FILEDIALOGA('Select file to import',szXMLImportFile,'XML|*.XML',FILE:LongName)
+  #IF(NOT %impSilent)
+    MESSAGE('An input file is required', 'XML Output', ICON:Hand, BUTTON:OK )
+  #ENDIF
+    BREAK
+  END
+#ENDIF
+  cImpExch.SetStyle( XMLStyle:%XMLGeneratedStyle )
+#IF(%mapFlag=1)
+  cImpMapper &= NEW XMLNameMap
+#ENDIF
+  bImpXmlRet = cImpWrapper%ActiveTemplateInstance.Init( %impStruct )
+  IF bImpXmlRet = CPXMLErr:NoError
+#IF( %RunTimeMapFile )
+    bImpXmlRet = cImpMapper.Open( szXMLImportMap )
+  #IF(NOT %impSilent)
+    IF bImpXmlRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while opening the XML Map file: ' & szXMLImportMap & '.  The error returned was: ' & bImpXmlRet, 'Error Adding Column', ICON:Hand, BUTTON:OK )
+    END
+  #ENDIF
+#ELSIF( CLIP( %MappingFile ) <> '' )
+    bImpXmlRet = cImpMapper.Open( %(%StripPling(%MappingFile)) )
+  #IF(NOT %impSilent)
+    IF bImpXmlRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while opening the XML Map file: %MappingFile.  The error returned was: ' & bImpXmlRet, 'Error Adding Column', ICON:Hand, BUTTON:OK )
+    END
+  #ENDIF
+#ELSE
+  #FOR( %impCustomColumns )
+    bImpXmlRet = cImpMapper.AddRecord( '%impCustomColumn', '%impColTagName', '%impColPicture', XMLFieldFormat:%impColFormat )
+    #IF(NOT %impSilent)
+    IF bImpXmlRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while adding %impCustomColumn (%impColTagName) to the output map.  The error returned was: ' & bImpXmlRet, 'Error Adding Column', ICON:Hand, BUTTON:OK )
+    END
+    #ENDIF
+  #ENDFOR
+#ENDIF
+#IF(CLIP(%xmlRootTag) <> '')
+    bImpXmlRet = cImpExch.SetRootTagName( %(%StripPling(%xmlRootTag)) )
+  #IF(NOT %impSilent)
+    IF bImpXmlRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while setting the root tag.  The error returned was: ' & bImpXmlRet, 'Error Setting Root Tag', ICON:Hand, BUTTON:OK )
+    END
+  #ENDIF
+#ENDIF
+#IF(CLIP(%xmlRowTag) <> '')
+    bImpXmlRet = cImpExch.SetRowTagName( %(%StripPling(%xmlRowTag)) )
+  #IF(NOT %impSilent)
+    IF bImpXmlRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while setting the row tag.  The error returned was: ' & bImpXmlRet, 'Error Setting Row Tag', ICON:Hand, BUTTON:OK )
+    END
+  #ENDIF
+#ENDIF
+#IF(%mapFlag=1)
+    bImpXmlRet = cImpWrapper%ActiveTemplateInstance.SetNameMap( cImpMapper )
+#ENDIF
+#IF(NOT %impSilent)
+    IF bImpXmlRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while setting the Name Map.  The error returned was: ' & bImpXmlRet, 'Error Setting Name Map', ICON:Hand, BUTTON:OK )
+    END
+#ENDIF
+#IF( %RunTimeImportFile )
+    bImpXmlRet = cImpExch.open(szXMLImportFile)
+#ELSIF( CLIP( %ImportFile ) <> '' )
+    bImpXmlRet = cImpExch.open(%(%StripPling(%ImportFile)))
+#ELSE
+  #ERROR('Import file name is not specified')
+#ENDIF
+#IF(NOT %impSilent)
+    IF bImpXmlRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while reading the XML file.  The error returned was: ' & bImpXmlRet, 'Error Converting XML Input', ICON:Hand, BUTTON:OK )
+    END
+#ENDIF
+#IF (%xmlUseSchema)
+    bImpXmlRet = cImpExch.FromXML( cImpWrapper%ActiveTemplateInstance,BAND(FXMode:VerifyBySchema,CHECK:ALL))
+#ELSE
+    bImpXmlRet = cImpExch.FromXML( cImpWrapper%ActiveTemplateInstance )
+#ENDIF
+#IF(NOT %impSilent)
+    IF bImpXmlRet <> CPXMLErr:NoError
+      MESSAGE( 'An Error Occurred while Converting the XML Input.  The error returned was: ' & bImpXmlRet, 'Error Converting XML Output', ICON:Hand, BUTTON:OK )
+    END
+#ENDIF
+    cImpExch.Close()
+  ELSE
+#IF( NOT %impSilent )
+    MESSAGE('Initializing the XML Wrapper returned error # ' & bImpXmlRet, 'XML Wrapper', ICON:Hand, BUTTON:OK )
+#ENDIF
+  END
+#IF(%mapFlag=1)
+  DISPOSE( cImpMapper )
+#ENDIF
+#IF(%RuntimeMapFile OR %RunTimeImportFile)
+  BREAK
+END
+#ENDIF
+#!-------------------------------------------------------------------------
+#!
+#!-------------------------------------------------------------------------
+#GROUP(%impFillColTag)
+  #IF( CLIP( %impColPicture ) = '' )
+    #SET( %impColTagName, %impCustomColumn )
+    #CASE( %impDataSource )
+    #OF( 1 )
+      #FIX(%GlobalData, %impCustomColumn )
+    #OF( 2 )
+      #FIX(%File, %impStruct )
+      #FOR(%Field)
+        #IF( %FieldID = %impCustomColumn )
+          #SET( %impColPicture, %FieldPicture )
+          #BREAK
+        #ENDIF
+      #ENDFOR
+    #OF( 3 )
+      #FIX(%LocalData, %impCustomColumn )
+      #SET(%impColPicture, %LocalDataPicture )
+    #ENDCASE
+  #ENDIF
+#!-------------------------------------------------------------------------
+#!
+#!
+#!
+#!-------------------------------------------------------------------------
+#CODE(ViewXML,'View an XML Document'),HLP('~TPLViewXML.htm'),DESCRIPTION('View an XML Document')
+#ENABLE(NOT %RuntimeViewFile)
+  #PROMPT('XML file to view:',OPENDIALOG('Select file to import','XML|*.XML')),%XMLViewFile,REQ
+#ENDENABLE
+#PROMPT('Select file to view at runtime',CHECK),%RuntimeViewFile
+#!
+#AT (%BeforeGenerateApplication)
+  #CALL(%AddCategory, 'XmlLib')
+  #CALL(%SetCategoryLocation, 'XmlLib', 'XmlLib',%True,%False)
+#ENDAT
+#AT(%BeforeGlobalIncludes)
+#ADD(%GlobalIncludeList,'cpXml.inc')
+#ADD(%GlobalIncludeList,'xmlClass.inc')
+#ENDAT
+#AT(%CustomGlobalDeclarations)
+#PROJECT('Clacpxml.LIB')
+#PROJECT('Claxmlty.LIB')
+#ENDAT
+#AT(%DataSection)
+xmlDoc%ActiveTemplateInstance            &Document,AUTO
+xmlFile%ActiveTemplateInstance           CSTRING(FILE:MaxFilePath)
+#ENDAT
+#IF( %RunTimeViewFile )
+LOOP
+  IF ~FILEDIALOGA('Select XML file',xmlFile%ActiveTemplateInstance,'XML|*.XML',FILE:LongName)
+    MESSAGE('An XML file is required', 'XML Map', ICON:Hand, BUTTON:OK )
+    BREAK
+  END
+  xmlDoc%ActiveTemplateInstance &= XMLFileToDOM(xmlFile%ActiveTemplateInstance)
+#ELSE
+  xmlDoc%ActiveTemplateInstance &= XMLFileToDOM(%(%StripPling(%XMLViewFile)))
+#ENDIF
+  ViewXML( xmlDoc%ActiveTemplateInstance )
+  xmlDoc%ActiveTemplateInstance.Release()
+#IF( %RunTimeViewFile )
+  BREAK
+END
+#ENDIF
+

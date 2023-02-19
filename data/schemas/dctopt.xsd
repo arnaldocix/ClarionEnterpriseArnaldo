@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.softvelocity.com/2008/dctopt" xmlns="http://www.softvelocity.com/2008/dctopt">
+  <xs:complexType name="OptionItemElement">
+    <xs:attribute name="value" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>The value
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="description" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>An optional description displayed as a tool tip
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="OptionItem">
+    <xs:choice minOccurs ="0" maxOccurs="unbounded">
+      <xs:element name="Option" type="OptionItemElement" >
+        <xs:annotation>
+          <xs:documentation>One of the value options supplied to the user as a list of possible values when type is set to list
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:choice>
+    <xs:attribute name="name" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>The name returned by the appropriate template symbol
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="display" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>The value displayed to the user in the dictionary editor.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="type" use="required">
+      <xs:annotation>
+        <xs:documentation>The type the value must be.  This determines what sort of entry control the user has when entering
+          values for the option in the dictionary editor
+        </xs:documentation>
+      </xs:annotation>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value ="Boolean"/>
+          <xs:enumeration value ="String"/>
+          <xs:enumeration value ="Number"/>
+          <xs:enumeration value ="List"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="description" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>An optional description displayed as a tool tip
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="required" type="xs:boolean" use="optional">
+      <xs:annotation>
+        <xs:documentation>Only applies to Number and String type
+          When true the value cannot be 0 or blank
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:group name ="ItemOrGroup">
+    <xs:choice>
+      <xs:element name="Item" type="OptionItem" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>An item the user can select.  This item will appear at the top level of the tree
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Group" type="OptionGroup" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>A node in a tree with child nodes
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:choice>
+  </xs:group>
+  <xs:complexType name="OptionGroup">
+    <xs:group ref="ItemOrGroup" minOccurs="1" maxOccurs ="unbounded"/>
+    <xs:attribute name="display" type="xs:string" use="required">
+      <xs:annotation>
+        <xs:documentation>The value displayed to the user in the dictionary editor.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="Options">
+    <xs:group ref="ItemOrGroup" minOccurs="1" maxOccurs ="unbounded"/>
+  </xs:complexType>
+  <xs:complexType name="DictionaryOptions">
+    <xs:all>
+      <xs:element name="Dictionary" type="Options">
+        <xs:annotation>
+          <xs:documentation>Options valid for a Dictionary
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="File" type="Options">
+        <xs:annotation>
+          <xs:documentation>Options valid for a Table
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Field" type="Options">
+        <xs:annotation>
+          <xs:documentation>Options valid for a Column
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Key" type="Options">
+        <xs:annotation>
+          <xs:documentation>Options valid for a Key
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Relation" type="Options">
+        <xs:annotation>
+          <xs:documentation>Options valid for a Relationship
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:all>
+    <xs:attribute name="name" type="xs:string" use="required" >
+      <xs:annotation>
+        <xs:documentation>The name for this collection of data dictionary options
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="author" type="xs:string" use="required" >
+      <xs:annotation>
+        <xs:documentation>Who created the options
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="copyright" type="xs:string" use="optional" >
+      <xs:annotation>
+        <xs:documentation>Optional copyright information
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="url" type="xs:anyURI" use="optional" >
+      <xs:annotation>
+        <xs:documentation>Option URL details that can be used to direct the user to your web site
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="description" type="xs:string" use="optional" >
+      <xs:annotation>
+        <xs:documentation>Optional description of this collection of options
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:element name="DictionaryOptions" type="DictionaryOptions" />
+</xs:schema>

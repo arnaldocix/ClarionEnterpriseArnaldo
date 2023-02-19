@@ -1,0 +1,65 @@
+<html>
+<head>
+<meta name="ts-control" content="button">
+</head>
+<body>
+<form>
+<TSSCRIPT value="EmbedBeforeControl" type=html>
+</TSSCRIPT>
+<TSSCRIPT include="Icon != ''">
+  <TSSCRIPT include="Disabled">
+    <TSSCRIPT tag=input attr=src value="Image">
+      <INPUT type='image' ALT='Disabled' SRC="SRC">
+    </TSSCRIPT>
+  </TSSCRIPT>
+  <TSSCRIPT omit="Disabled">
+    <TSSCRIPT tag=a attr=href replace="NAME" value="Name">
+    <TSSCRIPT tag=img attr=alt value="ToolTip">
+    <TSSCRIPT tag=img attr=alt value="DisplayText">
+    <TSSCRIPT tag=img attr=src value="Image">
+      <TSSCRIPT include="DisplayText != ''">
+        <table cellspacing=0 cellpadding=0><tr>
+        <TSSCRIPT include="Right">
+        <td><a href="javascript:icSubmit('NAME');"><TSSCRIPT value=DisplayText></TSSCRIPT></a></td>
+        </TSSCRIPT>
+        <td>
+        <a href="javascript:icSubmit('NAME');"><img SRC="SRC" BORDER=0></a>
+        </td>
+        <TSSCRIPT text="</tr><tr><td align='center'>" type=html when="!(Left || Right)"></TSSCRIPT>
+        <TSSCRIPT omit="Right">
+          <TSSCRIPT include="Left">
+		  <td>
+          </TSSCRIPT>
+        <a href="javascript:icSubmit('NAME');"><TSSCRIPT value=DisplayText></TSSCRIPT></a></td>
+        </TSSCRIPT>
+        </tr></table>
+      </TSSCRIPT>
+      <TSSCRIPT omit="DisplayText != ''">
+        <a href="javascript:icSubmit('NAME');"><img SRC="SRC" BORDER=0></a>
+      </TSSCRIPT>
+    </TSSCRIPT>
+    </TSSCRIPT>
+    </TSSCRIPT>
+    </TSSCRIPT>
+  </TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT omit="Icon != ''">
+  <TSSCRIPT include="Disabled">
+    <TSSCRIPT include="DisplayText">
+      [<TSINCLUDE Name="displayText.htm">]
+    </TSSCRIPT>
+  </TSSCRIPT>
+  <TSSCRIPT omit="Disabled">
+    <TSSCRIPT tag=input attr=value value="DisplayText" allowblank>
+    <TSSCRIPT tag=input attr=name value="Name">
+      <input type="SUBMIT" value="Text" name="NAME">
+    </TSSCRIPT>
+    </TSSCRIPT>
+  </TSSCRIPT>
+</TSSCRIPT>
+<TSSCRIPT value="EmbedAfterControl" type=html>
+</TSSCRIPT>
+</form>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+<HTML>
+<head>
+<meta name="ts-control" content="item">
+<meta name="ts-cellattr" content="nowrap">
+<meta name="ts-tablewidth" content="off">
+</head>
+<BODY>
+<FORM>
+  <TSSCRIPT value="EmbedBeforeControl" type=html></TSSCRIPT>
+  <TSSCRIPT include="Separator">
+  <HR>
+  </TSSCRIPT>
+  <TSSCRIPT omit="Separator">
+    <TSSCRIPT include="Disabled">
+      <NOBR><font FinalColor=DisabledText>
+      <TSSCRIPT value=DisplayText></TSSCRIPT>
+      </font></NOBR><br>
+    </TSSCRIPT>
+    <TSSCRIPT omit="Disabled">
+      <TSSCRIPT tag=a attr=href replace="NAME" value="Name">
+      <a href="javascript:icSubmit('NAME');">
+        <NOBR><TSSCRIPT value=DisplayText></TSSCRIPT></NOBR>
+      </a><br>
+      </TSSCRIPT>
+    </TSSCRIPT>
+  </TSSCRIPT>
+  <TSSCRIPT value="EmbedAfterControl" type=html></TSSCRIPT>
+</FORM>
+</BODY>
+</HTML>
+

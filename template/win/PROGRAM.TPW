@@ -1,0 +1,353 @@
+#PROGRAM(CLARION,'Default Program'),HLP('~TPLProgram.htm')
+#INSERT(%RIGather)
+   PROGRAM
+
+#EMBED(%BeforeGlobalIncludes,'Before Global INCLUDEs'),DATA
+   INCLUDE('Equates.CLW')
+   INCLUDE('TplEqu.CLW')
+   INCLUDE('Keycodes.CLW')
+   INCLUDE('Errors.CLW')
+#FOR(%GlobalIncludeList)
+   INCLUDE('%(UPPER(CLIP(%GlobalIncludeList)))'),ONCE
+#ENDFOR
+#EMBED(%AfterGlobalIncludes,'After Global INCLUDEs'),DATA
+#!
+#! Generate MAP
+#!
+#MESSAGE('Generating RI Lists',3)
+#MESSAGE('Generating MAP',3)
+   MAP
+#FIX(%Module,%Program)
+#FOR(%ModuleProcedure)
+  #FIX(%Procedure,%ModuleProcedure)
+     %Procedure %Prototype
+#ENDFOR
+#IF(%ModuleInclude)
+     INCLUDE('%ModuleInclude')
+#ENDIF
+#MESSAGE('Declaring Generated Procedures',3)
+#FOR(%CustomGlobalMapModule)
+     MODULE('%CustomGlobalMapModule')
+  #FOR(%CustomGlobalMapProcedure)
+       %CustomGlobalMapProcedure%CustomGlobalMapProcedurePrototype
+  #ENDFOR
+     END
+#ENDFOR
+#FOR(%Module), WHERE (%Module <> %Program)
+  #SUSPEND
+     #?MODULE('%Module')
+    #IF(%ModuleExternal)
+      #IF(%ModuleInclude)
+       INCLUDE('%ModuleInclude')
+      #ELSE
+        #FOR(%ModuleProcedure)
+          #FIX(%Procedure,%ModuleProcedure)
+          #IF(%ModuleTemplate = 'ExternalDLL(Clarion)')
+       %Procedure%Prototype,DLL(dll_mode)
+          #ELSE
+       %Procedure%Prototype
+          #ENDIF
+        #ENDFOR
+      #ENDIF
+    #ELSE
+      #FOR(%ModuleProcedure)
+        #FIX(%Procedure,%ModuleProcedure)
+       %Procedure%Prototype
+      #ENDFOR
+    #ENDIF
+     #?END
+  #RESUME
+#ENDFOR
+#MESSAGE('Declaring Standard Functions',3)
+  #IF(%ProgramExtension = 'EXE')
+  #ENDIF
+     MODULE('%SFFileName')
+       CheckOpen(FILE File,<BYTE OverrideCreate>,<BYTE OverrideOpenMode>)
+       ReportPreview(QUEUE PrintPreviewQueue)
+       Preview:JumpToPage(LONG Input:CurrentPage, LONG Input:TotalPages),LONG
+       Preview:SelectDisplay(*LONG Input:PagesAcross, *LONG Input:PagesDown)
+       StandardWarning(LONG WarningID),LONG,PROC
+       StandardWarning(LONG WarningID,STRING WarningText1),LONG,PROC
+       StandardWarning(LONG WarningID,STRING WarningText1,STRING WarningText2),LONG,PROC
+       SetupStringStops(STRING ProcessLowLimit,STRING ProcessHighLimit,LONG InputStringSize,<LONG ListType>)
+       NextStringStop,STRING
+       SetupRealStops(REAL InputLowLimit,REAL InputHighLimit)
+       NextRealStop,REAL
+       INIRestoreWindow(STRING ProcedureName,STRING INIFileName)
+       INISaveWindow(STRING ProcedureName,STRING INIFileName)
+       RISaveError
+     END
+#MESSAGE('Declaring RI Procedures',3)
+     MODULE('%RIUpdFileName')
+       #INSERT(%RIDeclare,'UPDATE')
+     END
+     MODULE('%RIDelFileName')
+       #INSERT(%RIDeclare,'DELETE')
+     END
+     #FOR(%CustomGlobalMapIncludes)
+     INCLUDE('%CustomGlobalMapIncludes')
+     #ENDFOR
+     #EMBED(%GlobalMap,'Inside the Global Map')
+#EMBED(%ProcedureDeclarationsInsideGlobalMap, ''),HIDE
+   END
+   #FOR(%CustomGlobalDeclarationIncludes)
+   INCLUDE('%CustomGlobalDeclarationIncludes')
+   #ENDFOR
+
+#MESSAGE('Generating Global Data',3)
+#EMBED(%BeforeGlobalData,'Before Global Data'),DATA,HIDE
+#EMBED(%BeforeGlobalDataUser,'Before Global Data'),DATA
+  #INSERT(%GenerateGlobalData,'FIRST',CHOOSE(%DefaultLocalExternal,'EXTERNAL','LOCAL'),CHOOSE(%DefaultLocalExternal,'INCLUDE','GENERATE')),NOINDENT
+#FOR(%CustomGlobalData),WHERE(%CustomGlobalDataBeforeFiles)
+%[20]CustomGlobalData %CustomGlobalDataDeclaration
+  #FOR(%CustomGlobalDataComponent)
+%[20 + (%CustomGlobalDataComponentIndent * 2)]CustomGlobalDataComponent %CustomGlobalDataComponentDeclaration
+  #ENDFOR
+#ENDFOR
+
+SaveErrorCode        LONG
+SaveError            CSTRING(255)
+SaveFileErrorCode    LONG
+SaveFileError        CSTRING(255)
+#IF(%GlobalExternal)
+GlobalRequest        LONG(0),EXTERNAL,DLL(dll_mode),THREAD
+GlobalResponse       LONG(0),EXTERNAL,DLL(dll_mode),THREAD
+VCRRequest           LONG(0),EXTERNAL,DLL(dll_mode),THREAD
+#ELSE
+GlobalRequest        LONG(0),THREAD
+GlobalResponse       LONG(0),THREAD
+VCRRequest           LONG(0),THREAD
+#ENDIF
+#!
+#IF(%ProgramExtension = 'EXE')
+#ENDIF
+#!
+#EMBED(%BeforeFileDeclarations,'Before File Declarations'),DATA
+  #CALL(%GenerateFileDeclarations)
+
+#!
+#!
+#FOR(%CustomGlobalData),WHERE(NOT %CustomGlobalDataBeforeFiles)
+%[20]CustomGlobalData %CustomGlobalDataDeclaration
+  #FOR(%CustomGlobalDataComponent)
+%[20 + (%CustomGlobalDataComponentIndent * 2)]CustomGlobalDataComponent %CustomGlobalDataComponentDeclaration
+  #ENDFOR
+#ENDFOR
+#INSERT(%GenerateGlobalData,'LAST','LOCAL','GENERATE'),NOINDENT
+#EMBED(%AfterGlobalDataUser,'After Global Data'),DATA
+#!
+#EMBED(%AfterFileDeclarations,'After File Declarations'),DATA
+Sort:Name            STRING(ScrollSort:Name)                
+Sort:Name:Array      STRING(3),DIM(100),OVER(Sort:Name)
+Sort:Alpha           STRING(ScrollSort:Alpha)
+Sort:Alpha:Array     STRING(2),DIM(100),OVER(Sort:Alpha)
+#!
+#IF((%INIFile='Program Name.INI' AND %INIProgramIniLocation = 'CSIDLDIR') OR (%GeneratePropDataPath = %True AND %PropDataPathLocation = 'OTHERCSIDL') OR %DataPathOtherDirectoryCreate = %True)
+  #IF(%ProgramExtension = 'EXE')
+svSpecialFolder		SpecialFolder    ! Class handling CSIDL folder name resolution
+  #ENDIF
+  #IF(%GlobalExternal)
+svgloIniFileName	STRING(260), EXTERNAL, DLL(Dll_mode)   ! Global var that is assigned to the fully qualified path for INI Filename
+  #ELSE
+svgloIniFileName	STRING(260)      ! Global var that is assigned to the fully qualified path for INI Filename
+  #ENDIF
+#ENDIF
+
+#AT(%DllExportList)
+  #IF(%ProgramExtension = 'DLL')
+    #IF(~%GlobalExternal)
+      #IF((%INIFile='Program Name.INI' AND %INIProgramIniLocation = 'CSIDLDIR') OR (%GeneratePropDataPath = %True AND %PropDataPathLocation = 'OTHERCSIDL'))
+    $svgloIniFileName @?
+      #ENDIF
+    #ENDIF
+  #ENDIF
+#ENDAT
+
+#!
+#EMBED(%GlobalData,'Global Data'),DATA
+#!
+  CODE
+  #EMBED(%AfterEntryPointCodeStatement,'After PROGRAM CODE statement')
+#IF(%HelpFile)
+  HELP('%HelpFile')
+#ENDIF
+  #EMBED(%ProgramSetup,'Program Setup')
+#!
+#IF(%ProgramExtension = 'EXE')
+    #IF(%ButtonMarginsCompatibility)   
+  SYSTEM {PROP:Compatibility} = BOR (4, SYSTEM {PROP:Compatibility}) #<! Configure Button Margins Compatibility
+    #ENDIF
+#ENDIF
+#IF(%ProgramExtension = 'EXE')
+#IF(%INIFile = 'Program Name.INI')                #! IF using program.ini
+  #CASE(%INIProgramIniLocation)
+  #OF('CSIDLDIR')
+    #IF(%CSIDLCreate)
+  svSpecialFolder.CreateDirIn(%INICSIDLDirectory,  %(%StripPling(%CSIDLCompanyDir)) & '\'  & %(%StripPling(%CSIDLProductDir)) ) 
+      #SUSPEND
+  #?IF svSpecialFolder.GetError()
+    #EMBED(%AfterCSILDCreateFolderGetError, 'Program CODE Section Error Handling for INI file CSIDL folder creation')
+  #?END
+      #RESUME
+    #ENDIF
+  svgloIniFileName = svSpecialFolder.GetDir(%INICSIDLDirectory) & '\' & %(%StripPling(%CSIDLCompanyDir)) & '\'  & %(%StripPling(%CSIDLProductDir)) & '\' & '%Application' & '.INI'
+  #ENDCASE
+  #EMBED(%AfterCSIDLIniSetting, 'Program CODE Section after INI FileName assignment')
+#ENDIF 
+#IF(%GeneratePropDataPath)
+  #CASE(%PropDataPathLocation)
+  #OF('CSIDLLIKEINI')
+    #IF(%DataPathCSIDLCreate)
+  svSpecialFolder.CreateDirIn(%INICSIDLDirectory,  %(%StripPling(%CSIDLCompanyDir)) & '\'  & %(%StripPling(%CSIDLProductDir)) )
+      #SUSPEND
+  #?IF svSpecialFolder.GetError()
+    #EMBED(%AfterDataPathCreateDirGetError, 'Program CODE Section Error Handling for Data Path creation')
+  #?END
+      #RESUME
+    #ENDIF
+  SYSTEM{PROP:DataPath} = svSpecialFolder.GetDir(%INICSIDLDirectory, %(%StripPling(%CSIDLCompanyDir)) & '\'  & %(%StripPling(%CSIDLProductDir)))  
+  #OF('OTHERCSIDL')
+    #IF(%DataPathCSIDLCreate)
+  svSpecialFolder.CreateDirIn(%DataPathCSIDLDirectory, %(%StripPling(%DataPathCSIDLCompanyDir)) & '\' & %(%StripPling(%DataPathCSIDLProductDir)))
+      #SUSPEND
+  #?IF svSpecialFolder.GetError()
+    #EMBED(%AfterDataPathCreateDirGetError, 'Program CODE Section Error Handling for Data Path creation')
+  #?END
+      #RESUME
+    #ENDIF
+  SYSTEM{PROP:DataPath} = svSpecialFolder.GetDir(%DataPathCSIDLDirectory, %(%StripPling(%DataPathCSIDLCompanyDir)) & '\' & %(%StripPling(%DataPathCSIDLProductDir)) )  
+  #OF('SPECIFYDIR')
+    #IF(%DataPathOtherDirectoryCreate)
+  svSpecialFolder.CreateDir(%(%StripPling(%DataPathOtherDirectory)))
+      #SUSPEND
+  #?IF svSpecialFolder.GetError()
+    #EMBED(%AfterDataPathCreateDirGetError, 'Program CODE Section Error Handling for Data Path creation')
+  #?END
+      #RESUME
+    #ENDIF
+  SYSTEM{PROP:DataPath} = %(%StripPling(%DataPathOtherDirectory))
+  #ENDCASE
+  #EMBED(%AfterSetPropDataPath, 'Program CODE Section, after setting SYSTEM{{PROP:DataPath}')
+#ENDIF                  
+#ENDIF
+#!
+  %FirstProcedure
+#!
+#IF(%ProgramExtension = 'EXE')
+#ENDIF
+#!
+  #EMBED(%ProgramEnd,'Program End')
+!---------------------------------------------------------------------------
+#EMBED(%ProgramRoutines,'Program Routines'),DATA
+#EMBED(%ProgramProcedures,'Program Procedures'),DATA
+#FOR(%CustomGlobalProcedureIncludes)
+   INCLUDE('%CustomGlobalProcedureIncludes')
+#ENDFOR
+#!
+#!-----------------------------------------------------------------------------------------
+#!
+#!
+#AT (%CustomGlobalDeclarations)
+  #CALL(%DefineCategoryPragmas)
+#ENDAT
+#!
+#!
+#!
+#!---------------------------------------------------------------------------
+#GROUP(%GenerateGlobalData,%pGlobalDataLast='LAST',%pGlobalDataLocalExternal='EXTERNAL',%pGenerateType='GENERATE'),AUTO
+#!
+#MESSAGE('Generating Global Data',3)
+#IF(NOT ITEMS(%GlobalData))
+   #RETURN
+#ENDIF
+#!
+#DECLARE(%lGLOFileOpen)
+#DECLARE(%lGLOFileName)
+#DECLARE(%lGLOFileNameExtension)
+#DECLARE(%lGlobalDataLast)
+#!
+#SET(%pGlobalDataLast,UPPER(%pGlobalDataLast))
+#IF(UPPER(%pGlobalDataLast)<>'LAST')
+    #SET(%pGlobalDataLast,'FIRST')
+#ENDIF
+#SET(%lGlobalDataLast,CHOOSE(UPPER(%pGlobalDataLast)='LAST',%True,%False))
+#IF(UPPER(%pGlobalDataLocalExternal)='EXTERNAL')
+    #IF(UPPER(%pGlobalDataLast)='LAST')
+      #SET(%lGLOFileName,UPPER(CLIP(SUB(SLICE(%Program,1,INSTRING('.',%Program,1,1)-1),1,5)))&'GLL.CLW')
+    #ELSE
+      #SET(%lGLOFileName,UPPER(CLIP(SUB(SLICE(%Program,1,INSTRING('.',%Program,1,1)-1),1,5)))&'GLF.CLW')
+    #ENDIF
+#ELSE
+    #SET(%lGLOFileName,UPPER(CLIP(SUB(SLICE(%Program,1,INSTRING('.',%Program,1,1)-1),1,5)))&'GLO.CLW')
+#ENDIF
+#CASE(UPPER(%pGenerateType))
+#OF('INCLUDE')
+
+   INCLUDE('%lGLOFileName'),ONCE
+
+#OF('FILE')
+#OROF('LINK')
+     #MESSAGE('Generating Module:  '&%lGLOFileName,1)
+     #MESSAGE('Global Data',2)
+     #MESSAGE(UPPER(%pGlobalDataLocalExternal),3)
+     #IF(UPPER(%pGenerateType)='FILE')
+        #CREATE('GLODATA.$$$')
+        #IF(NOT UPPER(%pGlobalDataLocalExternal)='EXTERNAL')
+    MEMBER
+
+        #ENDIF
+        #IF(%pGlobalDataLast='LAST')
+! Global Data to be included after file declaration
+        #ELSE
+! Global Data to be included before file declaration
+        #ENDIF
+        #IF(%pGlobalDataLocalExternal='EXTERNAL')
+            #FOR(%GlobalData), WHERE(%GlobalDataLast = %lGlobalDataLast)
+#INSERT(%GenerateGlobalDataField,%pGlobalDataLocalExternal)
+            #ENDFOR
+        #ELSE
+            #FOR(%GlobalData), WHERE(NOT %GlobalDataLast)
+#INSERT(%GenerateGlobalDataField,%pGlobalDataLocalExternal)
+            #ENDFOR
+        #ENDIF
+        #CLOSE('GLODATA.$$$')
+        #REPLACE(%lGLOFileName,'GLODATA.$$$')
+        #REMOVE('GLODATA.$$$')
+     #ENDIF
+     #IF(NOT UPPER(%pGlobalDataLocalExternal)='EXTERNAL')
+        #PROJECT(%lGLOFileName)
+     #ENDIF
+#ELSE
+  #IF(NOT %GlobalDataLast)
+  #ENDIF
+  #FOR(%GlobalData), WHERE(%GlobalDataLast = %lGlobalDataLast)
+#INSERT(%GenerateGlobalDataField,%pGlobalDataLocalExternal)
+  #ENDFOR
+#ENDCASE
+#!
+#GROUP(%GenerateGlobalDataField,%pGlobalDataLocalExternal='EXTERNAL')
+#DECLARE(%BaseDataLevel,LONG)
+    #IF(%GlobalDataInDictionary)
+      #SET(%BaseDataLevel,1)
+    #ELSE
+      #SET(%BaseDataLevel,0)
+    #ENDIF
+    #IF(%GlobalDataInDictionary AND %GlobalExternal AND %GlobalDataLevel = %BaseDataLevel AND %GlobalData ~= '')
+%[20]GlobalData %GlobalDataStatement,EXTERNAL,DLL(dll_mode)
+    #ELSE
+        #IF(UPPER(%pGlobalDataLocalExternal)='EXTERNAL' AND %GlobalDataLevel = %BaseDataLevel AND %GlobalData ~= '')
+%[20 + ((%GlobalDataLevel - %BaseDataLevel) * 2)]GlobalData %GlobalDataStatement,EXTERNAL
+        #ELSE
+%[20 + ((%GlobalDataLevel - %BaseDataLevel) * 2)]GlobalData %GlobalDataStatement
+        #ENDIF
+    #ENDIF
+#!
+#GROUP(%AddCustomGlobalData, %pDataLabel, %pDataDeclarion, %pDataBeforeFile = %True)
+#ADD(%CustomGlobalData,%pDataLabel)
+#SET(%CustomGlobalDataDeclaration,%pDataDeclarion)
+#SET(%CustomGlobalDataBeforeFiles,%pDataBeforeFile)
+#!
+#!
+#!
+#!
+#!

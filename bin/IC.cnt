@@ -1,0 +1,44 @@
+:Base IC.hlp 
+:Title Clarion Internet Connect
+1 Internet Connect
+2 Contents=Contents
+2 Getting Started=Getting_Started
+2 Internet Connect=Internet_Connect
+2 Application Design Considerations=Application_Design_Considerations
+2 Bandwidth Usage Considerations=Bandwidth_Usage_Considerations
+2 Clarion Internet Builder Class (IBC) Library=IBCLibrary
+2 Clarion Internet Connect--Overview=Clarion_Internet_Connect__Overview
+2 Class Overrides=Class_Overrides
+2 Cookies (Persistent Client State Data)=Cookies__Persistent_Client_State_Data_
+2 Cosmetic Design Considerations=Cosmetic_Design_Considerations
+2 Frame Procedure MDI Options=Frame_Procedure_MDI_Options
+2 Global Window Component Options=ICGlobalExt_WindowComponents
+2 Hand Coded Applications=Hand_Coded_Applications
+2 Implementing Help in your Web Application=Implementing_Help_in_your_Web_Application
+2 Individual Overrides for a Control=ICProcedureExt_ControlDisplay
+2 Procedure Window Component Options=ICProcedureExt_WindowComponents
+2 User Interface Design Considerations=User_Interface_Design_Considerations
+2 Security Considerations=Security_Considerations
+2 Using Embedded HTML=Using_Embedded_HTML
+2 Using references to files in embedded HTML code=Using_references_to_files_in_embedded_HTML_code
+2 Windows Controls and their HTML Equivalents=Windows_Controls_and_their_HTML_Equivalents
+2 Known Limitations=Late_Breaking_News
+1 Glossary
+2 Glossary=Glossary
+2 Clarion Application Broker=Clarion_Application_Broker
+2 Clarion Session Router=Clarion_Session_Router
+2 Hybrid Web/Windows Application=Hybrid_Web_Windows_Application
+2 Java Support Library=Java_Support_Library
+2 Remote Computing Session=Remote_Computing_Session
+2 Ultra-thin Reusable Client=Ultra_thin_Reusable_Client
+1 Templates
+2 AddServerProperty Code Template=AddServerProperty_Code_Template
+2 Dynamic HTML Code Template=Dynamic_HTML_Code_Template
+2 GetCookie Code Template=GetCookie_Code_Template
+2 GetServerProperty Code Template=GetServerProperty_Code_Template
+2 Internet Procedure Extension Template=ICProcedureExt
+2 SetCookie Code Template=SetCookie_Code_Template
+2 Static HTML Code Template=Static_HTML_Code_Template
+2 The Global Internet Application Extension Template=ICGlobalExt
+2 The Internet Connect Templates=The_Internet_Developers_Kit_Templates
+2 Unregistering a Template=Unregistering_a_Template

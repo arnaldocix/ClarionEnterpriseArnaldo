@@ -1,0 +1,286 @@
+#!õõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõ
+#EXTENSION(Ex_Reporte,'Report Export  - Templates Clarion Exports report from preview'),PROCEDURE,REQ(Ec_Rpt_Ex_Global)
+#!õõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõõ
+#RESTRICT
+  #IF(UPPER(%ProcedureTemplate) = 'REPORT')
+    #ACCEPT
+  #ELSIF(UPPER(%ProcedureTemplate) = 'UNIVABCREPORT')
+    #ACCEPT
+  #ELSIF(%ProcedureTemplate = 'Evo_AutoReportProcedure')
+    #ACCEPT
+  #ELSIF (UPPER(%ProcedureTemplate)='RUNTIMEREPORT')
+    #ACCEPT
+  #ELSE
+    #REJECT
+  #ENDIF
+#ENDRESTRICT
+  #CALL(%GolRtvPar, 'e-mail',%Dataemail)
+  #CALL(%GolRtvPar, 'UserName',%DataName)
+  #CALL(%GolRtvPar, 'SerialNumber',%DatosSerial)
+#SHEET
+#TAB('&General')
+ #INSERT(%EvoVersion)
+ #BOXED('Mode')
+#PROMPT('ADD ROWS TO THE QUEUE IN TAKE RECORD',CHECK),%TakeRec,DEFAULT(1),AT(10)
+#BOXED('Add rows to the queue manually'),WHERE(%TakeRec= 0)
+#DISPLAY(' You must call the routine QCargaExport'), PROP(PROP:FontColor, 0FFFFFFH), PROP(PROP:Color,0FF0000H)
+#ENDBOXED
+#ENDBOXED
+#PROMPT('Separator File ASCII:',@S3),%SeparatorASCII,DEFAULT(';'), AT(,,20,)
+#DISPLAY()
+#BOXED('Export/Print Title')
+#DISPLAY()
+#PROMPT('',@s200),%TituloEx,DEFAULT('Report the '&%Primary), AT(10,,140,)
+#PROMPT('',FIELD),%TituloEx1, AT(10,,140,)
+#PROMPT('Text Color:',Drop('Transparent[0]|Black[1]|White[2]|Red[3]|Green[4]|Blue[5]|Yellow[6]|Magenta[7]|Cyan[8]')),%TTextColor,DEFAULT(1), AT(60)
+#PROMPT('Background:',Drop('Transparent[0]|Black[1]|White[2]|Red[3]|Green[4]|Blue[5]|Yellow[6]|Magenta[7]|Cyan[8]')),%TTextBackground,DEFAULT(2), AT(60)
+#PROMPT('Font Name:',Drop('MS Sans Serif|Arial|Courier New|Verdana|Arial Black|Book Antigua|Lucida Console|Tahoma|Times New Roman')),%TTextFont,DEFAULT(2), AT(60)
+#PROMPT('Font Size:',SPIN(@n_2,0,30,1)),%TTextFontSize,DEFAULT(12), AT(60)
+#ENDBOXED
+ #BOXED('Output Files ')
+ #DISPLAY()
+ #PROMPT('Path',FIELD),%PathFiles, AT(40,,100,)
+ #PROMPT('File Name',FIELD),%EcFileName, AT(40,,100,)
+ #PROMPT('Disable Preview Output',Check),%DisablePreview, AT(10)
+#ENDBOXED
+#DISPLAY()
+#PROMPT('Use Other Print Preview',Check),%EcNoPreview,DEFAULT(0),AT(10)
+#DISPLAY()
+#PROMPT('Use Icetips Previewer',Check),%EcIcetips,DEFAULT(0),AT(10)
+#DISPLAY()
+#PROMPT('Use STRING(255) fields',CHECK),%Char255,AT(10)
+#DISPLAY()
+#ENDTAB
+#TAB('&Output')
+#PROMPT('Export :',DROP('All|Excel|Csv|Html|XML|Word')),%TypeExport,DEFAULT('All'),AT(40,,140,)
+#PROMPT('Menu',@s200),%TituloMenu,DEFAULT('Exportacion'),REQ,AT(40,,140,)
+#BOXED(''),WHERE(%TypeExport='All')
+#PROMPT('HTML',CHECK),%Html,DEFAULT(1),AT(5,50)
+#PROMPT('EXCEL',CHECK),%Excel,DEFAULT(1),AT(40,50)
+#PROMPT('WORD',CHECK),%Word,DEFAULT(1),AT(80,50)
+#PROMPT('ASCII',CHECK),%Ascii,DEFAULT(1),AT(125,50)
+#PROMPT('XML',CHECK),%Xml,DEFAULT(1),AT(160,50)
+#BOXED(''),AT(5,60,30,30),WHERE(%Html = 1)
+#IMAGE('ec_explorer.ico')
+#ENDBOXED
+#BOXED(''),AT(40,60,30,30),WHERE(%Excel = 1)
+#IMAGE('ec_Excel.ico')
+#ENDBOXED
+#BOXED(''),AT(80,60,30,30),WHERE(%Word = 1)
+#IMAGE('ec_word.ico')
+#ENDBOXED
+#BOXED(''),AT(120,60,30,30),WHERE(%Ascii = 1)
+#IMAGE('ec_ascii.ico')
+#ENDBOXED
+#BOXED(''),AT(160,60,30,30),WHERE(%Xml = 1)
+#IMAGE('ec_xml.ico')
+#ENDBOXED
+#ENDBOXED
+#ENDTAB
+#TAB('&Fields to Export')
+#INSERT(%EvoVersion)
+#BOXED('Fields Header / Footer')
+      #BUTTON('Fieds  Header / Footer'),MULTI(%EcCampos,%EcCampo),INLINE
+      #PROMPT('Field:',FIELD),%EcCampo
+      #PROMPT('Tipo:',Drop('Footer|Header')),%EcCampoTipo
+      #ENDBUTTON
+#ENDBOXED
+#BOXED('Manual'),WHERE(%EcAutomatic='Manual'),AT(,150)
+      #BUTTON('Fieds...'),MULTI(%EvoCampos,%EvoCampo&' '&%EvoPict&' '&%EvoHeader&'('&%EvoHeaderF&')'),INLINE
+      #BOXED('Header')
+      #PROMPT('Name...:',@S50),%EvoHeader
+      #PROMPT('Name Field:',FIELD),%EvoHeaderF
+      #ENDBOXED
+      #BOXED('Fields')
+      #PROMPT('Field:',FIELD),%EvoCampo,REQ,WHENACCEPTED(%EvoPict(%EvoCampo,%EvoPict,%EvoHeader))
+      #PROMPT('Picture:',PICTURE),%EvoPict,REQ
+      #ENDBOXED
+    #ENDBUTTON
+#ENDBOXED
+#BOXED('Automatic'),WHERE(%EcAutomatic='Automatic'),AT(,150)
+   #BUTTON('Control''s Report'),FROM(%ReportControl,%ReportControlUse&'-'&%EvoPict(%ReportControlUse,%EvoPict2,%EvoHeader2)&'('&%EvoHeader2&')*'&%ReportControlLabel),INLINE,WHERE(%EcValidaControl() AND %ReportControlUse <> '')
+        #PROMPT('Detail:',FROM(%ReportControl,%ReportControlType='DETAIL',%ReportControl)),%Detail
+    #DISPLAY()
+    #PROMPT('Enable?',Check),%EvoEnableControl,DEFAULT(1),AT(3)
+    #DISPLAY()
+    #DISPLAY(%ReportControlUse),AT(3,,190), PROP(PROP:FontColor, 0FFFFFFH), PROP(PROP:Color,0FF0000H)
+    #DISPLAY(%ReportControlLabel),AT(3,,190), PROP(PROP:FontColor, 0FFFFFFH), PROP(PROP:Color,0FF0000H)
+    #ENABLE(%EvoEnableControl=1)
+    #PROMPT('Picture:',PICTURE),%EvoPict2,REQ
+    #DISPLAY()
+    #PROMPT('Header.:',@S50),%EvoHeader2
+    #DISPLAY()
+    #ENDENABLE
+   #ENDBUTTON
+#ENDBOXED
+#DISPLAY()
+#PROMPT('Type : ',DROP('Manual|Automatic')), %EcAutomatic,DEFAULT('Manual')
+#ENDTAB
+#TAB('&Formats ')
+#INSERT(%EvoFormatDet)
+#BOXED('Excel Parameters'),WHERE(%Excel = 1)
+#PROMPT ('Starts in line   ',FIELD),%LineFrom
+#PROMPT('Create File xls?',Check),%CreateFileExcel,Default(1)
+#PROMPT('Autoformato Style:',DROP('None[16]|Effects 3D 1[13]|Effects 3D 2[14]|Accounting 1[4]|Accounting 2[5]|Accounting 3[6]|Accounting 4[17]|Classic 1[1]|Classic 2[2]|Classic 3[3]|Color 1[7]|Color 2[8]|Color 3[9]|List 1[10]|List 2[11]|List 3[12]|Simple[-4154]')),%ECFormato,DEFAULT(16)
+#!PROMPT('Autoformato Style:',DROP('None[16]|Effects 3D 1[14]|Effects 3D 2[15]|Accounting 1[4]|Accounting 2[5]|Accounting 3[6]|Accounting 4[7]|Classic 1[1]|Classic 2[2]|Classic 3[3]|Color 1[8]|Color 2[9]|Color 3[10]|List 1[11]|List 2[12]|List 3[13]|Simple[-4154]')),%ECFormato,DEFAULT(16)
+#ENDBOXED
+#BOXED('')
+ #PROMPT('Image',FIELD),%PathImage, AT(60,,100,)
+ #PROMPT('Header 1',FIELD),%EcHeader1, AT(60,,100,)
+ #PROMPT('Header 2',FIELD),%EcHeader2, AT(60,,100,)
+#ENDBOXED
+    #!BUTTON('&Grafico'),MULTI(%EcGraficos,%EcNameGraf),INLINE
+    #!PROMPT('Graph Type',DROP('3D [-4098]|Area [1]|Bars[57]|Bubble[15]|Columns [51]|Conica[102]|Cylinder[95]|Rings[-4120]|Lines[4]|Circular[5]|Piramidal [109]|Radial[82]|Surfaces[83]')),%TipoGrafica
+    #!PROMPT('&Name Sheet:',@S80),%EcNameGraf,REQ
+    #!ENDBUTTON
+#ENDTAB
+#TAB('&About')
+#INSERT(%EvoVersion)
+#INSERT(%EvoImage)
+#ENDTAB
+#ENDSHEET
+
+#ATSTART
+#DECLARE(%RepRoutine)
+#! -------------------------------------------------------------------------
+#DECLARE(%Celda)
+#DECLARE(%Reg)
+#DECLARE(%Reg2)
+#DECLARE(%OrderedFieldsG),UNIQUE
+#ENDAT
+
+#AT(%DataSectionBeforeReport),WHERE(UPPER(%ProcedureTemplate) = 'UNIVABCREPORT')
+#IF (%Char255=1)
+#CALL(%ecDeclara255)
+#ELSE
+#CALL(%ecDeclara100)
+#ENDIF
+#ENDAT
+
+#AT(%DataSection),WHERE(UPPER(%ProcedureTemplate)='RUNTIMEREPORT')
+#IF (%Char255=1)
+#CALL(%ecDeclara255)
+#ELSE
+#CALL(%ecDeclara100)
+#ENDIF
+#ENDAT
+
+#AT(%LocalDataAfterClasses),PRIORITY(5001),WHERE(UPPER(%ProcedureTemplate) = 'REPORT')
+#IF (%Char255=1)
+#CALL(%ecDeclara255)
+#ELSE
+#CALL(%ecDeclara100)
+#ENDIF
+#EndAT
+
+#AT(%LocalDataAfterClasses),PRIORITY(5001),WHERE(%ProcedureTemplate = 'Evo_AutoReportProcedure')
+#IF (%Char255=1)
+#CALL(%ecDeclara255)
+#ELSE
+#CALL(%ecDeclara100)
+#ENDIF
+#EndAT
+
+#AT(%PreviewerManagerMethodCodeSection, 'Open','()'),PRIORITY(5001),WHERE(UPPER(%ProcedureTemplate) = 'REPORT' AND %EcNoPreview=0)
+  #CALL(%ecstart)
+  CREATE(?Exportarword,CREATE:Item)
+  ?Exportarword{PROP:Use} = LASTFIELD()+300
+  ?Exportarword{PROP:Text} = '%TituloMenu'
+  UNHIDE(?Exportarword)
+  #CALL(%ecend)
+#ENDAT
+#!!!!
+
+#AT(%PreviewerManagerMethodCodeSection,'Ask','()'),PRIORITY(4500),WHERE(UPPER(%ProcedureTemplate)='RUNTIMEREPORT')
+#CALL(%ecstart)
+  CREATE(?Exportarword,CREATE:Item)
+  ?Exportarword{PROP:Use} = LASTFIELD()+300
+  ?Exportarword{PROP:Text} = '%TituloMenu'
+  UNHIDE(?Exportarword)
+  #CALL(%ecend)
+#ENDAT
+
+#AT(%PreviewerManagerMethodCodeSection,'TakeEvent','(),BYTE'),PRIORITY(5001),WHERE(UPPER(%ProcedureTemplate)='RUNTIMEREPORT')
+#!queue
+CASE EVENT()
+  OF EVENT:Accepted
+    CASE FIELD()
+      OF ?Exportarword
+        #CALL(%ecstart)
+        Do CargaParametros
+        #EMBED(%BeforeExportReport,' Templates Clarion- Before Export Queue Report')
+        #INSERT(%ExportRpt)
+        #EMBED(%AfterExportReport,' Templates Clarion- After Export Queue Report')
+    END!CASE
+END!CASE
+#CALL(%ecend)
+#ENDAT
+
+#AT(%PreviewerManagerMethodCodeSection,'TakeEvent','(),BYTE'),PRIORITY(5001),WHERE(UPPER(%ProcedureTemplate) = 'REPORT' AND %EcNoPreview=0)
+#!queue
+CASE EVENT()
+  OF EVENT:Accepted
+    CASE FIELD()
+      OF ?Exportarword
+        #CALL(%ecstart)
+       #IF(%EcIcetips=0)
+        Do CargaParametros
+       #ENDIF
+        #EMBED(%BeforeExportReport,' Templates Clarion- Before Export Queue Report')
+        #INSERT(%ExportRpt)
+        #EMBED(%AfterExportReport,' Templates Clarion- After Export Queue Report')
+    END!CASE
+END!CASE
+#CALL(%ecend)
+#ENDAT
+
+#AT(%WindowManagerMethodCodeSection,'AskPreview','()'),PRIORITY(2500),WHERE(%EcNoPreview=1 OR %EcIcetips=1)
+    Do CargaParametros
+  #IF(%EcIcetips<>1)
+        #EMBED(%BeforeExportReport,'Templates Clarion- Before Export Queue Report')
+        #INSERT(%ExportRpt)
+        #EMBED(%AfterExportReport,'Templates Clarion- After Export Queue Report')
+  #ENDIF
+#ENDAT
+
+#AT(%ProcessManagerMethodCodeSection,'TakeRecord','(),BYTE'),PRIORITY(6500),WHERE(%TakeRec=1 AND UPPER(%ProcedureTemplate) = 'REPORT'  )
+ Do QCargaExport
+#ENDAT
+
+#AT(%AfterPrint),LAST,WHERE(%TakeRec=1 AND UPPER(%ProcedureTemplate) = 'UNIVABCREPORT'  )
+ Do QCargaExport
+#ENDAT
+
+#AT (%BeforePrintDetail),WHERE(UPPER(%ProcedureTemplate)='RUNTIMEREPORT'   )
+Do QCargaExport
+#ENDAT
+
+#AT(%BeforePrintPreview),WHERE(UPPER(%ProcedureTemplate) = 'UNIVABCREPORT'  )
+        Do CargaParametros
+        #EMBED(%BeforeExportReport,'- Templates Clarion- Before Export Queue Report')
+        #INSERT(%ExportRpt)
+        #EMBED(%AfterExportReport,'- Templates Clarion- After Export Queue Report')
+#ENDAT
+
+#AT(%ProcedureRoutines),WHERE(UPPER(%ProcedureTemplate) = 'REPORT' OR UPPER(%ProcedureTemplate)='RUNTIMEREPORT'OR  %ProcedureTemplate = 'Evo_AutoReportProcedure' ) 
+QCargaExport ROUTINE
+#INSERT(%TakeRecTabla)
+#INSERT(%Parametros)
+#ENDAT
+
+#AT(%ProcRoutines),WHERE(UPPER(%ProcedureTemplate) = 'UNIVABCREPORT')
+QCargaExport ROUTINE
+#INSERT(%TakeRecTabla)
+#INSERT(%Parametros)
+#ENDAT
+
+#!------------------------------------------------------------------------------------------
+#GROUP(%GetControlName)
+  #FOR(%ReportControl), WHERE(%ActiveTemplateInstance=%ReportControlInstance)
+    #RETURN(%ReportControl)
+  #ENDFOR
+#GROUP(%QuickReportAllFields)
+  #FOR(%ReportControl),WHERE(%ReportControlType='DETAIL' and %ActiveTemplateInstance=%ReportControlInstance)
+    #FIND(%ReportControlInstance,%ActiveTemplateInstance,%ReportControl)
+       #SET(%EvoCampo,%ReportControl)
+  #ENDFOR

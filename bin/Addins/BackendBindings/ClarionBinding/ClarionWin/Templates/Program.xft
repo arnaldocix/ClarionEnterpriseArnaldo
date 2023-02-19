@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<Template author="SoftVelocity" version="1.0">
+	<Config
+		  name        = "${res:Templates.File.ProgramFile.Name}"
+		  icon        = "CW.File.EmptyFile"
+		  category    = "Clarion"
+		  defaultname = "Program${Number}.clw"
+		  language    = "Clarion"/>
+	 
+	<Description>${res:Templates.File.ProgramFile.Description}</Description>
+	
+	<Files>
+		<File name="${FullName}" language="Clarion">
+			<![CDATA[
+
+  PROGRAM
+
+${StandardHeader.Clarion}
+
+
+  MAP
+  END
+
+  CODE
+]]>
+		</File>
+	</Files>
+	<AdditionalOptions/>
+</Template>
+
+

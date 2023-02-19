@@ -1,0 +1,446 @@
+#control(BrowseQBEList, 'QBE Filter - Advanced'), description('Advanced QBE filter for ' & %Primary), req(BrowseBox), HLP('~TPLADOQueryCenter.htm')
+#atstart
+  #declare(%svDataTypeEQ)
+  #declare(%svPicture)
+  #declare(%svColList), multi
+  #declare(%svColField, %svColList)
+  #declare(%svReset)
+  #declare(%svSaveQuery)
+  #declare(%svSaveQueryAS)
+  #declare(%svLoadQuery)
+  #declare(%svApply)
+  #declare(%svFilterListCtrl)
+  #declare(%svCaseCheckbox)
+  #declare(%svCaseCheckboxUse)
+  #for(%Control), WHERE(%ControlInstance = %ActiveTemplateInstance)
+    #case(%ControlOriginal)
+    #of('?btnReset')
+      #set(%svReset, %Control)
+    #of('?BtnSaveQuery')
+      #set(%svSaveQuery, %Control)
+    #of('?BtnSaveAs')
+      #set(%svSaveQueryAS, %control)
+    #of('?BtnLoadQuery')  
+      #set(%svLoadQuery, %Control)
+    #of('?btnApply')  
+      #set(%svApply, %Control)
+    #of('?FilterList')
+      #set(%svFilterListCtrl, %Control)
+    #of('?checkCase')
+      #set(%svCaseCheckbox, %Control)
+    #endcase  
+  #endfor
+
+  #insert(%svConstructheaderList)
+  #declare(%svProcID)
+  #declare(%svAppID)
+  #declare(%svQueryName)
+  #declare(%svQueryID)
+  #declare(%svFilterColumn)
+  #declare(%svFilterOpe)
+  #declare(%svFilterValue)
+  #declare(%svFilterConn)
+  #declare(%svFilterLineSeq)
+  #declare(%svBrowseBoxIsADO)
+  #fix(%Control, %ListControl)
+  #if(upper(%ControlTemplate) = 'BROWSEBOX(ABC_ADO)' or upper(%ControlTemplate) = 'BROWSEBOX(CLARION_ADO)')
+    #set(%svBrowseBoxIsADO, 1)
+  #else
+    #set(%svBrowseBoxIsADO, 0)
+  #endif
+
+  #set(%svCaseCheckboxUse, %svFilterObject & '_checkBox')
+
+#endat
+  CONTROLS
+       GROUP('Data Filter Center'),AT(,,390,98),USE(?Group1),BOXED
+         LIST,AT(7,13,377,60),USE(?FilterList),VSCROLL,ALRT(ShiftMouseLeft),ALRT(MouseLeft2),ALRT(InsertKey),ALRT(DeleteKey), |
+             FORMAT('60L(2)|M~Column~@s25@80L(2)|M~Operator~@s20@120L(2)|M~Value/Expression~@s40@20L(2)|M~Conn' &|
+             'ecting Operator~@s25@'), #link(?Group1)
+         CHECK('Case sensitive search for string'), USE(?checkCase),AT(0,65,125,14), #link(?group1)
+         BUTTON('Reset'),AT(133,0,45,14),USE(?btnReset), #link(?group1)
+         BUTTON('Save Query'),AT(50,0,45,14),USE(?BtnSaveQuery), #link(?group1)
+         BUTTON('Save As'),AT(50,0,45,14),USE(?BtnSaveAs), #link(?group1)
+         BUTTON('Load Query'),AT(50,0,45,14),USE(?BtnLoadQuery), #link(?group1)
+         BUTTON('Apply'),AT(50,0,45,14),USE(?btnApply), #link(?group1)
+       END       
+  END
+  
+#sheet
+  #tab('Filter object')
+    #prompt('Filter class: ', @s50), %svFilterClass, default('cFilterList')
+    #prompt('Filter object name: ', @s50), %svFilterObject, default('FilterObj')
+    #prompt('Copy generated filter string to clipboard: ', CHECK), %svFilterToCB, at(10)
+    #prompt('Search on string is case sensitive:', CHECK), %svQCSearchSensitive, default(0), at(10)
+    #enable(%svQCSearchSensitive = 0), clear
+      #prompt('Case sensitivity search can be set at runtime: ', CHECK), %svCaseSetAtRuntime, at(10)
+      #enable(%svCaseSetAtRuntime = 1), clear
+        #prompt('Set control checked by default', CHECK), %svCaseSetAtRuntimeDefault, at(10)
+      #endenable
+    #endenable
+  #endtab
+#endsheet
+
+#at(%BeforeGlobalIncludes)
+  #if(not(varexists(%QCenterPragmaNameExt)))
+    #if(varexists(%svOracleUsed))
+      #if(%svOracleUsed)
+        #PDEFINE('_MSSQLDateTime_', 0)
+        #PDEFINE('_ORACLEDateTime_', 1)
+      #else
+        #PDEFINE('_MSSQLDateTime_', 1)
+        #PDEFINE('_ORACLEDateTime_', 0)
+      #endif
+    #else
+      #PDEFINE('_MSSQLDateTime_', 1)
+      #PDEFINE('_ORACLEDateTime_', 0)
+    #endif
+  #endif
+#ENDAT
+
+#AT(%BeforeGenerateApplication),WHERE(%AppTemplateFamily='ABC')
+ #CALL(%AddCategory(ABC),'sv')
+ #CALL(%SetCategoryLocationFromPrompts(ABC),'sv','sv','')
+#ENDAT
+#AT(%BeforeGenerateApplication),WHERE(%AppTemplateFamily='CLARION')
+  #if(%ProgramExtension = 'EXE')
+    #PDEFINE('_' & 'sv' & 'DllMode_',0)
+    #PDEFINE('_' & 'sv' & 'LinkMode_',1)
+  #else
+    #PDEFINE('_' & 'sv' & 'DllMode_',1)
+    #PDEFINE('_' & 'sv' & 'LinkMode_',0)
+  #endif
+  #if(~%INIActive)
+    #error('Use of INI must be set in order to use the BrowseQBEList feature')
+  #endif
+#ENDAT
+
+#at(%LocalDataClasses)
+%[20]svFilterObject class(%svFilterClass)
+%[20]null end
+  #if(%svBrowseBoxIsADO = 0)
+QueueField        any  
+  #endif
+  #if(%svCaseCheckbox)
+%[20]svCaseCheckboxUse byte
+  #endif
+#endat
+
+#at(%BeforeGlobalIncludes)
+  #if(%ApptemplateFamily = 'ABC')
+    #add(%GlobalIncludeList, 'cfiltbase.inc')
+    #add(%GlobalIncludeList, 'cfilterList.inc')
+  #else
+    #add(%CustomGlobalDeclarationIncludes, 'cfiltbase.inc')
+    #add(%CustomGlobalDeclarationIncludes, 'cfilterList.inc')
+  #endif
+#endat
+
+#at(%DerivedEmbedAfterStandardWindowOpening), LAST
+#insert(%svQcenterInitCode)
+#endat
+
+#at(%WindowManagerMethodCodeSection,'Init','(),BYTE'),PRIORITY(8050)
+#insert(%svQcenterInitCode)
+#endat
+
+#at(%ControlEventhandling, %svCaseCheckbox, 'Accepted')
+  #if(%svCaseSetAtRuntime = 1)
+%svFilterObject.SetCaseSensitive(%svCaseCheckbox{prop:checked})
+  #endif
+#endat
+
+#at(%ControlEventHandling, %svReset, 'Accepted')
+%svFilterObject.Reset()
+  #if(%svBrowseBoxIsADO)
+%ThisObjectName.Refresh()
+  #else
+post(EVENT:Accepted, %svApply)
+  #endif
+#endat
+
+#at(%ControlEventHandling, %svSaveQuery, 'Accepted')
+%svFilterObject.Save()
+#endat
+
+#at(%ControlEventHandling, %svSaveQueryAs, 'Accepted')
+%svFilterObject.SaveAs()
+#endat
+
+#at(%ControlEventHandling, %svLoadQuery, 'Accepted')
+%svFilterObject.Load()
+post(EVENT:Accepted, %svApply)
+#endat
+
+#at(%ControlPostEventCaseHandling, %svFilterListCtrl)
+if event() = EVENT:Drop
+  %svFilterObject.OnDrop()
+end
+
+if event() = EVENT:AlertKey
+  %svFilterObject.OnAlertKey()
+end
+#endat
+
+#at(%ControlEventHandling, %svApply, 'Accepted')
+  #if(%AppTemplateFamily='ABC')
+    #if(%svBrowseBoxIsADO)
+setcursor(CURSOR:Wait)
+%ThisObjectName.Refresh()
+setcursor()
+    #else
+%ManagerName.SetFilter(%svFilterObject.IFilter.GetFilter(), 'QBEList')
+%ManagerName.ApplyFilter()
+%ManagerName.ResetQueue(Reset:Queue)
+%ManagerName.ResetFromView()
+    #endif
+  #else
+    #if(%svBrowseBoxIsADO)
+setcursor(CURSOR:Wait)
+%ThisObjectName.Refresh()
+setcursor()    
+    #else
+ForceRefresh=true
+do RefreshWindow
+    #endif
+  #endif
+#endat
+
+
+#at(%BeforeOpeningListView)
+  #if(%svBrowseBoxIsADO = 0)
+    #if(%AppTemplateFamily = 'CLARION')
+if %svFilterObject.IFilter.GetFilter()
+  if clip(%ListView{prop:filter})
+    %ListView{prop:filter} = %ListView{prop:filter} & ' AND ' & %svFilterObject.IFilter.GetFilter()
+  else
+    %ListView{prop:filter} = %svFilterObject.IFilter.GetFilter()
+  end
+end
+    #endif
+  #endif
+#endat
+
+#at(%ControlPostEventCaseHandling, %ListControl)
+  #if(%AppTemplateFamily = 'ABC')
+    #if(%svBrowseBoxIsADO = 1)
+if event() = EVENT:Drag
+  %ThisObjectName.OnDrag()
+end
+    #else
+if event() = EVENT:Drag
+  get(%ListQueue, choice(%ListControl))
+  QueueField &= what(%ListQueue, %ListControl{proplist:FieldNo, %ListControl{proplist:MouseDownField}})
+  setdropid(clip(%ListControl{PROPLIST:Header, %ListControl{proplist:MouseDownField}}) & ';' & clip(QueueField))
+end
+    #endif
+  #else
+    #if(%svBrowseBoxIsADO = 1)
+  if event() = EVENT:Drag
+    %ThisObjectName.OnDrag()
+  end
+    #else
+if event() = EVENT:Drag
+  get(%ListQueue, choice(%ListControl))
+  QueueField &= what(%ListQueue, %ListControl{proplist:FieldNo, %ListControl{proplist:MouseDownField}})
+  setdropid(clip(%ListControl{PROPLIST:Header, %ListControl{proplist:MouseDownField}}) & ';' & clip(QueueField))
+end
+    #endif
+  #endif
+#endat
+
+#group(%svConstructheaderList)
+#fix(%Control, %ListControl)
+#for(%ControlField)
+  #add(%svColList, %ControlFieldHeader)
+  #set(%svColField, %ControlField)
+#endfor
+
+#group(%svQcenterInitCode), PRESERVE
+#declare(%QCtmpAttribute)
+#declare(%svUnquotedFieldName)
+#declare(%svQCPosInString)
+#declare(%QCTmpFileName)
+#declare(%QCTmpFieldName)
+%svFilterListCtrl{prop:dropid, 255} = '%svFilterObject'
+%ListControl{prop:dragid, 255} = '%svFilterObject'
+  #if(%svBrowseBoxIsADO = 1)
+%svFilterObject.UseSQL = true
+  #endif
+%svFilterObject.Init(%svFilterListCtrl, %Window)
+  #if(%svFilterToCB = 1)
+%svFilterObject.CopyToCB = true
+  #endif
+%svFilterObject.AppName = '%Application'
+%svFilterObject.ProcName = '%Procedure'
+  #if(%AppTemplateFamily='ABC')
+%svFilterObject.InitINI(INIMgr)
+  #else
+    #if(%IniActive)
+      #IF(%IniFile = 'Other')
+%svFilterObject.InitINI('%ININame')
+      #else
+%svFilterObject.InitINI('%Application')
+      #endif
+    #endif  
+  #endif
+  #if(%svBrowseBoxIsADO = 1)
+%ThisObjectName.SetIFilter(%svFilterObject.IFilter)
+  #endif
+  #for(%svColList)
+    #find(%Field, %svColField)
+    #if(%Field)
+      #if(%FieldUserOptions)
+        #set(%QCtmpAttribute, extract(%FieldUserOptions, 'DateTime', 1))
+        #if(%QCTmpAttribute)
+          #find(%ControlField, %Field)
+          #if(%ControlField)
+            #if(%FieldType = 'DATE')
+              #set(%svDataTypeEQ, 'datatype:date')
+              #set(%svPicture, '''' & %ControlFieldPicture & ' DATETIME''')
+            #else
+              #set(%svDataTypeEQ, 'datatype:time')
+              #set(%svPicture, '''' & %ControlFieldPicture & ' DATETIME''')
+            #endif
+          #else
+            #if(%FieldType = 'DATE')
+              #set(%svDataTypeEQ, 'datatype:date')
+              #set(%svPicture, '''' & %FieldDisplayPicture & ' DATETIME''')
+            #else
+              #set(%svDataTypeEQ, 'datatype:time')
+              #set(%svPicture, '''' & %FieldDisplayPicture & ' DATETIME''')
+            #endif
+          #endif
+%svFilterObject.IFilter.addCol('%svColList', '%QCTmpAttribute', %svDataTypeEQ, %svPicture, %svQCSearchSensitive)
+          #cycle
+        #else
+          #case(%FieldType)
+            #of('STRING')
+            #orof('CSTRING')
+              #set(%svDataTypeEQ, 'datatype:string')
+              #set(%svPicture, '''''')
+            #else
+              #find(%ControlField, %svColField)
+              #if(%ControlField)
+                #if(instring('@D', upper(%ControlFieldPicture)))
+                  #set(%svDataTypeEQ, 'datatype:date')
+                  #set(%svPicture, '''' & %ControlFieldPicture & '''')
+                #else
+                  #if(instring('@T', upper(%ControlFieldPicture)))
+                    #set(%svDataTypeEQ, 'datatype:time')
+                    #set(%svPicture, '''' & %ControlFieldPicture & '''')
+                  #else
+                    #set(%svDataTypeEQ, 'datatype:long')
+                    #set(%svPicture, '''''')
+                  #endif
+                #endif
+              #else
+                #if(instring('@D', upper(%FieldDisplayPicture)))
+                  #set(%svDataTypeEQ, 'datatype:date')
+                  #set(%svPicture, '''' & %FieldDisplayPicture & '''')
+                #else
+                  #if(instring('@T', upper(%FieldDisplayPicture)))
+                    #set(%svDataTypeEQ, 'datatype:time')
+                    #set(%svPicture, '''' & %FieldDisplayPicture & '''')
+                  #else
+                    #set(%svDataTypeEQ, 'datatype:long')
+                    #set(%svPicture, '''''')
+                  #endif
+                #endif
+              #endif
+          #endcase
+        #endif
+      #else
+        #case(%FieldType)
+          #of('STRING')
+          #orof('CSTRING')
+            #set(%svDataTypeEQ, 'datatype:string')
+            #set(%svPicture, '''''')
+          #else
+            #find(%ControlField, %svColField)
+            #if(%ControlField)
+              #if(instring('@D', upper(%ControlFieldPicture)))
+                #set(%svDataTypeEQ, 'datatype:date')
+                #set(%svPicture, '''' & %ControlFieldPicture & '''')
+              #else
+                #if(instring('@T', upper(%ControlFieldPicture)))
+                  #set(%svDataTypeEQ, 'datatype:time')
+                  #set(%svPicture, '''' & %ControlFieldPicture & '''')
+                #else
+                  #set(%svDataTypeEQ, 'datatype:long')
+                  #set(%svPicture, '''''')
+                #endif
+              #endif
+            #else
+              #if(instring('@D', upper(%FieldDisplayPicture)))
+                #set(%svDataTypeEQ, 'datatype:date')
+                #set(%svPicture, '''' & %FieldDisplayPicture & '''')
+              #else
+                #if(instring('@T', upper(%FieldDisplayPicture)))
+                  #set(%svDataTypeEQ, 'datatype:time')
+                  #set(%svPicture, '''' & %FieldDisplayPicture & '''')
+                #else
+                  #set(%svDataTypeEQ, 'datatype:long')
+                  #set(%svPicture, '''''')
+                #endif
+              #endif
+            #endif
+        #endcase
+      #endif
+      #if(%svBrowseBoxIsADO = 1)
+        #if(%FieldName)
+          #if(slice(%FieldName, 1, 1) = '''')
+            #set(%svUnquotedFieldName, slice(%FieldName, 2, len(%FieldName) - 1) )
+          #else
+            #set(%svUnquotedFieldName, %FieldName)
+          #endif
+          #set(%svQCPosInString, instring('|', %svUnquotedFieldName, 1, 1))
+          #if(%svQCPosInString)
+            #set(%svUnquotedFieldName, slice(%svUnquotedFieldName, 1, %svQCPosInString - 1))
+          #endif
+%svFilterObject.IFilter.addCol('%svColList', '%File.%svUnquotedFieldName', %svDataTypeEQ, %svPicture, %svQCSearchSensitive)
+        #else
+          #set(%QCTmpFileName, %SQLGetTrueFileName())
+          #set(%QCTmpFieldName, %SQLGetTrueFieldNameNoPrefix(%Field))
+%svFilterObject.IFilter.addCol('%svColList', '%QCTmpFileName.%QCTmpFieldName', %svDataTypeEQ, %svPicture, %svQCSearchSensitive)
+        #endif
+      #else
+%svFilterObject.IFilter.addCol('%svColList', '%Field', %svDataTypeEQ, %svPicture, %svQCSearchSensitive)
+      #endif
+    #else
+      #if(%svBrowseBoxIsADO = 1)
+        #find(%ADOQueryField, %svColField)
+        #if(%ADOQueryField)
+          #if(%ADOQueryFieldType = 'Expression')
+            #find(%ControlField, %svColField)
+            #if(%ControlField)
+              #find(%LocalData, %ControlField)
+              #if(%LocalData)
+                #if(instring('STRING', upper(%LocalDataStatement), 1, 1))
+                  #set(%svDataTypeEQ, 'datatype:string')
+                #else
+                  #set(%svDataTypeEQ, 'datatype:long')
+                #endif
+                #set(%svPicture, '''''')
+              #endif
+            #endif
+%svFilterObject.IFilter.addCol('%svColList', '%ADOQueryFieldExpression', %svDataTypeEQ, %svPicture, %svQCSearchSensitive)
+          #endif
+        #endif
+      #endif
+    #endif
+  #endfor
+  #if(%svCaseCheckbox)
+%svCaseCheckbox{prop:use} = %svCaseCheckboxUse
+    #if(%svQCSearchSensitive = 1)
+disable(%svCaseCheckbox)
+%svCaseCheckboxUse = true
+    #endif
+    #if(%svCaseSetAtRuntime = 0  and %svQCSearchSensitive = 0)
+disable(%svCaseCheckbox)
+%svCaseCheckboxUse = false
+    #endif
+    #if(%svCaseSetAtRuntime = 1 and %svQCSearchSensitive = 0)
+%svCaseCheckboxUse = %svCaseSetAtRuntimeDefault
+    #endif
+  #endif

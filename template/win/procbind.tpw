@@ -1,0 +1,493 @@
+#GROUP(%ProcedureBindFieldsPrompts)
+#BUTTON('BIND Fields and Procedures'),AT(,,180),HLP('~TPLBindFieldsandProcedures.htm')
+  #SHEET
+    #TAB('HIDDEN FIELDS'),WHERE(%False)
+      #BOXED,HIDE
+        #BUTTON('Fields'),MULTI(%ProcedureAutoBindFields,%ProcedureAutoBindField&'-'&%ProcedureAutoBindFieldTPL)
+          #PROMPT('FIELD:',@s255),%ProcedureAutoBindField,REQ
+          #PROMPT('TPL:',@S255),%ProcedureAutoBindFieldTPL,REQ
+        #ENDBUTTON
+        #BUTTON('Procedures'),MULTI(%ProcedureAutoBindProcedures,%ProcedureAutoBindProcedure&'-'&%ProcedureAutoBindProcedureTPL)
+          #PROMPT('PROCEDURE:',@s255),%ProcedureAutoBindProcedure,REQ
+          #PROMPT('TPL:',@S255),%ProcedureAutoBindProcedureTPL,REQ
+        #ENDBUTTON
+        #BUTTON('Ignored Fields'),MULTI(%ProcedureAutoBindFieldsIgnored,%ProcedureAutoBindFieldIgnored)
+          #PROMPT('FIELD:',@s255),%ProcedureAutoBindFieldIgnored,REQ
+        #ENDBUTTON
+        #BUTTON('Ignored Procedures'),MULTI(%ProcedureAutoBindProceduresIgnored,%ProcedureAutoBindProcedureIgnored)
+          #PROMPT('PROCEDURE:',@s255),%ProcedureAutoBindProcedureIgnored,REQ
+        #ENDBUTTON
+        #PROMPT('ValidToAddField',CHECK),%ProcedureAutoBindValidToAddField,DEFAULT(%True)
+      #ENDBOXED
+    #ENDTAB
+    #TAB('Fields')
+      #BOXED
+        #SHEET
+          #TAB('Developer Defined')
+            #BUTTON('Developer Defined'),MULTI(%ProcedureUserBindFields,%ProcedureUserBindField),INLINE,HLP('~TPLBindFieldsandProcedures.htm')
+              #PROMPT('Field:',FIELD),%ProcedureUserBindField,REQ
+              #VALIDATE(%ProcedureUserBindFieldIsUnique(%ProcedureUserBindField,INSTANCE(%ProcedureUserBindFields))=0,'The fields is already populated.')
+              #DISPLAY('This field will be added to the BIND list')
+              #DISPLAY('and a code line like this will be generated')
+              #DISPLAY('on the procedure.')
+              #DISPLAY('BIND('''&%ProcedureUserBindField&''','&%ProcedureUserBindField&')')
+            #ENDBUTTON
+          #ENDTAB
+          #TAB('Template Defined')
+            #BUTTON('Template Defined'),FROM(%ProcedureAutoBindFields,CHOOSE(%ProcedureAutoBindFieldIgnore,'    - '&%ProcedureAutoBindField,'X - '&%ProcedureAutoBindField)),INLINE,HLP('~TPLBindFieldsandProcedures.htm')
+              #PROMPT('Do not BIND this field',CHECK),%ProcedureAutoBindFieldIgnore,DEFAULT(0),AT(10)
+              #DISPLAY
+              #DISPLAY('This Field was added by: '&%ProcedureAutoBindFieldTPL),AT(,,180,40)
+              #DISPLAY
+              #BOXED,WHERE(NOT %ProcedureAutoBindFieldIgnore)
+                #DISPLAY('This field will be added to the BIND list')
+                #DISPLAY('and a code line like this will be generated')
+                #DISPLAY('on the procedure.')
+                #DISPLAY('BIND('''&%ProcedureAutoBindField&''','&%ProcedureAutoBindField&')')
+              #ENDBOXED
+            #ENDBUTTON
+          #ENDTAB
+        #ENDSHEET
+      #ENDBOXED
+    #ENDTAB
+    #TAB('Procedures')
+      #BOXED
+        #SHEET
+          #TAB('Developer Defined')
+            #BUTTON('Developer Defined'),MULTI(%ProcedureUserBindProcedures,%ProcedureUserBindProcedure),INLINE,HLP('~TPLBindFieldsandProcedures.htm')
+              #PROMPT('Procedure:',PROCEDURE),%ProcedureUserBindProcedure,REQ,PROP(PROP:DropWidth,140)
+              #VALIDATE(%ProcedureUserBindProcedureIsUnique(%ProcedureUserBindProcedure,INSTANCE(%ProcedureUserBindProcedures))=0,'The Procedure is already populated.')
+              #DISPLAY('This procedure will be added to the BIND list')
+              #DISPLAY('and a code line like this will be generated')
+              #DISPLAY('on the procedure.')
+              #DISPLAY('BIND('''&%ProcedureUserBindProcedure&''','&%ProcedureUserBindProcedure&')')
+              #DISPLAY
+              #DISPLAY('The label of a Clarion language PROCEDURE')
+              #DISPLAY('which returns a STRING, REAL, or LONG value.')
+              #DISPLAY('If parameters are passed to the procedure, ')
+              #DISPLAY('they must be STRING value-parameters ')
+              #DISPLAY('(passed by value, not by address)')
+              #DISPLAY('and may not be omittable.')
+            #ENDBUTTON
+          #ENDTAB
+          #TAB('Template Defined')
+            #BUTTON('Template Defined'),FROM(%ProcedureAutoBindProcedures,CHOOSE(%ProcedureAutoBindProcedureIgnore,'    - '&%ProcedureAutoBindProcedure,'X - '&%ProcedureAutoBindProcedure)),INLINE,SORT,HLP('~TPLBindFieldsandProcedures.htm')
+              #PROMPT('Do not BIND this procedure',CHECK),%ProcedureAutoBindProcedureIgnore,DEFAULT(0),AT(10)
+              #DISPLAY
+              #DISPLAY('This Procedure was added by: '&%ProcedureAutoBindProcedureTPL),AT(,,180,40)
+              #DISPLAY
+              #BOXED,WHERE(NOT %ProcedureAutoBindProcedureIgnore)
+                #DISPLAY('This procedure will be added to the BIND list')
+                #DISPLAY('and a code line like this will be generated')
+                #DISPLAY('on the procedure.')
+                #DISPLAY('BIND('''&%ProcedureAutoBindProcedure&''','&%ProcedureAutoBindProcedure&')')
+              #ENDBOXED
+            #ENDBUTTON
+          #ENDTAB
+        #ENDSHEET
+      #ENDBOXED
+    #ENDTAB
+    #TAB('Expressions')
+      #BUTTON('Expression'),MULTI(%ProcedureUserBindExpressions,%ProcedureUserBindExpressionName),INLINE,HLP('~TPLBindFieldsandProcedures.htm')
+        #PROMPT('Name:',@S255),%ProcedureUserBindExpressionName,REQ
+        #PROMPT('Expression:',EDIT),%ProcedureUserBindExpression,REQ,WHENACCEPTED(%SVExpresionEditor(%ProcedureUserBindExpression))
+        #DISPLAY('This expression will be added to the BIND list')
+        #DISPLAY('and a code line like this will be generated')
+        #DISPLAY('on the procedure.')
+        #DISPLAY('BINDEXPRESSION('''&%ProcedureUserBindExpressionName&''','&%StripPling(%ProcedureUserBindExpression)&')')
+        #DISPLAY
+      #ENDBUTTON
+    #ENDTAB
+  #ENDSHEET
+#ENDBUTTON
+#!
+#GROUP(%ProcedureGenereteBind)
+#EMBED(%BeforeGenereteAutoBind),HIDE
+#SET(%ProcedureAutoBindValidToAddField,%False)
+#CALL(%ProcedureUserBindClean)
+#!
+#! restore the ignored fields
+#!
+#FOR(%ProcedureAutoBindFields)
+    #FOR(%ProcedureAutoBindFieldsIgnored),WHERE(UPPER(%ProcedureAutoBindFieldIgnored)=UPPER(%ProcedureAutoBindField))
+        #SET(%ProcedureAutoBindFieldIgnore,%True)
+        #BREAK
+    #ENDFOR
+#ENDFOR
+#FOR(%ProcedureAutoBindProcedures)
+    #FOR(%ProcedureAutoBindProceduresIgnored),WHERE(UPPER(%ProcedureAutoBindProcedureIgnored)=UPPER(%ProcedureAutoBindProcedure))
+        #SET(%ProcedureAutoBindProcedureIgnore,%True)
+        #BREAK
+    #ENDFOR
+#ENDFOR
+#!
+#!
+#!
+#!
+#FOR(%ProcedureAutoBindFields),WHERE(NOT %ProcedureAutoBindFieldIgnore)
+  #FIND(%Field,%ProcedureAutoBindField)
+  #IF(NOT %FieldFile OR %FieldName)
+    #SET(%ValueConstruct,%ProcedureAutoBindField)
+    #INSERT(%CleanDimensions)
+BIND('%ValueConstruct',%ProcedureAutoBindField)     #<! Added by: %ProcedureAutoBindFieldTPL
+  #ENDIF
+#ENDFOR
+#FOR(%ProcedureUserBindFields)
+  #FIND(%Field,%ProcedureUserBindField)
+  #IF(NOT %FieldFile OR %FieldName)
+    #SET(%ValueConstruct,%ProcedureUserBindField)
+    #INSERT(%CleanDimensions)
+BIND('%ValueConstruct',%ProcedureUserBindField)
+  #ENDIF
+#ENDFOR
+#FOR(%ProcedureAutoBindProcedures),WHERE(NOT %ProcedureAutoBindProcedureIgnore)
+  #SET(%ValueConstruct,%ProcedureAutoBindProcedure)
+  #INSERT(%CleanDimensions)
+BIND('%ValueConstruct',%ProcedureAutoBindProcedure)     #<! Added by: %ProcedureAutoBindProcedureTPL
+#ENDFOR
+#FOR(%ProcedureUserBindProcedures)
+  #SET(%ValueConstruct,%ProcedureUserBindProcedure)
+  #INSERT(%CleanDimensions)
+BIND('%ValueConstruct',%ProcedureUserBindProcedure)
+#ENDFOR
+#FOR(%ProcedureUserBindExpressions)
+BINDEXPRESSION('%ProcedureUserBindExpressionName',%(%StripPling(%ProcedureUserBindExpression)))
+#ENDFOR
+#!
+#GROUP(%ProcedureGenereteUnBind)
+#SET(%ProcedureAutoBindValidToAddField,%False)
+#CALL(%ProcedureUserBindClean)
+#!FOR(%ProcedureUserBindExpressions)
+#!UNBINDEXPRESSION('%ProcedureUserBindExpressionName')
+#!ENDFOR
+#FOR(%ProcedureAutoBindFields),WHERE(NOT %ProcedureAutoBindFieldIgnore)
+  #FIND(%Field,%ProcedureAutoBindField)
+  #IF(NOT %FieldFile OR %FieldName)
+    #SET(%ValueConstruct,%ProcedureAutoBindField)
+    #INSERT(%CleanDimensions)
+  #ENDIF
+#ENDFOR
+#FOR(%ProcedureUserBindFields)
+  #FIND(%Field,%ProcedureUserBindField)
+  #IF(NOT %FieldFile OR %FieldName)
+    #SET(%ValueConstruct,%ProcedureUserBindField)
+    #INSERT(%CleanDimensions)
+  #ENDIF
+#ENDFOR
+#FOR(%ProcedureAutoBindProcedures),WHERE(NOT %ProcedureAutoBindProcedureIgnore)
+  #SET(%ValueConstruct,%ProcedureAutoBindProcedure)
+  #INSERT(%CleanDimensions)
+#ENDFOR
+#FOR(%ProcedureUserBindProcedures)
+  #SET(%ValueConstruct,%ProcedureUserBindProcedure)
+  #INSERT(%CleanDimensions)
+#ENDFOR
+#!
+#GROUP(%ProcedureUserBindClean)
+#FOR(%ProcedureUserBindFields)
+  #IF(%ProcedureUserBindFieldIsUnique(%ProcedureUserBindField)=1)
+    #DELETE(%ProcedureUserBindFields)
+  #ENDIF
+#ENDFOR
+#FOR(%ProcedureUserBindProcedures)
+  #IF(%ProcedureUserBindProcedureIsUnique(%ProcedureUserBindProcedure)=1)
+    #DELETE(%ProcedureUserBindProcedures)
+  #ENDIF
+#ENDFOR
+#!
+#!
+#GROUP(%ProcedureUserBindFieldIsUnique,%pField,%pInstance=0)
+#FOR(%ProcedureAutoBindFields),WHERE(UPPER(%pField)=UPPER(%ProcedureAutoBindField))
+  #RETURN(1)
+#ENDFOR
+#IF(%pInstance>0)
+  #FOR(%ProcedureUserBindFields),WHERE(INSTANCE(%ProcedureUserBindFields)<>%pInstance AND UPPER(%pField)=UPPER(%ProcedureUserBindField))
+    #RETURN(1)
+  #ENDFOR
+#ENDIF
+#!
+#!
+#GROUP(%ProcedureUserBindProcedureIsUnique,%pProcedure,%pInstance=0)
+#FOR(%ProcedureAutoBindProcedures),WHERE(UPPER(%pProcedure)=UPPER(%ProcedureAutoBindProcedure))
+  #RETURN(1)
+#ENDFOR
+#IF(%pInstance>0)
+  #FOR(%ProcedureUserBindProcedures),WHERE(INSTANCE(%ProcedureUserBindProcedures)<>%pInstance AND UPPER(%pProcedure)=UPPER(%ProcedureUserBindProcedure))
+    #RETURN(1)
+  #ENDFOR
+#ENDIF
+#!
+#GROUP(%ProcedureAutoBindClean)
+#SET(%ProcedureAutoBindValidToAddField,%True)
+#FREE(%ProcedureAutoBindFieldsIgnored)
+#FREE(%ProcedureAutoBindProceduresIgnored)
+#! Save the ignored fields before clean the list
+#FOR(%ProcedureAutoBindFields),WHERE(%ProcedureAutoBindFieldIgnore)
+  #ADD(%ProcedureAutoBindFieldsIgnored,ITEMS(%ProcedureAutoBindFieldsIgnored)+1)
+  #SET(%ProcedureAutoBindFieldIgnored,%ProcedureAutoBindField)
+#ENDFOR
+#FOR(%ProcedureAutoBindProcedures),WHERE(%ProcedureAutoBindProcedureIgnore)
+  #ADD(%ProcedureAutoBindProceduresIgnored,ITEMS(%ProcedureAutoBindProceduresIgnored)+1)
+  #SET(%ProcedureAutoBindProcedureIgnored,%ProcedureAutoBindProcedure)
+#ENDFOR
+#FREE(%ProcedureAutoBindProcedures)
+#FREE(%ProcedureAutoBindFields)
+#EMBED(%AfterAutoBindClean),HIDE
+#!
+#!
+#GROUP(%ProcedureAutoBindShowWrongEmbed)
+#!
+#! If the functions on thise file are used to add a new
+#! field to the BIND list are used this message will show
+#! when the function is called in the wrong embed causing the field
+#! to not be added to the list.
+#! The info displayed by the error can be used to identify the ofending EMBED
+#! where the function is being called.
+#!
+#IF(NOT %ProcedureAutoBindValidToAddField)
+  #ERROR('Wrong embed for adding a field to the AutoBind: Template:'&%ActiveTemplate&' - Proc:'&%Procedure)
+  #ERROR('EmbedID:'&%EmbedID)
+  #ERROR('EmbedDescription:'&%EmbedDescription)
+  #ERROR('EmbedParameters:'&%EmbedParameters)
+#ENDIF
+#!
+#!
+#GROUP(%ProcedureBindParseText,%pText)
+#CALL(%ExtractFieldsToBindFromText,%pText)
+#CALL(%ProcedureUserBindClean)
+#!
+#GROUP(%ExtractFieldsToBindFromText,%pText),AUTO
+#!----------------------------------------------------------------------------
+#EQUATE(%lSepChars,' []=+-()*^%~''<<>/,<13><10><9>')
+#DECLARE(%lTextLen,LONG)
+#DECLARE(%lSepCharPos,LONG)
+#DECLARE(%lTokenStart,LONG)
+#DECLARE(%CurChar,LONG)
+#DECLARE(%Quoted,LONG)
+#!
+#SET(%lTextLen, LEN(CLIP(%pText)))
+#SET(%lSepCharPos,0)
+#SET(%lTokenStart,0)
+#SET(%Quoted, %False)
+#LOOP,WHILE(%lSepCharPos < %lTextLen)
+  #SET(%lSepCharPos, %lSepCharPos + 1)
+  #SET(%CurChar, VAL(SUB(%pText, %lSepCharPos, 1)))
+  #IF(%Quoted)
+    #IF(%CurChar = VAL(''''))
+      #IF(%lSepCharPos = %lTextLen)
+        #RETURN
+      #ENDIF
+      #SET(%CurChar, VAL(SUB(%pText, %lSepCharPos + 1, 1)))
+      #IF(%CurChar = VAL(''''))
+        #SET(%lSepCharPos, %lSepCharPos + 1)
+      #ELSE
+        #SET(%Quoted, %False)
+      #ENDIF
+    #ENDIF
+  #ELSIF(INSTRING (CHR(%CurChar), %lSepChars, 1, 1))
+    #IF(%lTokenStart <> 0)
+      #CALL(%AddTokenToList, SUB(%pText, %lTokenStart, %lSepCharPos - %lTokenStart))
+      #SET(%lTokenStart, 0)
+    #ENDIF
+    #IF(%CurChar = VAL(''''))
+      #SET(%Quoted, %True)
+    #ENDIF
+  #ELSIF(%CurChar = VAL('e') OR %CurChar = VAL('E') OR NOT NUMERIC(CHR(%CurChar)))
+    #IF(%lTokenStart = 0)
+      #SET(%lTokenStart, %lSepCharPos)
+    #ENDIF
+  #ENDIF
+#ENDLOOP
+#IF(%lTokenStart <> 0)
+  #CALL(%AddTokenToList, SUB(%pText, %lTokenStart, %lTextLen - %lTokenStart + 1))
+#ENDIF
+#!
+#!
+#!
+#!
+#GROUP(%AddFieldToBindToList,%pToken),AUTO
+#CALL(%ProcedureAutoBindShowWrongEmbed)
+#IF(CLIP(%pToken))
+  #IF(%ProcedureUserBindFieldIsUnique(%pToken)=0)
+    #ADD(%ProcedureAutoBindFields,ITEMS(%ProcedureAutoBindFields)+1)
+    #SET(%ProcedureAutoBindField,%pToken)
+    #IF(%ActiveTemplate)
+      #SET(%ProcedureAutoBindFieldTPL,%ActiveTemplate)
+    #ELSE
+      #SET(%ProcedureAutoBindFieldTPL,%ProcedureTemplate)
+    #ENDIF
+  #ENDIF
+#ENDIF
+#!
+#!
+#!
+#GROUP(%AddProcedureToBindToList,%pToken),AUTO
+#CALL(%ProcedureAutoBindShowWrongEmbed)
+#IF(CLIP(%pToken))
+  #IF(%ProcedureUserBindProcedureIsUnique(%pToken)=0)
+    #ADD(%ProcedureAutoBindProcedures,ITEMS(%ProcedureAutoBindProcedures)+1)
+    #SET(%ProcedureAutoBindProcedure,%pToken)
+    #IF(%ActiveTemplate)
+      #SET(%ProcedureAutoBindProcedureTPL,%ActiveTemplate)
+    #ELSE
+      #SET(%ProcedureAutoBindProcedureTPL,%ProcedureTemplate)
+    #ENDIF
+  #ENDIF
+#ENDIF
+#!
+#GROUP(%AddTokenToList,%pToken),AUTO
+#IF(CLIP(%pToken)='')
+  #RETURN
+#ENDIF
+#CASE(UPPER(CLIP(%pToken)))
+#OF('AND')
+#OROF('OR')
+#OROF('NOT')
+#OROF('XOR')
+#OROF('CHOOSE')
+  #RETURN
+#ENDCASE
+#IF(%ProcedureUserBindFieldIsUnique(%pToken)=1)
+  #RETURN
+#ENDIF
+#IF(%ProcedureUserBindProcedureIsUnique(%pToken)=1)
+  #RETURN
+#ENDIF
+#FIX(%LocalData,%pToken)
+#IF(UPPER(%LocalData)=UPPER(%pToken))
+  #CALL(%AddFieldToBindToList,%pToken)
+  #RETURN
+#ENDIF
+#FIX(%GlobalData,%pToken)
+#IF(UPPER(%GlobalData)=UPPER(%pToken))
+  #CALL(%AddFieldToBindToList,%pToken)
+  #RETURN
+#ENDIF
+#FOR(%OtherFiles)
+  #FIX(%File,%OtherFiles)
+  #FIX(%Field,%pToken)
+  #IF(UPPER(%Field)=UPPER(%pToken))
+    #CALL(%AddFieldToBindToList,%pToken)
+    #RETURN
+  #ENDIF
+#ENDFOR
+#FOR(%ActiveTemplate)
+  #FOR(%ActiveTemplateInstance)
+    #IF(NOT %Primary)
+      #CYCLE
+    #ENDIF
+    #FIX(%File,%Primary)
+    #FIX(%Field,%pToken)
+    #IF(UPPER(%Field)=UPPER(%pToken))
+      #CALL(%AddFieldToBindToList,%pToken)
+      #RETURN
+    #ENDIF
+    #FOR(%Secondary)
+      #FIX(%File,%Secondary)
+      #IF(UPPER(%Field)=UPPER(%pToken))
+        #CALL(%AddFieldToBindToList,%pToken)
+        #RETURN
+      #ENDIF
+    #ENDFOR
+  #ENDFOR
+#ENDFOR
+#FIX(%ProcedureCalled,%pToken)
+#IF(UPPER(%ProcedureCalled)=UPPER(%pToken))
+  #CALL(%AddProcedureToBindToList,%pToken)
+  #RETURN
+#ENDIF
+#IF(%SVIsAGlobalProcedure(%pToken))
+  #CALL(%AddProcedureToBindToList,%pToken)
+  #RETURN
+#ENDIF
+#DECLARE(%lSepPos)
+#SET(%lSepPos,INSTRING('.',%pToken,1,1))
+#IF(%lSepPos>0)
+  #CALL(%AddTokenFromEntityToList,SUB(%pToken,1,%lSepPos-1),SUB(%pToken,%lSepPos+1,LEN(%pToken)-%lSepPos))
+  #RETURN
+#ENDIF
+#SET(%lSepPos,INSTRING(':',%pToken,1,1))
+#IF(%lSepPos>0)
+  #CALL(%AddTokenWithPrefixToList,SUB(%pToken,1,%lSepPos-1),SUB(%pToken,%lSepPos+1,LEN(%pToken)-%lSepPos))
+  #RETURN
+#ENDIF
+#!
+#!
+#!
+#!
+#GROUP(%AddTokenWithPrefixToList,%pPrefix,%pToken),AUTO
+#IF(CLIP(%pToken)='')
+  #RETURN
+#ENDIF
+#DECLARE(%lFound)
+#SET(%lFound,0)
+#FOR(%LocalData),WHERE(UPPER(EXTRACT(%LocalDataStatement,'PRE',1))=UPPER(%pPrefix))
+  #SET(%lFound,1)
+#ENDFOR
+#IF(%lFound=1)
+  #IF(INLIST(%pToken,%LocalData))
+    #CALL(%AddFieldToBindToList,%pPrefix&':'&%pToken)
+    #RETURN
+  #ENDIF
+#ENDIF
+#FOR(%GlobalData),WHERE(UPPER(EXTRACT(%GlobalDataStatement,'PRE',1))=UPPER(%pPrefix))
+  #SET(%lFound,1)
+#ENDFOR
+#IF(%lFound=1)
+  #IF(INLIST(%pToken,%GlobalData))
+    #CALL(%AddFieldToBindToList,%pPrefix&':'&%pToken)
+    #RETURN
+  #ENDIF
+#ENDIF
+#!
+#!
+#GROUP(%AddTokenFromEntityToList,%pEntity,%pToken),AUTO
+#IF(CLIP(%pToken)='')
+  #RETURN
+#ENDIF
+#DECLARE(%lSepPos)
+#SET(%lSepPos,INSTRING('.',%pToken,1,1))
+#IF(%lSepPos>0)
+  #CALL(%AddTokenFromEntityToList,%pEntity,SUB(%pToken,%lSepPos+1,LEN(%pToken)-%lSepPos))
+  #RETURN
+#ENDIF
+#FOR(%OtherFiles),WHERE(UPPER(%pEntity)=UPPER(%OtherFiles))
+   #FIX(%File,%OtherFiles)
+   #IF(INLIST(%FilePrefix&':'&%pToken,%Field))
+     #CALL(%AddFieldToBindToList,%pEntity&'.'&%pToken)
+     #RETURN
+   #ENDIF
+#ENDFOR
+#FOR(%ActiveTemplate)
+  #FOR(%ActiveTemplateInstance)
+    #IF(NOT %Primary)
+      #CYCLE
+    #ENDIF
+    #FIX(%File,%Primary)
+    #IF(UPPER(%pEntity)=UPPER(%File))
+      #IF(INLIST(%FilePrefix&':'&%pToken,%Field))
+        #CALL(%AddFieldToBindToList,%pEntity&'.'&%pToken)
+      #ENDIF
+      #RETURN
+    #ENDIF
+    #FOR(%Secondary),WHERE(UPPER(%pEntity)=UPPER(%Secondary))
+      #FIX(%File,%Secondary)
+      #IF(INLIST(%FilePrefix&':'&%pToken,%Field))
+        #CALL(%AddFieldToBindToList,%pEntity&'.'&%pToken)
+      #ENDIF
+      #RETURN
+    #ENDFOR
+  #ENDFOR
+#ENDFOR
+#IF(INLIST(%pEntity,%LocalData) AND INLIST(%pToken,%LocalData))
+  #CALL(%AddFieldToBindToList,%pEntity&'.'&%pToken)
+  #RETURN
+#ENDIF
+#IF(INLIST(%pEntity,%GlobalData) AND INLIST(%pToken,%GlobalData))
+  #CALL(%AddFieldToBindToList,%pEntity&'.'&%pToken)
+  #RETURN
+#ENDIF
+#!
+#!
+#!
+#!

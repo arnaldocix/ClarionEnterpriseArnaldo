@@ -1,0 +1,519 @@
+#GROUP(%BrowseBoxExtendedGlobalOptionsPrompts)
+  #BOXED('Extended Browse Options')
+    #PROMPT('LIST/DROP/COMBO Line Height:',EDIT(32)),%GlobalInterLine,DEFAULT(0),WHENACCEPTED(%SVExpresionEditor(%GlobalInterLine)),AT(125,,60),PROMPTAT(10,,112)
+    #PROMPT('Enable Auto size BrowseBox Columns',CHECK),%GlobalEnableAutoSizeColumn,DEFAULT(0),AT(10)
+    #PROMPT('Enable List Format Manager',CHECK),%GlobalEnableListFormatManager,DEFAULT(0),AT(10)
+    #ENABLE(%GlobalEnableListFormatManager)
+      #BUTTON('List Format Manager Configuration'),AT(,,175),HLP('~TPLApplication_AppSettings_LFM.htm')
+        #PROMPT('UserId Field:',EDIT(256)),%GlobalUserFieldListFormatManager,DEFAULT('1'),WHENACCEPTED(%SVGlobalExpresionEditor(%GlobalUserFieldListFormatManager))
+        #DISPLAY('This can be a fixed value or a variable using the ! sign.')
+        #BOXED('Table to Store Settings')
+          #PROMPT('Table Origin:',DROP('Dictionary|Application')),%TableOrigin,DEFAULT('Application')
+          #ENABLE(%TableOrigin='Application')
+            #BUTTON('Table Configuration'),AT(,,175),HLP('~TPLApplication_AppSettings_LFM_Table_Configuration.htm')
+              #BOXED('File')
+                #PROMPT('Name:',@s100),%FileEquate,REQ,DEFAULT('LFM_CFile')
+                #VALIDATE(%IsFileEquateOk(%FileEquate,%WrongSymbol),'Undesired symbol "' & %WrongSymbol & '" is used in the File Equate!')
+                #PROMPT('Prefix:',@s10),%ConfigFilePRE,DEFAULT('CFG'),REQ
+                #BOXED('File Attributes')
+                  #PROMPT('OEM:',CHECK),%ConfigFileOEM,DEFAULT(%False)
+                  #PROMPT('Thread:',CHECK),%ConfigFileTHREAD,DEFAULT(%True)
+                  #PROMPT('Encrypt:',CHECK),%ConfigFileENCRYPT,DEFAULT(%False)
+                  #ENABLE(%ConfigFileENCRYPT),CLEAR
+                    #PROMPT('Password:',@s30),%ConfigFilePASSWORD,REQ
+                  #ENDENABLE
+                #ENDBOXED
+              #ENDBOXED
+              #BOXED('Record')
+                #PROMPT('Name Size:',SPIN(@n3,1,256,1)),%FormatNameSize,DEFAULT(30)
+                #PROMPT('Format Size:',SPIN(@n5,1,10240,8)),%FormatBufferSize,DEFAULT(5120)
+                #PROMPT('Variable Size:',SPIN(@n5,1,10240,8)),%VariableBufferSize,DEFAULT(2048)
+              #ENDBOXED
+              #BOXED('File Name')
+                #PROMPT('Path:',@s255),%ConfigFilePath,WHENACCEPTED(%SVAddLastSlashToPath(%ConfigFilePath))
+                #VALIDATE(~INSTRING('\\',%ConfigFilePath,1,1),'The Configuration File Path is Wrong!<13,10>Too Many Slashes!')
+                #VALIDATE(%SVCountOccurrences(%ConfigFilePath,':') < 2,'The Configuration File Path is Wrong!<13,10>Too Many Colons!')
+                #PROMPT('Name:',DROP('Default|Other')),%UseConfigFileName,DEFAULT('Default')
+                #ENABLE(%UseConfigFileName = 'Other'),CLEAR
+                  #PROMPT('Use Name:',@s255),%ConfigFileNAME,REQ,DEFAULT('Formats.FDB')
+                #ENDENABLE
+                #BOXED,HIDE
+                  #PROMPT('',@n3),%ColonCounter
+                  #PROMPT('',@s1),%WrongSymbol
+                #ENDBOXED
+              #ENDBOXED
+            #ENDBUTTON
+          #ENDENABLE
+          #ENABLE(%TableOrigin='Dictionary')
+            #PROMPT('Dictionary Table:',FILE),%DictionaryTableOrigin,REQ
+          #ENDENABLE
+          #BOXED,WHERE(%TableOrigin='Dictionary')
+            #DISPLAY('Remember to import the file definition into')
+            #DISPLAY('the dictionary.')
+            #DISPLAY('Opening and Closing of this table is')
+            #DISPLAY('managed by the ListBoxFormatManager.')
+          #ENDBOXED
+        #ENDBOXED
+        #PROMPT('SortOrder''s menu text:',@s255),%GlobalLFMSortOrderMenuText,DEFAULT('SortOrder')
+      #ENDBUTTON
+    #ENDENABLE
+  #ENDBOXED
+#GROUP(%BrowseBoxExtendedOptionsPrompts)
+  #ENABLE(%GlobalEnableAutoSizeColumn)
+    #PROMPT('Disable Auto Size BrowseBox Columns',CHECK),%DisableAutoSizeColumn,DEFAULT(0),AT(10)
+  #ENDENABLE
+  #ENABLE(%GlobalEnableListFormatManager)
+    #PROMPT('Disable List Format Manager',CHECK),%DisableListFormatManager,DEFAULT(0),AT(10)
+  #ENDENABLE
+  #ENABLE(%GlobalEnableListFormatManager AND NOT %DisableListFormatManager)
+    #BUTTON('List Format Manager'),AT(,,175),HLP('~TPLControlBrowseBox_Ext_LFM_Inter.htm')
+      #PROMPT('PopupMode:',DROP('Disable|Enable')),%ListFormatManagerAllowPopupInEmptyList,DEFAULT('Enable')
+      #ENABLE(%ListFormatManagerAllowPopupInEmptyList='Enable')
+        #BOXED('Format Editor Interface')
+          #PROMPT('Items Check Type:',DROP('Icon|Text')),%ListFormatManagerCheckType,DEFAULT('Icon')
+          #PROMPT('Items Sort By:',DROP('Code|Alpha')),%ListFormatManagerItemsSortBy,DEFAULT('Alpha')
+          #PROMPT('Tool Tip:',DROP('Disable|Enable')),%ListFormatManagerUseIdentificationTip,DEFAULT('Enable')
+          #BOXED,HIDE
+            #PROMPT('Save Location:',DROP('Disable|Enable')),%ListFormatManagerSaveWindowPosition,DEFAULT('Enable')
+          #ENDBOXED
+        #ENDBOXED
+      #ENDENABLE
+      #PROMPT('Different Format For Each SortOrder',CHECK),%ListFormatManagerSortOrder,DEFAULT(1),AT(10)
+      #ENABLE(%ListFormatManagerSortOrder)
+        #PROMPT('Append Sort Number to Menu item',CHECK),%ListFormatManagerMenuAppendSortOrder,DEFAULT(%True),AT(10)
+      #ENDENABLE
+      #PROMPT('Save Format on Session',CHECK),%ListFormatManagerSave,DEFAULT(1),AT(10)
+    #ENDBUTTON
+  #ENDENABLE
+  #BUTTON('&IPDRV Options'),AT(,,175),HLP('~TPLControlBrowseBox_Ext_IPDRV.htm')
+    #PROMPT('Use MRP (Multiple Request Packet)',CHECK),%UseMRP,AT(10),DEFAULT(%True)
+    #DISPLAY
+    #DISPLAY('If you have any file access commands in your embed code')
+    #DISPLAY('that are issued in the LOOP where the Browse code is filling')
+    #DISPLAY('the Listbox, set the "Use MRP" to FALSE')
+  #ENDBUTTON
+  #BOXED,HIDE
+    #BUTTON('&Additional actions via Popup'),MULTI(%AddPopUp,%AddPopUpChoice),AT(,,175),HLP('~TPLControlBrowseBox_Ext_Additional_Popup.htm')
+      #PROMPT('Action:',DROP('Accept Control|Hand Code|Call a Procedure')),%AddPopUpChoice,DEFAULT('Accept Control'),REQ
+      #BOXED('Control Accept'),WHERE(%AddPopUpChoice = 'Accept Control'),AT(,17)
+        #PROMPT('Control:',CONTROL),%AddPopUpControl,REQ
+      #ENDBOXED
+      #BOXED('Hand code'),WHERE(%AddPopUpChoice = 'Hand Code'),AT(,17)
+        #PROMPT('Hand code:',@s255),%AddPopUpAction,REQ
+      #ENDBOXED
+      #BOXED('Call a procedure'),WHERE(%AddPopUpChoice = 'Call a Procedure'),AT(,17)
+        #PROMPT('Procedure Name:',PROCEDURE),%AddPopUpProcedure,REQ,PROP(PROP:DropWidth,140)
+        #PROMPT('Initiate Thread',CHECK),%AddPopUpThreadProcedure,DEFAULT(0),AT(10)
+        #ENABLE(%AddPopUpThreadProcedure)
+          #PROMPT('Thread Stack:',SPIN(@n7,5000,64000,500)),%AddPopUpThreadStack,DEFAULT(25000)
+        #ENDENABLE
+      #ENDBOXED
+      #BOXED(''),WHERE(NOT(%AddPopUpChoice = 'Accept Control')),AT(,60)
+        #PROMPT('Item menu text:',@s32),%AddPopUpText
+        #PROMPT('Icon:',ICON),%AddPopUpIcon
+      #ENDBOXED
+      #BOXED(''),WHERE(%AddPopUpChoice = 'Accept Control'),AT(,60)
+        #PROMPT('Icon for the Popup-menu:',DROP('As on Control|Other|No icon')),%TypeAddPopupIcon,DEFAULT('As on Control')
+        #ENABLE(%TypeAddPopupIcon = 'Other'),CLEAR
+          #PROMPT('Icon:',ICON),%OtherPopupIcon,REQ
+        #ENDENABLE
+      #ENDBOXED
+      #PROMPT('Condition not activity:',@s120),%AddPopUpDisable
+      #PROMPT('Separator before item of the menu',CHECK),%AddPopUpSeparate,AT(10)
+    #ENDBUTTON
+  #ENDBOXED
+#!-------------------------------------------------------------  
+#GROUP(%IsFileEquateOk,%ParamFile,*%WrongSymbol),AUTO
+  #DECLARE(%LoopIndex)
+  #EQUATE(%IsOK,%True)
+  #DECLARE(%WrongSymbols)
+  #SET(%WrongSymbols,'~?!@#$&*()-=+,./<>"%[]:;}')
+  #EQUATE(%WrongSymbolPos,%False)
+  #LOOP,FOR(%LoopIndex,1,LEN(%ParamFile))
+    #SET(%WrongSymbolPos,INSTRING(SUB(%ParamFile,%LoopIndex,1),%WrongSymbols,1,1))
+    #IF(%WrongSymbolPos)
+      #SET(%WrongSymbol,SUB(%WrongSymbols,%WrongSymbolPos,1))
+      #SET(%IsOK,%False)
+      #BREAK
+    #ENDIF
+  #ENDLOOP
+  #RETURN(%IsOK)
+#!-------------------------------------------------------------  
+#! Autosize code
+#!
+#GROUP(%AutoSizeModuleIncludeList)
+#IF(NOT(%GlobalEnableAutoSizeColumn AND NOT %DisableAutoSizeColumn))
+    #RETURN
+#ENDIF
+#ADD(%ModuleIncludeList,'BRWEXT.INC')
+#GROUP(%AutoSizeData,%pBrowseName)
+#IF(NOT(%GlobalEnableAutoSizeColumn AND NOT %DisableAutoSizeColumn))
+    #RETURN
+#ENDIF
+%pBrowseName::AutoSizeColumn CLASS(AutoSizeColumnClassType)
+               END
+#GROUP(%AutoSizeTakeEvent,%pBrowseName,%pABC=0)
+#IF(NOT(%GlobalEnableAutoSizeColumn AND NOT %DisableAutoSizeColumn))
+    #RETURN
+#ENDIF
+IF %pBrowseName::AutoSizeColumn.TakeEvents()
+   #IF(%pABC)
+   RETURN Level:Notify
+   #ELSE
+   CYCLE
+   #ENDIF
+END
+#GROUP(%AutoSizeInit,%pBrowseName,%pBrowseControl,%pBrowseQueue)
+#IF(NOT(%GlobalEnableAutoSizeColumn AND NOT %DisableAutoSizeColumn))
+    #RETURN
+#ENDIF
+%pBrowseName::AutoSizeColumn.Init()
+%pBrowseName::AutoSizeColumn.AddListBox(%pBrowseControl,%pBrowseQueue)
+#GROUP(%AutoSizeKill,%pBrowseName)
+#IF(NOT(%GlobalEnableAutoSizeColumn AND NOT %DisableAutoSizeColumn))
+    #RETURN
+#ENDIF
+%pBrowseName::AutoSizeColumn.Kill()
+#!-------------------------------------------------------------
+#! ListBox Format Manager
+#!-------------------------------------------------------------
+#GROUP(%FormatManagerGlobalDataDCT)
+  #IF(NOT (%GlobalEnableListFormatManager AND %TableOrigin='Dictionary'))
+    #RETURN
+  #ENDIF
+#ADD(%UsedFile,%DictionaryTableOrigin)
+#GROUP(%FormatManagerGlobalData),AUTO
+  #IF(NOT (%GlobalEnableListFormatManager AND %TableOrigin='Application'))
+    #RETURN
+  #ENDIF
+  #COMMENT(60)
+  #DECLARE(%TempConstructor)
+  #EQUATE(%UsedFileName,%False)
+  #EQUATE(%FileDeclaration,%False)
+  #SET(%FileDeclaration,'FILE,PRE(' & %ConfigFilePRE & '),CREATE,DRIVER(''' & 'TopSpeed' & ''')')
+  #IF(%ConfigFilePASSWORD)
+    #IF(SUB(%ConfigFilePASSWORD,1,1) = '!')
+      #SET(%FileDeclaration,%FileDeclaration & ',OWNER(' & SUB(%ConfigFilePASSWORD,2,LEN(%ConfigFilePASSWORD)) & '),ENCRYPT')
+    #ELSE
+      #SET(%FileDeclaration,%FileDeclaration & ',OWNER(''' & %ConfigFilePASSWORD & '''),ENCRYPT')
+    #ENDIF
+  #ENDIF
+  #IF(%ConfigFileOEM)
+    #SET(%FileDeclaration,%FileDeclaration & ',OEM')
+  #ENDIF
+  #IF(%ConfigFileTHREAD)
+    #SET(%FileDeclaration,%FileDeclaration & ',THREAD')
+  #ENDIF
+  #IF(%UseConfigFileName = 'Default')
+    #SET(%UsedFileName,'Formats.FDB')
+  #ELSE
+    #SET(%UsedFileName,%ConfigFileNAME)
+  #ENDIF
+  #IF(%ConfigFilePath)
+    #SET(%UsedFileName,%ConfigFilePath & %UsedFileName)
+  #ENDIF
+  #SET(%FileDeclaration,%FileDeclaration & ',NAME(''' & %UsedFileName & ''')')
+
+!// List Format Manager declaration -------------------------------------START-
+
+  #SET(%TempConstructor,%FileEquate)
+%[20]TempConstructor %FileDeclaration
+  #SET(%TempConstructor,'key_Main')
+%[22]TempConstructor KEY(+%ConfigFilePRE:AppName,+%ConfigFilePRE:ProcId,+%ConfigFilePRE:UserId,+%ConfigFilePRE:CtrlId,+%ConfigFilePRE:FormatId),OPT,NOCASE
+  #SET(%TempConstructor,'Record')
+%[22]TempConstructor RECORD,PRE()
+  #SET(%TempConstructor,'AppName')
+%[24]TempConstructor STRING(30)                   #<! Procedure identifier
+  #SET(%TempConstructor,'ProcId')
+%[24]TempConstructor STRING(30)                   #<! Procedure identifier
+  #SET(%TempConstructor,'UserId')
+%[24]TempConstructor SHORT                        #<! User identifier
+  #SET(%TempConstructor,'CtrlId')
+%[24]TempConstructor SHORT                        #<! Control identifier
+  #SET(%TempConstructor,'FormatId')
+%[24]TempConstructor SHORT                        #<! Format identifier
+  #SET(%TempConstructor,'FormatName')
+%[24]TempConstructor STRING(%FormatNameSize)      #<! Format name
+  #SET(%TempConstructor,'Flag')
+%[24]TempConstructor BYTE                         #<! Default/current flag
+  #SET(%TempConstructor,'Format')
+%[24]TempConstructor STRING(%FormatBufferSize)      #<! Format buffer
+  #SET(%TempConstructor,'VarLine')
+%[24]TempConstructor STRING(%VariableBufferSize)    #<! Variable buffer
+  #SET(%TempConstructor,'')
+%[22]TempConstructor END
+  #SET(%TempConstructor,'')
+%[20]TempConstructor END
+
+!// List Format Manager declaration ---------------------------------------END-
+#!-----------------------------------------------------------------------------
+#GROUP(%FormatManagerAddDriver)
+  #IF(NOT (%GlobalEnableListFormatManager AND %TableOrigin='Application'))
+    #RETURN
+  #ENDIF
+    #FIX(%Driver,'TOPSPEED')
+    #IF(%Driver <> 'TOPSPEED')
+        #ERROR('TopSpeed file driver MUST be registered, used by ListFormatManager')
+        #ABORT
+    #END
+    #PROJECT(%DriverLIB)
+#!-----------------------------------------------------------------------------
+#GROUP(%FormatManagerIncludeIcons)
+  #IF(NOT (%GlobalEnableListFormatManager AND NOT %DisableListFormatManager))
+    #RETURN
+  #ENDIF
+  #IF(%ListFormatManagerCheckType)
+    #PROJECT('CheckOn.ICO')
+    #PROJECT('CheckOff.ICO')
+    #PROJECT('CheckOnDim.ICO')
+    #PROJECT('CheckOffDim.ICO')
+  #ENDIF
+  #!PROJECT('LFM.ICO')
+#!-----------------------------------------------------------------------------
+#GROUP(%FormatManagerModuleIncludeList)
+  #IF(NOT (%GlobalEnableListFormatManager AND NOT %DisableListFormatManager))
+    #RETURN
+  #ENDIF
+  #ADD(%ModuleIncludeList,'BRWEXT.INC')
+#!
+#GROUP(%FormatManagerDeclaration,%pBrowseName),AUTO
+  #IF(NOT (%GlobalEnableListFormatManager AND NOT %DisableListFormatManager))
+    #RETURN
+  #ENDIF
+  #COMMENT(51)
+  #DECLARE(%TempConstructor)
+  #MESSAGE('List Format Manager Declarations',3)
+  #EQUATE(%AttrTHREAD,%False)
+#!----------------------------------------------------Local data declaration---
+    #FIX(%Control,%ListControl)
+          #SET(%TempConstructor,%pBrowseName & '::FormatManager')
+          #IF(%ConfigFileTHREAD)
+            #SET(%AttrTHREAD,',THREAD')
+          #ENDIF
+%[20]TempConstructor ListFormatManagerClass%AttrTHREAD       #<! LFM object
+          #SET(%TempConstructor,%pBrowseName & '::PopupTextExt')
+%[20]TempConstructor STRING(1024)               #<! Extended popup text
+          #SET(%TempConstructor,%pBrowseName & '::PopupChoice')
+%[20]TempConstructor SIGNED                     #<! Popup current choice
+          #SET(%TempConstructor,%pBrowseName & '::PopupChoiceOn')
+%[20]TempConstructor BYTE(1)                    #<! Popup on/off choice
+          #SET(%TempConstructor,%pBrowseName & '::PopupChoiceExec')
+%[20]TempConstructor BYTE(0)                    #<! Popup executed
+#!
+#!-----------------------------------------------------------------------------
+#GROUP(%FormatManagerKill,%pBrowseName)
+  #IF(NOT (%GlobalEnableListFormatManager AND NOT %DisableListFormatManager))
+    #RETURN
+  #ENDIF
+  #COMMENT(60)
+! List Format Manager destructor
+%pBrowseName::FormatManager.Kill() 
+#!-----------------------------------------------------------------------------
+#GROUP(%FormatManagerInit,%pBrowseName),AUTO
+  #IF(NOT (%GlobalEnableListFormatManager AND NOT %DisableListFormatManager))
+    #RETURN
+  #ENDIF
+  #IF(%ListFormatManagerSave)
+%pBrowseName::FormatManager.SaveFormat = True
+  #ENDIF
+  #DECLARE(%TempConstructor)
+  #DECLARE(%ProcedureInstance)
+  #DECLARE(%ListControlNumber)
+  #MESSAGE('List Format Manager Initialization',3)
+#!-----------------------------------------------------Object initialization---
+    #FIX(%Control,%ListControl)
+          #SET(%TempConstructor,%False)
+          #IF(%ListFormatManagerUseIdentificationTip = 'Disable')
+            #SET(%TempConstructor,',FALSE')
+          #ENDIF
+! List Format Manager initialization
+          #SET(%ProcedureInstance,''''&%Procedure&'''')
+          #SET(%ListControlNumber,%ActiveTemplateInstance)
+#!---------------------------------------------Count quantity of queue field---
+          #DECLARE(%FieldCounter,LONG)
+          #SET(%FieldCounter,0)
+          #FOR(%ControlField)
+            #SET(%FieldCounter,%FieldCounter + 1)
+            #IF(%ControlFieldHasIcon)
+              #SET(%FieldCounter,%FieldCounter + 1)
+            #ENDIF
+            #IF(%ControlFieldHasColor)
+              #SET(%FieldCounter,%FieldCounter + 4)
+            #ENDIF
+            #IF(%ControlFieldHasStyle)
+              #SET(%FieldCounter,%FieldCounter + 1)
+            #ENDIF
+            #IF(%ControlHasTip)
+              #SET(%FieldCounter,%FieldCounter + 1)
+            #ENDIF         
+            #IF(%ControlHasTree)
+              #SET(%FieldCounter,%FieldCounter + 1)
+            #ENDIF         
+          #ENDFOR
+          #IF(%TableOrigin='Application')
+%pBrowseName::FormatManager.Init('%'Application',%ProcedureInstance,%GlobalUserFieldListFormatManager,%ListControl,%ListControlNumber,%InstancePrefix:PopupTextExt,%ControlFrom,%FieldCounter,%FileEquate,%FileEquate.Record%TempConstructor)
+          #ELSE
+%pBrowseName::FormatManager.Init('%'Application',%ProcedureInstance,%GlobalUserFieldListFormatManager,%ListControl,%ListControlNumber,%InstancePrefix:PopupTextExt,%ControlFrom,%FieldCounter,%DictionaryTableOrigin,%DictionaryTableOrigin.Record%TempConstructor)
+          #ENDIF
+          #SET(%TempConstructor,%False)
+#!---------------------------------------------Use text for state checkboxes---
+          #IF(%ListFormatManagerCheckType = 'Text')
+            #SET(%TempConstructor,'CHECK_TEXT')
+          #ENDIF
+#!----------------------------------------------------------Use sort by code---
+          #IF(%ListFormatManagerItemsSortBy = 'Code')
+            #IF(%TempConstructor)
+              #SET(%TempConstructor,%TempConstructor & ',SORT_CODE')
+            #ELSE
+              #SET(%TempConstructor,',SORT_CODE')
+            #ENDIF
+          #ENDIF
+          #IF(%ListFormatManagerSaveWindowPosition = 'Disable')
+            #IF(%TempConstructor)
+#!----------------------------------------------------------Use sort by name---
+              #IF(%ListFormatManagerItemsSortBy = 'Text')
+                #SET(%TempConstructor,%TempConstructor & ',,FALSE')
+              #ELSE
+                #SET(%TempConstructor,%TempConstructor & ',FALSE')
+              #ENDIF
+            #ELSE
+              #SET(%TempConstructor,',,FALSE')
+            #ENDIF
+          #END
+          #CONTEXT(%Application)
+            #IF(%ListFormatManagerSaveWindowPosition = 'Enable')
+              #IF(%TempConstructor)
+                #IF(INSTRING('FALSE',%TempConstructor,1,1))
+                  #SET(%TempConstructor,%TempConstructor & ',''' & %INIFileName & '''')
+                #ELSIF(INSTRING('SORT_CODE',%TempConstructor,1,1))
+                  #SET(%TempConstructor,%TempConstructor & ',,''' & %INIFileName & '''')
+                #ELSE
+                  #SET(%TempConstructor,%TempConstructor & ',,,''' & %INIFileName & '''')
+                #ENDIF
+              #ELSE
+                #SET(%TempConstructor,%TempConstructor & ',,,''' & %INIFileName & '''')
+              #ENDIF
+            #ENDIF
+          #ENDCONTEXT
+          #IF(%TempConstructor)
+%pBrowseName::FormatManager.BindInterface(%TempConstructor)
+          #ENDIF
+#!-----------------------------------------------------------------------------
+#GROUP(%FormatManagerPopupABCBefore,%pBrowseName)
+  #IF(NOT (%GlobalEnableListFormatManager AND NOT %DisableListFormatManager AND %ListFormatManagerAllowPopupInEmptyList='Enable'))
+    #RETURN
+  #ENDIF
+  #FIX(%Control,%ListControl)
+IF %InstancePrefix:PopupChoiceOn THEN
+   IF KEYCODE() = MouseRightUp
+      %pBrowseName::PopupTextExt = ''
+      %InstancePrefix:PopupChoiceExec = True
+      %pBrowseName::FormatManager.MakePopup(%pBrowseName::PopupTextExt)
+      IF SELF.Popup.GetItems() THEN
+         %pBrowseName::PopupTextExt = '|-|' & CLIP(%pBrowseName::PopupTextExt)
+      END
+      %pBrowseName::FormatManager.SetPopupChoice(SELF.Popup.GetItems(True)+1,0)
+      SELF.Popup.AddMenu(CLIP(%pBrowseName::PopupTextExt),SELF.Popup.GetItems()+1)
+      %pBrowseName::FormatManager.SetPopupChoice(,SELF.Popup.GetItems(True))
+   ELSE
+      %InstancePrefix:PopupChoiceExec = False
+   END
+END
+#GROUP(%FormatManagerPopupABCAfter,%pBrowseName)
+  #IF(NOT (%GlobalEnableListFormatManager AND NOT %DisableListFormatManager AND %ListFormatManagerAllowPopupInEmptyList='Enable'))
+    #RETURN
+  #ENDIF
+  #FIX(%Control,%ListControl)
+IF %InstancePrefix:PopupChoiceOn AND %InstancePrefix:PopupChoiceExec THEN
+   %InstancePrefix:PopupChoiceExec = False
+   %InstancePrefix:PopupChoice = SELF.Popup.GetLastNumberSelection()
+   SELF.Popup.DeleteMenu(%pBrowseName::PopupTextExt)
+   #EMBED(%ListFormatManagerPopupRecordsBeforeDispatchChoice,'Browse Box LFM Popup Before DispatchChoice'),%ActiveTemplateInstance,HIDE
+   IF %pBrowseName::FormatManager.DispatchChoice(%InstancePrefix:PopupChoice)
+      #EMBED(%ListFormatManagerPopupRecordsSelected,'Browse Box LFM Popup Selected'),%ActiveTemplateInstance,HIDE
+   ELSE
+      #EMBED(%ListFormatManagerPopupRecordsSelectedElse,'Browse Box LFM Popup Selected Else'),%ActiveTemplateInstance,HIDE
+   END
+END
+#GROUP(%FormatManagerPopupRecords,%pBrowseName)
+  #IF(NOT (%GlobalEnableListFormatManager AND NOT %DisableListFormatManager AND %ListFormatManagerAllowPopupInEmptyList='Enable'))
+    #RETURN
+  #ENDIF
+  #FIX(%Control,%ListControl)
+! Process List Format Manager (there are records in the list)
+IF %InstancePrefix:PopupChoiceOn THEN
+   %pBrowseName::PopupTextExt = %pBrowseName::PopupText
+   #!-----------------Is other templates? (connection with other 3rd templates)---
+   #!    #IF(%PopupVariable)
+   #!%pBrowseName::PopupTextExt = CLIP(%pBrowseName::PopupTextExt) & %PopupVariable
+   #!    #ENDIF
+   %pBrowseName::FormatManager.MakePopup(%pBrowseName::PopupTextExt)
+   %pBrowseName::PopupChoice = POPUP(CLIP(%pBrowseName::PopupTextExt))
+   EXECUTE(%InstancePrefix:PopupChoice)            
+       #FOR(%ActiveTemplate),WHERE(%ActiveTemplate = 'BrowseBox(Clarion)')
+         #FOR(%ActiveTemplateInstance),WHERE(%ActiveTemplateInstance = %ControlInstance)
+           #CONTEXT(%Procedure,%ActiveTemplateInstance)
+     #EMBED(%BrowseBoxEditPopupHandling,'Browse Box Edit Popup Handling'),%ActiveTemplateInstance,HIDE
+     #EMBED(%BrowseBoxSelectPopupHandling,'Browse Box Select Popup Handling'),%ActiveTemplateInstance,HIDE
+           #ENDCONTEXT
+         #ENDFOR
+       #ENDFOR
+   ELSE
+     #EMBED(%ListFormatManagerPopupRecordsBeforeDispatchChoice,'Browse Box LFM Popup Before DispatchChoice'),%ActiveTemplateInstance,HIDE
+     IF %InstancePrefix:FormatManager.DispatchChoice(%InstancePrefix:PopupChoice)
+        #EMBED(%ListFormatManagerPopupRecordsSelected,'Browse Box LFM Popup Selected'),%ActiveTemplateInstance,HIDE
+     ELSE
+        #EMBED(%ListFormatManagerPopupRecordsSelectedElse,'Browse Box LFM Popup Selected Else'),%ActiveTemplateInstance,HIDE
+     END
+   END
+END
+#EMBED(%BeforeExitListFormatManagerPopupRecords,'Before EXIT from List Format Manager code with records'),%Control
+EXIT
+#EMBED(%AfterExitListFormatManagerPopupRecords,'After EXIT from List Format Manager code with records'),%Control
+#!---------------------------------------------------------------
+#GROUP(%FormatManagerSortOrder,%pBrowseName)
+  #IF(NOT (%GlobalEnableListFormatManager AND NOT %DisableListFormatManager AND %ListFormatManagerSortOrder))
+    #RETURN
+  #ENDIF
+IF %pBrowseName::SortOrder <> %pBrowseName::LastSortOrder THEN
+   #EMBED(%ListFormatManagerBeforeSetSortOrderFormat,'Before Set SortOrder Format'),%Control
+   #IF(%ListFormatManagerMenuAppendSortOrder)
+   %pBrowseName::FormatManager.SetCurrentFormat(CHOOSE(%pBrowseName::SortOrder>%(ITEMS(%SortOrder)),2,%pBrowseName::SortOrder+2),%(%StripPling(%GlobalLFMSortOrderMenuText))&CHOOSE(%pBrowseName::SortOrder>%(ITEMS(%SortOrder)),1,%pBrowseName::SortOrder+1))
+   #ELSE
+   %pBrowseName::FormatManager.SetCurrentFormat(CHOOSE(%pBrowseName::SortOrder>%(ITEMS(%SortOrder)),2,%pBrowseName::SortOrder+2),%(%StripPling(%GlobalLFMSortOrderMenuText)))
+   #ENDIF
+   #EMBED(%ListFormatManagerAfterSetSortOrderFormat,'After Set SortOrder Format'),%Control
+END
+#!---------------------------------------------------------------
+#GROUP(%FormatManagerSortOrderABC,%pBrowseName)
+  #IF(NOT (%GlobalEnableListFormatManager AND NOT %DisableListFormatManager AND %ListFormatManagerSortOrder))
+    #RETURN
+  #ENDIF
+IF %pBrowseName::LastSortOrder <> NewOrder THEN
+   #EMBED(%ListFormatManagerBeforeSetSortOrderFormat,'Before Set SortOrder Format'),%Control
+   #IF(%ListFormatManagerMenuAppendSortOrder)
+   %pBrowseName::FormatManager.SetCurrentFormat(CHOOSE(NewOrder>%(ITEMS(%SortOrder)),2,NewOrder+2),%(%StripPling(%GlobalLFMSortOrderMenuText))&CHOOSE(NewOrder>%(ITEMS(%SortOrder)),1,NewOrder+1))
+   #ELSE
+   %pBrowseName::FormatManager.SetCurrentFormat(CHOOSE(NewOrder>%(ITEMS(%SortOrder)),2,NewOrder+2),%(%StripPling(%GlobalLFMSortOrderMenuText)))
+   #ENDIF
+   #EMBED(%ListFormatManagerAfterSetSortOrderFormat,'After Set SortOrder Format'),%Control
+END
+#!---------------------------------------------------------------
+#GROUP(%ControlHasAutoFieldNumber),AUTO
+#DECLARE(%lColumnsAuto)
+#SET(%lColumnsAuto,0)
+#FIND(%ControlInstance,%ActiveTemplateInstance,%Control)
+#IF(%Control)
+   #FOR(%ControlField)
+      #SET(%lColumnsAuto,%lColumnsAuto+1)
+      #IF(SUB(%ControlFieldFormat,LEN(%ControlFieldFormat),1)='#')
+          #SET(%lColumnsAuto,%lColumnsAuto-1)
+      #ENDIF
+   #ENDFOR
+#ENDIF
+#IF(%lColumnsAuto>0)
+   #RETURN(%True)
+#ELSE
+   #RETURN(%False)
+#ENDIF
+#!
